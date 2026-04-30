@@ -86,6 +86,18 @@ body::before {
 .day-weekday.weekday { background: #f0f0f0; color: #555; }
 .day-holiday { font-size: 0.68rem; padding: 0.15rem 0.45rem; border-radius: 3px; background: #fff3e0; color: #d35400; white-space: nowrap; margin-left: 0.25rem; }
 
+/* AI Section */
+.ai-section { margin-bottom: 1rem; padding: 0.6rem 0.8rem; background: #faf6fa; border: 1px solid #e8dce8; border-radius: 6px; display: flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; }
+.ai-section .ai-label { color: #7b4f9d; font-weight: 500; white-space: nowrap; }
+.ai-section input { flex: 1; border: 1px solid #e0d4e0; border-radius: 4px; padding: 0.3rem 0.5rem; font-size: 0.78rem; font-family: inherit; }
+.ai-section input:focus { outline: none; border-color: #9b6fb0; }
+.ai-section .ai-save { padding: 0.3rem 0.7rem; border-radius: 4px; border: none; background: #7b4f9d; color: #fff; cursor: pointer; font-size: 0.75rem; font-family: inherit; }
+.ai-section .ai-save:hover { background: #6a3d8a; }
+.ai-section .ai-status { font-size: 0.7rem; white-space: nowrap; }
+.ai-expand { font-size: 0.73rem; padding: 0.25rem 0.55rem; border-radius: 4px; border: 1px solid #9b6fb0; background: #faf6fa; color: #7b4f9d; cursor: pointer; font-family: inherit; margin-left: auto; }
+.ai-expand:hover { background: #7b4f9d; color: #fff; }
+.ai-expand.spinning { opacity: 0.7; pointer-events: none; }
+
 /* Customer branding */
 .customer-brand { margin-bottom: 1.5rem; }
 .customer-brand label { font-size: 0.78rem; color: var(--gray); display: block; margin-bottom: 0.3rem; }
@@ -276,6 +288,14 @@ body::before {
             <input type="text" id="tourNumber" placeholder="ツアー番号 / Tour Number" oninput="updatePreview()">
         </div>
 
+        <!-- AI API Key -->
+        <div class="ai-section" id="aiSection">
+            <span class="ai-label">🤖 AI 扩写</span>
+            <input type="password" id="aiApiKey" placeholder="DeepSeek API Key (sk-...)">
+            <button class="ai-save" onclick="saveApiKey()">保存</button>
+            <span class="ai-status" id="aiStatus"></span>
+        </div>
+
         <!-- Customer Branding -->
         <div class="customer-brand">
             <input type="text" id="clientName" placeholder="客户公司名 / Client Company Name" oninput="updatePreview()">
@@ -324,6 +344,91 @@ const langLabels = {
 
 function t(key) { return (langLabels[key] || {})[currentLanguage] || key; }
 
+// === AI Key Management ===
+let aiApiKey = localStorage.getItem('kinoko_ds_key') || '';
+function saveApiKey() {
+    aiApiKey = document.getElementById('aiApiKey').value.trim();
+    if (aiApiKey) {
+        localStorage.setItem('kinoko_ds_key', aiApiKey);
+        document.getElementById('aiStatus').textContent = '✅';
+        document.getElementById('aiStatus').style.color = '#2e7d32';
+    } else {
+        localStorage.removeItem('kinoko_ds_key');
+        document.getElementById('aiStatus').textContent = '';
+    }
+}
+function loadApiKey() {
+    if (aiApiKey) {
+        document.getElementById('aiApiKey').value = aiApiKey;
+        document.getElementById('aiStatus').textContent = '✅';
+        document.getElementById('aiStatus').style.color = '#2e7d32';
+    }
+}
+
+// === AI Expand ===
+async function aiExpandDay(idx) {
+    if (!aiApiKey) { alert('请先填写 DeepSeek API Key'); document.getElementById('aiApiKey').focus(); return; }
+    const day = days[idx];
+    const framework = (day._activeTab === 'notes' ? day.notes : day.text) || '';
+    if (!framework.trim()) { alert('当前页面没有内容，请先输入行程框架'); return; }
+
+    // Show loading
+    const cards = document.querySelectorAll('.day-card');
+    const btn = cards[idx]?.querySelector('.ai-expand');
+    if (btn) { btn.textContent = '⏳ 生成中...'; btn.classList.add('spinning'); }
+
+    try {
+        const prompt = `你是 Kinoko Club Concierge 的高端定制旅行撰稿人。请将以下行程框架扩展为完整、优美、专业的行程叙述。
+
+要求：
+- 用中文输出
+- 保留原框架的所有项目
+- 扩展每个项目为完整的叙述段落，包含背景介绍、体验亮点、时间安排
+- 语气：精致克制，日式美学，高端但不浮夸
+- 最后附一个"内部备注"区块，包含需要提前确认的事项
+
+行程框架：
+${framework}`;
+
+        const resp = await fetch('https://api.deepseek.com/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${aiApiKey}` },
+            body: JSON.stringify({
+                model: 'deepseek-chat',
+                messages: [{ role: 'user', content: prompt }],
+                temperature: 0.7,
+                max_tokens: 4096
+            })
+        });
+
+        if (!resp.ok) { throw new Error(`API error: ${resp.status}`); }
+        const data = await resp.json();
+        const result = data.choices?.[0]?.message?.content || '';
+
+        if (!result) { throw new Error('空响应'); }
+
+        // Split result into client text and notes
+        const noteMatch = result.match(/内部备注[：:]\s*\n?([\s\S]*)/i);
+        let clientText = result;
+        let notesText = '';
+        if (noteMatch) {
+            clientText = result.substring(0, result.indexOf(noteMatch[0])).trim();
+            notesText = noteMatch[1].trim();
+        }
+
+        days[idx].text = clientText;
+        days[idx].notes = notesText;
+        days[idx]._activeTab = 'client';
+        renderEditor();
+        updatePreview();
+
+        if (btn) { btn.textContent = '✨ 扩写'; btn.classList.remove('spinning'); }
+    } catch (e) {
+        alert('AI 扩写失败: ' + e.message);
+        if (btn) { btn.textContent = '✨ 扩写'; btn.classList.remove('spinning'); }
+    }
+}
+
 // === Day Management ===
 function addDay(text='', notes='', date='', city='') {
     days.push({ text, notes, date, city });
@@ -356,6 +461,7 @@ function renderEditor() {
                 <input type="date" class="day-date" value="${esc(d.date)}" oninput="updateDay(${i},'date',this.value)">
                 ${wi.html}
                 <input class="day-city" placeholder="${t('city')}" value="${esc(d.city)}" oninput="updateDay(${i},'city',this.value)">
+                <button class="ai-expand" onclick="aiExpandDay(${i})" title="AI 扩写">✨ 扩写</button>
                 <button class="day-delete" onclick="deleteDay(${i})" title="删除">✕</button>
             </div>
             <div class="day-tabs">
@@ -591,6 +697,7 @@ function getWeekdayInfo(dateStr) {
 
 // === Init ===
 function init() {
+    loadApiKey();
     // Add some sample days from Mio's example
     addDay(
 `-抵达东京机场，专车专导接机
