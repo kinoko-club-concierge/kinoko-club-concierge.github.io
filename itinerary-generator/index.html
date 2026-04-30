@@ -1337,7 +1337,7 @@ function updatePreview() {
     if (tripInfo.kidsCount) paxParts.push('儿童' + tripInfo.kidsCount + '名');
     if (tripInfo.kidsAge) paxParts[paxParts.length-1] += ' ' + tripInfo.kidsAge;
     const infoHTML = `
-        <div style="text-align:center;font-size:0.82rem;color:var(--gray);margin-bottom:1rem;">
+        <div style="text-align:center;font-size:0.82rem;color:var(--gray);margin-bottom:1rem;padding-top:4rem;">
             <div style="margin-top:0.2rem;">${tourNum ? 'KNO-' + tourNum : 'KNO-ツアー番号'}</div>
             <div style="margin-top:0.2rem;">${tripInfo.brief || '行程简介'}</div>
             <div style="font-size:0.75rem;margin-top:0.2rem;">${paxParts.length ? paxParts.join(' · ') : '出行人数'}</div>
