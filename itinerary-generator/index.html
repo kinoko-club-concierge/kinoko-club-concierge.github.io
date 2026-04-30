@@ -17,7 +17,7 @@
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
-    font-family: 'Noto Serif JP', 'Source Han Serif SC', 'Hiragino Mincho ProN', Georgia, serif;
+    font-family: 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', 'Noto Serif JP', 'Source Han Serif SC', 'Hiragino Mincho ProN', Georgia, serif;
     background: var(--cream);
     color: var(--dark);
     min-height: 100vh;
@@ -61,16 +61,25 @@ body::before {
     background: #fff;
     color: var(--dark);
 }
+.btn-sm {
+    padding: 0.35rem 0.55rem; font-size: 0.75rem;
+    border: 1px solid var(--border); border-radius: 6px;
+    background: #fff; color: var(--dark); cursor: pointer;
+    font-family: inherit;
+}
+.btn-sm:hover { background: #f5f3ea; }
+.header-sep { width: 1px; height: 24px; background: var(--border); display: inline-block; }
 .btn { border: none; color: #fff; font-weight: 500; }
 .btn-gold { background: var(--gold); }
 .btn-gold:hover { background: #7a5a10; }
-.btn-outline { background: none; border: 1px solid var(--border); color: var(--dark); }
+.btn-outline { background: #fff; border: 1px solid var(--border); color: var(--dark); }
 .btn-outline:hover { background: #f5f3ea; }
 
 /* Layout */
 .main { display: flex; height: calc(100vh - 56px); }
 .editor { flex: 1; overflow-y: auto; padding: 1.5rem 2rem; border-right: 1px solid var(--border); }
-.preview { flex: 1; overflow-y: auto; padding: 1.5rem 2rem; background: #faf9f5; }
+.preview { flex: 1; overflow-y: auto; background: #faf9f5; }
+.preview-sticky { position: sticky; top: 0; background: #faf9f5; z-index: 10; padding: 1.5rem 2rem 0.5rem; margin: -1.5rem -2rem 0; border-bottom: 1px solid var(--border); }
 
 /* Tour number (internal) */
 .tour-number { margin-bottom: 1rem; padding: 0.5rem 0.8rem; background: #f9f6ec; border: 1px solid var(--border); border-radius: 6px; display: flex; align-items: center; gap: 0.6rem; }
@@ -86,6 +95,47 @@ body::before {
 .day-weekday.weekday { background: #f0f0f0; color: #555; }
 .day-holiday { font-size: 0.68rem; padding: 0.15rem 0.45rem; border-radius: 3px; background: #fff3e0; color: #d35400; white-space: nowrap; margin-left: 0.25rem; }
 
+/* Calendar Popup */
+.cal-popup {
+    display: none; position: fixed; z-index: 200;
+    background: #fff; border: 1px solid var(--border); border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15); padding: 0.6rem; width: 260px;
+}
+.cal-popup.show { display: block; }
+.cal-popup .cal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 0.4rem; padding: 0 0.2rem;
+}
+.cal-popup .cal-header button {
+    background: none; border: none; cursor: pointer; font-size: 0.85rem;
+    padding: 0.2rem 0.5rem; color: var(--dark); border-radius: 4px;
+}
+.cal-popup .cal-header button:hover { background: #f0f0f0; }
+.cal-popup .cal-month-year { font-size: 0.85rem; font-weight: 500; color: var(--dark); }
+.cal-popup .cal-weekdays {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    text-align: center; font-size: 0.62rem; color: var(--gray);
+    margin-bottom: 0.15rem; padding: 0.2rem 0;
+}
+.cal-popup .cal-weekdays span:nth-child(1) { color: #c0392b; }
+.cal-popup .cal-weekdays span:nth-child(7) { color: #2471a3; }
+.cal-popup .cal-days { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; }
+.cal-popup .cal-day {
+    padding: 0.35rem 0; font-size: 0.75rem; border-radius: 4px; cursor: pointer;
+    transition: background 0.1s;
+}
+.cal-popup .cal-day:hover { background: #f5f3ea; }
+.cal-popup .cal-day.empty { cursor: default; }
+.cal-popup .cal-day.empty:hover { background: none; }
+.cal-popup .cal-day.sunday { color: #c0392b; }
+.cal-popup .cal-day.saturday { color: #2471a3; }
+.cal-popup .cal-day.holiday { background: #fde8e8; color: #c0392b; font-weight: 600; }
+.cal-popup .cal-day.holiday:hover { background: #f5cccc; }
+.cal-popup .cal-day.selected { background: var(--gold-light); color: #fff; }
+.cal-popup .cal-day.selected.holiday { background: #c0392b; }
+.cal-overlay { display: none; position: fixed; inset: 0; z-index: 199; }
+.cal-overlay.show { display: block; }
+
 /* AI Section */
 .ai-section { margin-bottom: 1rem; padding: 0.6rem 0.8rem; background: #faf6fa; border: 1px solid #e8dce8; border-radius: 6px; display: flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; }
 .ai-section .ai-label { color: #7b4f9d; font-weight: 500; white-space: nowrap; }
@@ -100,6 +150,9 @@ body::before {
 .search-venue { font-size: 0.73rem; padding: 0.25rem 0.55rem; border-radius: 4px; border: 1px solid #4a9e5d; background: #f4f9f6; color: #2e7d32; cursor: pointer; font-family: inherit; }
 .search-venue:hover { background: #2e7d32; color: #fff; }
 .search-venue.spinning { opacity: 0.7; pointer-events: none; }
+.search-keyword { width: 130px; font-size: 0.78rem; padding: 0.25rem 0.45rem; border: 1px solid var(--border); border-radius: 4px; font-family: inherit; }
+.search-keyword:focus { outline: none; border-color: #4a9e5d; }
+.search-keyword::placeholder { color: #b0a890; }
 
 /* Customer branding */
 .customer-brand { margin-bottom: 1.5rem; }
@@ -116,7 +169,8 @@ body::before {
 }
 .customer-brand input[type="text"]:focus { outline: none; border-color: var(--gold-light); }
 .logo-upload { display: flex; align-items: center; gap: 0.6rem; }
-.logo-upload .preview-img { width: 40px; height: 40px; border-radius: 4px; object-fit: contain; background: #f0f0f0; }
+.logo-upload .preview-img { width: 40px; height: 40px; border-radius: 4px; object-fit: contain; background: #f0f0f0; display: none; }
+.logo-upload .preview-img[src]:not([src=""]) { display: inline; }
 .logo-upload label {
     font-size: 0.78rem;
     color: var(--gold);
@@ -155,7 +209,7 @@ body::before {
 }
 .day-header input { font-size: 0.85rem; padding: 0.3rem 0.5rem; border: 1px solid var(--border); border-radius: 4px; font-family: inherit; flex: 1; }
 .day-header input:focus { outline: none; border-color: var(--gold-light); }
-.day-header .day-date { width: 140px; font-family: inherit; }
+.day-header .day-date { width: 140px; font-family: inherit; cursor: pointer; padding-left: 1.6rem; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236a7a8a' stroke-width='2'%3E%3Crect x='3' y='4' width='18' height='18' rx='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E") 0.3rem center no-repeat; }
 .day-header .day-city { width: 100px; }
 .day-delete { color: #c0a0a0; cursor: pointer; font-size: 1.1rem; border: none; background: none; padding: 0.2rem; }
 .day-delete:hover { color: #c0392b; }
@@ -230,6 +284,30 @@ body::before {
 }
 .preview-day .day-text p { margin-bottom: 0.4rem; }
 
+/* Preview Toggle */
+.preview-toggle { display: flex; gap: 0; margin-bottom: 1rem; justify-content: center; }
+.preview-toggle .toggle-btn { padding: 0.35rem 1.2rem; font-size: 0.78rem; border: 1px solid var(--border); background: #f9f8f4; cursor: pointer; font-family: inherit; color: var(--gray); }
+.preview-toggle .toggle-btn:first-child { border-radius: 4px 0 0 4px; }
+.preview-toggle .toggle-btn:last-child { border-radius: 0 4px 4px 0; }
+.preview-toggle .toggle-btn.active { background: var(--gold); color: #fff; border-color: var(--gold); }
+.preview-notes { margin-top: 0.8rem; padding: 0.6rem 0.8rem; background: #fff8e8; border-left: 3px solid #d4a843; border-radius: 0 4px 4px 0; font-size: 0.8rem; color: #6a5a3a; line-height: 1.7; }
+.preview-notes p { margin-bottom: 0.3rem; }
+
+.preview-img-grid { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.5rem; align-items: stretch; }
+.preview-img-cell { border-radius: 6px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #f5f5f5; }
+.preview-img-cell img { width: 100%; display: block; height: auto; border-radius: 6px; }
+
+/* Trip Info Section (left editor) */
+.trip-info { display: flex; flex-direction: column; gap: 0.5rem; padding: 0.8rem 0 0.2rem; border-top: 1px solid var(--border); margin-top: 0.3rem; }
+.trip-info .trip-row { display: flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; color: var(--dark); }
+.trip-info .trip-row label { font-size: 0.75rem; color: var(--gray); white-space: nowrap; width: 80px; text-align: left; }
+.trip-info .trip-row input { padding: 0.25rem 0.4rem; border: 1px solid var(--border); border-radius: 4px; font-size: 0.78rem; font-family: inherit; }
+.trip-info .trip-row input:focus { outline: none; border-color: var(--gold-light); }
+.trip-info .trip-row input.trip-brief { width: 240px; }
+.trip-info .trip-row input.trip-num { width: 50px; text-align: center; }
+.trip-info .trip-row .suffix { font-size: 0.78rem; color: var(--dark); }
+.tour-prefix { font-size: 0.78rem; color: var(--dark); padding: 0.25rem 0; }
+
 .kinoko-footer {
     text-align: center;
     font-size: 0.7rem;
@@ -241,6 +319,105 @@ body::before {
 
 /* Toolbar */
 .toolbar { display: flex; gap: 0.4rem; margin-bottom: 1rem; flex-wrap: wrap; }
+
+/* Bulk Import */
+.bulk-import {
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    margin: 0.6rem 0; padding: 0.6rem 0;
+}
+.bulk-header {
+    font-size: 0.8rem; color: var(--gray);
+    font-weight: 500; margin-bottom: 0.5rem;
+}
+.bulk-body { }
+.bulk-file-zone {
+    border: 2px dashed var(--border); border-radius: 8px;
+    padding: 1rem; text-align: center;
+    display: flex; align-items: center; justify-content: center;
+    gap: 0.5rem; flex-wrap: wrap;
+    font-size: 0.8rem; color: #666; background: #fafafa;
+    transition: border-color 0.2s, background 0.2s;
+}
+.bulk-file-zone:hover, .bulk-file-zone.dragover {
+    border-color: var(--gold); background: #fdf8ee;
+}
+.bulk-file-icon { font-size: 1.3rem; }
+.bulk-file-hint { font-size: 0.7rem; color: #999; width: 100%; margin-top: 0.15rem; }
+.bulk-divider {
+    display: flex; align-items: center; gap: 0.6rem;
+    margin: 0.8rem 0; color: #aaa; font-size: 0.75rem;
+}
+.bulk-divider::before, .bulk-divider::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+}
+.bulk-textarea {
+    width: 100%; height: 140px; font-family: inherit; font-size: 0.78rem;
+    border: 1px solid var(--border); border-radius: 6px; padding: 0.5rem;
+    resize: vertical; line-height: 1.5;
+}
+.bulk-actions { display: flex; align-items: center; gap: 0.6rem; margin-top: 0.5rem; }
+.bulk-hint { font-size: 0.72rem; color: var(--gray); }
+
+/* Day Images */
+.day-images { margin-top: 0.5rem; border-top: 1px solid var(--border); padding-top: 0.4rem; }
+.day-images-bar { display: flex; align-items: center; gap: 0.3rem; font-size: 0.72rem; margin-bottom: 0.3rem; flex-wrap: wrap; }
+.img-bar-label { color: var(--gray); margin-right: 0.2rem; }
+.img-layout-opt { cursor: pointer; display: flex; align-items: center; gap: 0.15rem; color: #666; }
+.img-layout-opt input[type="radio"] { margin: 0; }
+.day-images-grid { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: stretch; }
+.img-slot {
+    border: 2px dashed var(--border); border-radius: 8px;
+    flex: 1 1 100%; min-width: 0;
+    display: flex; align-items: flex-start; justify-content: center;
+    cursor: pointer; position: relative; overflow: hidden;
+    background: #fafafa; transition: border-color 0.2s;
+}
+.img-slot.half { flex: 1 1 calc(50% - 0.2rem); align-items: center; }
+.img-slot.half img { width: 100%; height: auto; }
+.img-slot:hover { border-color: var(--gold); }
+.img-slot img { width: 100%; height: auto; display: block; }
+.img-slot.portrait img { max-width: 60%; margin: 0 auto; }
+.img-slot .img-placeholder { color: #bbb; font-size: 0.72rem; pointer-events: none; text-align: center; padding: 0.3rem; }
+.img-slot .img-delete {
+    position: absolute; top: 4px; right: 4px;
+    width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,0.5);
+    color: white; border: none; cursor: pointer; font-size: 0.65rem;
+    display: flex; align-items: center; justify-content: center; z-index: 2;
+}
+.img-slot .img-delete:hover { background: rgba(200,0,0,0.8); }
+.img-orient {
+    position: absolute; top: 4px; right: 28px;
+    width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,0.5);
+    color: white; border: none; cursor: pointer; font-size: 0.6rem;
+    display: flex; align-items: center; justify-content: center; z-index: 2;
+}
+.img-orient:hover { background: rgba(0,0,0,0.7); }
+.img-slot .img-half-btn {
+    position: absolute; top: 4px; right: 52px;
+    height: 20px; border-radius: 10px; background: rgba(0,0,0,0.5);
+    color: white; border: none; cursor: pointer; font-size: 0.55rem; padding: 0 6px;
+    display: flex; align-items: center; z-index: 2;
+}
+.img-slot .img-half-btn:hover { background: rgba(0,0,0,0.7); }
+.img-slot .img-reorder {
+    position: absolute; bottom: 4px; right: 4px;
+    display: flex; gap: 2px; z-index: 2;
+}
+.img-slot .img-reorder button {
+    width: 18px; height: 18px; border: none; border-radius: 3px;
+    background: rgba(0,0,0,0.5); color: white; cursor: pointer; font-size: 0.5rem;
+    display: flex; align-items: center; justify-content: center;
+}
+.img-slot .img-reorder button:hover { background: rgba(0,0,0,0.7); }
+.img-upload-label { cursor: pointer; }
+.img-slot-add { border-style: dashed; border-color: #ccc; }
+.img-slot-add:hover { border-color: var(--gold); background: #fdf8ee; }
+.img-slot-add .img-placeholder { font-size: 1.4rem; color: #ccc; font-weight: 300; }
+.img-search-kw {
+    border: 1px solid var(--border); border-radius: 4px;
+    font-size: 0.7rem; padding: 0.15rem 0.4rem; height: 24px;
+}
 .toolbar-item {
     padding: 0.3rem 0.6rem;
     font-size: 0.75rem;
@@ -250,6 +427,7 @@ body::before {
     cursor: pointer;
     font-family: inherit;
     color: var(--dark);
+    display: inline-flex; align-items: center;
 }
 .toolbar-item:hover { background: #f5f3ea; }
 .toolbar-item.img-btn { background: #fdf8ee; border-color: var(--gold-light); color: var(--gold); }
@@ -270,38 +448,29 @@ body::before {
         <h1>行程生成器</h1>
     </div>
     <div class="header-actions">
+        <button class="btn btn-outline" id="undoBtn" onclick="undo()" title="撤回 Ctrl+Z">↩ 撤回</button>
+        <button class="btn btn-outline" id="redoBtn" onclick="redo()" title="重做 Ctrl+Shift+Z">↪ 重做</button>
+        <button class="btn btn-outline" id="saveBtn" onclick="saveState()">保存</button>
+        <button class="btn btn-gold" id="genLinkBtn" onclick="exportWeb()">🔗 生成链接</button>
+        <button class="btn btn-outline" id="exportPDFBtn" onclick="exportPDF()">PDF</button>
+        <button class="btn btn-outline" id="exportWordBtn" onclick="exportWord()">Word</button>
         <select id="langSelect" onchange="switchLanguage(this.value)">
             <option value="zh">中文</option>
             <option value="en">English</option>
             <option value="zh-tw">繁體中文</option>
-            <option value="fr">Français</option>
+            <option value="ja">日本語</option>
         </select>
-        <button class="btn btn-gold" onclick="exportWeb()">🔗 生成链接</button>
-        <button class="btn btn-outline" onclick="exportPDF()">📄 PDF</button>
-        <button class="btn btn-outline" onclick="exportWord()">📝 Word</button>
     </div>
 </div>
 
 <div class="main">
     <!-- Editor Panel -->
     <div class="editor" id="editorPanel">
-        <!-- Tour Number (internal only) -->
-        <div class="tour-number">
-            <span class="badge">内部用</span>
-            <input type="text" id="tourNumber" placeholder="ツアー番号 / Tour Number" oninput="updatePreview()">
-        </div>
-
-        <!-- AI API Key -->
-        <div class="ai-section" id="aiSection">
-            <span class="ai-label">🤖 AI 扩写</span>
-            <input type="password" id="aiApiKey" placeholder="DeepSeek API Key (sk-...)">
-            <button class="ai-save" onclick="saveApiKey()">保存</button>
-            <span class="ai-status" id="aiStatus"></span>
-        </div>
+        <!-- API 密钥由 Apps Script 后台管理，前端不显示 -->
 
         <!-- Customer Branding -->
         <div class="customer-brand">
-            <input type="text" id="clientName" placeholder="客户公司名 / Client Company Name" oninput="updatePreview()">
+            <input type="text" id="clientName" placeholder="" oninput="onClientNameChange(this.value)" class="customer-name-input">
             <div class="logo-upload">
                 <img class="preview-img" id="clientLogoPreview" src="">
                 <label for="clientLogoInput">上传客户 Logo</label>
@@ -310,173 +479,252 @@ body::before {
             </div>
         </div>
 
+        <!-- Trip Info -->
+        <div class="trip-info">
+            <div class="trip-row">
+                <label>行程简介</label>
+                <input type="text" class="trip-brief" id="tripBrief" value="东京5日奢华游" placeholder="例如：东京5日奢华游" oninput="updateTripInfo()">
+            </div>
+            <div class="trip-row">
+                <label>团号</label>
+                <span class="tour-prefix">KNO-</span>
+                <input type="text" class="trip-brief" id="tripTourNumber" placeholder="输入团号" oninput="updateTripInfo()">
+            </div>
+            <div class="trip-row">
+                <label>出行人数</label>
+                <span class="suffix">成人</span>
+                <input type="text" class="trip-num" id="tripAdult" placeholder="0" oninput="updateTripInfo()"><span class="suffix">人</span>
+                <span class="suffix">儿童</span>
+                <input type="text" class="trip-num" id="tripPax" placeholder="0" oninput="updateTripInfo()"><span class="suffix">人</span>
+                <span class="suffix">儿童年龄</span>
+                <input type="text" class="trip-num" id="tripKidsAge" placeholder="" oninput="updateTripInfo()" style="width:90px">
+            </div>
+        </div>
+
+        <!-- Bulk Import -->
+        <div class="bulk-import">
+            <div class="bulk-header">
+                📋 批量导入行程
+            </div>
+            <div class="bulk-body">
+                <div class="bulk-file-zone" id="bulkFileZone">
+                    <span class="bulk-file-icon">📂</span>
+                    <span>拖拽文件至此，或</span>
+                    <label class="toolbar-item">选择文件<input type="file" id="bulkFileInput" accept=".txt,.csv,.pdf,.docx,.xlsx" style="display:none" onchange="handleBulkFile(this)"></label>
+                    <span class="bulk-file-hint">支持 TXT · CSV · PDF · Word · Excel</span>
+                </div>
+                <div class="bulk-divider"><span>或粘贴文字</span></div>
+                <textarea id="bulkText" class="bulk-textarea" placeholder="粘贴按天排列的行程文字，例如：&#10;&#10;Day 1 — 4月30日（木）东京&#10;抵达东京机场，专车接机&#10;前往酒店办理入住&#10;晚餐：日式庭院餐厅晚宴&#10;&#10;Day 2 — 5月1日（金）东京&#10;上午：太田伸之交流会&#10;下午：银座香道体验&#10;&#10;支持格式：Day 1 / 第1天 / 1日目 / DAY 1"></textarea>
+                <div class="bulk-actions">
+                    <button class="toolbar-item" onclick="parseBulkText()">解析并填充</button>
+                    <span class="bulk-hint" id="bulkHint"></span>
+                </div>
+            </div>
+        </div>
+
         <!-- Days -->
         <div id="dayList"></div>
-        <button class="add-day" onclick="addDay()">+ 添加一天 / Add Day</button>
+        <button class="add-day" id="addDayBtn" onclick="addDay()">+ 添加一天 / Add Day</button>
     </div>
 
     <!-- Preview Panel -->
     <div class="preview" id="previewPanel">
-        <div class="preview-title">
-            <div id="previewLogo"></div>
-            <div class="client-name" id="previewClientName"></div>
-            <div class="subtitle" id="previewSubtitle">日本高端定制行程</div>
+        <div class="preview-sticky">
+            <div class="preview-title">
+                <div id="previewLogo"></div>
+                <div class="client-name" id="previewClientName"></div>
+            </div>
+            <div class="preview-toggle">
+                <button class="toggle-btn active" id="toggleClient" onclick="setPreviewMode('client')">客户版</button>
+                <button class="toggle-btn" id="toggleInternal" onclick="setPreviewMode('internal')">内部版</button>
+            </div>
+
         </div>
-        <div id="previewDays"></div>
-        <div class="kinoko-footer">Arranged by Kinoko Club Concierge</div>
+        <div style="padding: 0 0 1.5rem;">
+            <div id="previewDays"></div>
+            <div class="kinoko-footer">Arranged by Kinoko Club Concierge</div>
+        </div>
     </div>
 </div>
 
+<!-- Calendar Popup -->
+<div class="cal-overlay" id="calOverlay" onclick="closeCalendar()"></div>
+<div class="cal-popup" id="calPopup" onclick="event.stopPropagation()">
+    <div class="cal-header">
+        <button onclick="navCal(-1)">◀</button>
+        <span class="cal-month-year" id="calMonthYear">2026年4月</span>
+        <button onclick="navCal(1)">▶</button>
+    </div>
+    <div class="cal-weekdays" id="calWeekdays">
+        <span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span>
+    </div>
+    <div class="cal-days" id="calDays"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
 <script>
 // === Data ===
 let days = [];
 let clientLogoData = '';
 let currentLanguage = 'zh';
 
+// === Undo / Redo ===
+let historyStack = [];
+let historyIndex = -1;
+const MAX_HISTORY = 60;
+let lastHistTime = 0;
+
 const langLabels = {
-    subtitle: { zh: '日本高端定制行程', en: 'Japan Luxury Custom Itinerary', 'zh-tw': '日本高端定製行程', fr: 'Itinéraire Luxe sur Mesure au Japon' },
-    footer: { zh: 'Arranged by Kinoko Club Concierge', en: 'Arranged by Kinoko Club Concierge', 'zh-tw': 'Arranged by Kinoko Club Concierge', fr: 'Organisé par Kinoko Club Concierge' },
-    addDay: { zh: '+ 添加一天', en: '+ Add Day', 'zh-tw': '+ 添加一天', fr: '+ Ajouter un jour' },
-    newDay: { zh: '新的一天', en: 'New Day', 'zh-tw': '新的一天', fr: 'Nouveau jour' },
-    date: { zh: '日期', en: 'Date', 'zh-tw': '日期', fr: 'Date' },
-    city: { zh: '城市', en: 'City', 'zh-tw': '城市', fr: 'Ville' },
-    client: { zh: '客户版', en: 'Client', 'zh-tw': '客戶版', fr: 'Client' },
-    notes: { zh: '备注', en: 'Notes', 'zh-tw': '備註', fr: 'Notes' },
-    noTitle: { zh: '（未命名）', en: '(Untitled)', 'zh-tw': '（未命名）', fr: '(Sans titre)' },
+    subtitle: { zh: '日本高端定制行程', en: 'Japan Luxury Custom Itinerary', 'zh-tw': '日本高端定製行程', ja: '日本ラグジュアリーオーダーメイド旅行' },
+    footer: { zh: 'Arranged by Kinoko Club Concierge', en: 'Arranged by Kinoko Club Concierge', 'zh-tw': 'Arranged by Kinoko Club Concierge', ja: 'Arranged by Kinoko Club Concierge' },
+    addDay: { zh: '+ 添加一天', en: '+ Add Day', 'zh-tw': '+ 添加一天', ja: '+ 日を追加' },
+    newDay: { zh: '新的一天', en: 'New Day', 'zh-tw': '新的一天', ja: '新しい日' },
+    date: { zh: '日期', en: 'Date', 'zh-tw': '日期', ja: '日付' },
+    city: { zh: '城市', en: 'City', 'zh-tw': '城市', ja: '都市' },
+    client: { zh: '客户版', en: 'Client', 'zh-tw': '客戶版', ja: 'クライアント版' },
+    internal: { zh: '内部版', en: 'Internal', 'zh-tw': '內部版', ja: '内部版' },
+    notes: { zh: '备注', en: 'Notes', 'zh-tw': '備註', ja: '備考' },
+    noTitle: { zh: '（未命名）', en: '(Untitled)', 'zh-tw': '（未命名）', ja: '（無題）' },
+    aiExpand: { zh: '✨ 扩写', en: '✨ Expand', 'zh-tw': '✨ 擴寫', ja: '✨ 拡張' },
+    searchPlaceholder: { zh: '搜索施設名…', en: 'Search venue…', 'zh-tw': '搜索施設名…', ja: '施設名を検索…' },
+    searchBtn: { zh: '🔍 搜索', en: '🔍 Search', 'zh-tw': '🔍 搜索', ja: '🔍 検索' },
+    searchTooltip: { zh: '施設情報を検索', en: 'Search venue info', 'zh-tw': '施設資訊檢索', ja: '施設情報を検索' },
+    dayTextPlaceholder: { zh: '行程内容…', en: 'Itinerary text…', 'zh-tw': '行程內容…', ja: '旅程内容…' },
+    notesPlaceholder: { zh: '内部备注（不出现在客户版）', en: 'Internal notes (hidden from client)', 'zh-tw': '內部備註（不出現在客戶版）', ja: '内部メモ（クライアント版には非表示）' },
+    internalNotesLabel: { zh: '📋 内部备注', en: '📋 Internal Notes', 'zh-tw': '📋 內部備註', ja: '📋 内部メモ' },
+    holidayWarning: { zh: '⚠️ {0} — 多数施設可能休業', en: '⚠️ {0} — many venues may be closed', 'zh-tw': '⚠️ {0} — 多數施設可能休業', ja: '⚠️ {0} — 多くの施設が休業の場合があります' },
+    tripBriefLabel: { zh: '行程简介', en: 'Trip Brief', 'zh-tw': '行程簡介', ja: '旅程概要' },
+    tripPaxLabel: { zh: '出行人数（儿童）', en: 'Pax (Children)', 'zh-tw': '出行人數（兒童）', ja: '人数（お子様）' },
+    tripKidsAgeLabel: { zh: '儿童年龄', en: 'Kids Age', 'zh-tw': '兒童年齡', ja: 'お子様年齢' },
+    tripBriefPh: { zh: '例如：东京5日奢华游', en: 'e.g. Tokyo 5D Luxury', 'zh-tw': '例如：東京5日奢華遊', ja: '例：東京5日間ラグジュアリー' },
+    tourNumLabel: { zh: '团号', en: 'Tour No.', 'zh-tw': '團號', ja: 'ツアー番号' },
+    customerInfoLabel: { zh: '客户信息', en: 'Client Info', 'zh-tw': '客戶資訊', ja: '顧客情報' },
+    customerNamePh: { zh: '客户公司名', en: 'Client Company Name', 'zh-tw': '客戶公司名', ja: '顧客会社名' },
+    uploadLogo: { zh: '上传客户 Logo', en: 'Upload Client Logo', 'zh-tw': '上傳客戶 Logo', ja: '顧客ロゴをアップロード' },
+    clearLogo: { zh: '清除', en: 'Clear', 'zh-tw': '清除', ja: 'クリア' },
+    datePlaceholder: { zh: '📅 选择日期…', en: '📅 Select date…', 'zh-tw': '📅 選擇日期…', ja: '📅 日付を選択…' },
+    searchError: { zh: '施設情報の取得に失敗しました', en: 'Failed to fetch venue info', 'zh-tw': '施設資訊獲取失敗', ja: '施設情報の取得に失敗しました' },
+    searchEmpty: { zh: '请在搜索框输入施設名，或在行程中写明景点名称', en: 'Enter a venue name in the search box or add it to the itinerary text', 'zh-tw': '請在搜索框輸入施設名，或在行程中寫明景點名稱', ja: '検索ボックスに施設名を入力するか、旅程に施設名を記入してください' },
+    selectDate: { zh: '📅 选择日期', en: '📅 Select Date', 'zh-tw': '📅 選擇日期', ja: '📅 日付を選択' },
+    genLink: { zh: '🔗 生成链接', en: '🔗 Share Link', 'zh-tw': '🔗 生成連結', ja: '🔗 リンク生成' },
+    exportPDF: { zh: '📄 PDF', en: '📄 PDF', 'zh-tw': '📄 PDF', ja: '📄 PDF' },
+    exportPDF: { zh: 'PDF', en: 'PDF', 'zh-tw': 'PDF', ja: 'PDF' },
+    exportWord: { zh: 'Word', en: 'Word', 'zh-tw': 'Word', ja: 'Word' },
+    save: { zh: '保存', en: 'Save', 'zh-tw': '儲存', ja: '保存' },
+    saved: { zh: '✓ 已保存', en: '✓ Saved', 'zh-tw': '✓ 已儲存', ja: '✓ 保存済' },
+    undo: { zh: '↩ 撤回', en: '↩ Undo', 'zh-tw': '↩ 撤回', ja: '↩ 戻す' },
+    redo: { zh: '↪ 重做', en: '↪ Redo', 'zh-tw': '↪ 重做', ja: '↪ 進む' },
+    imgLayout: { zh: '图片排版', en: 'Image Layout', 'zh-tw': '圖片排版', ja: '画像レイアウト' },
+    imgLayout1: { zh: '大图', en: 'Large', 'zh-tw': '大圖', ja: '大' },
+    imgLayout2: { zh: '并排', en: 'Side by Side', 'zh-tw': '並排', ja: '並列' },
+    addImage: { zh: '添加图片', en: 'Add Image', 'zh-tw': '添加圖片', ja: '画像追加' },
+    searchImage: { zh: '自动搜图', en: 'Auto Search', 'zh-tw': '自動搜圖', ja: '画像検索' },
+    uploadImage: { zh: '本地上传', en: 'Upload', 'zh-tw': '本地上傳', ja: 'Upload' },
+    linkImage: { zh: '链接添加', en: 'Add Link', 'zh-tw': '連結添加', ja: 'URL追加' },
+    imgPlaceholder: { zh: '点击上传或自动搜图', en: 'Click to upload or search', 'zh-tw': '點擊上傳或搜圖', ja: 'クリックで画像追加' },
+    imgFit: { zh: '填充', en: 'Fill', 'zh-tw': '填充', ja: 'Fill' },
+    imgContain: { zh: '适配', en: 'Fit', 'zh-tw': '適配', ja: 'Fit' },
 };
 
-function t(key) { return (langLabels[key] || {})[currentLanguage] || key; }
-
-// === AI Key Management ===
-let aiApiKey = localStorage.getItem('kinoko_ds_key') || '';
-function saveApiKey() {
-    aiApiKey = document.getElementById('aiApiKey').value.trim();
-    if (aiApiKey) {
-        localStorage.setItem('kinoko_ds_key', aiApiKey);
-        document.getElementById('aiStatus').textContent = '✅';
-        document.getElementById('aiStatus').style.color = '#2e7d32';
-    } else {
-        localStorage.removeItem('kinoko_ds_key');
-        document.getElementById('aiStatus').textContent = '';
-    }
-}
-function loadApiKey() {
-    if (aiApiKey) {
-        document.getElementById('aiApiKey').value = aiApiKey;
-        document.getElementById('aiStatus').textContent = '✅';
-        document.getElementById('aiStatus').style.color = '#2e7d32';
-    }
+function t(key, ...args) { 
+    let s = (langLabels[key] || {})[currentLanguage] || key;
+    args.forEach((a, i) => { s = s.replace('{' + i + '}', a); });
+    return s;
 }
 
-// === Google API Key Management ===
-// Key is now stored server-side in Apps Script — no frontend key needed.
+// === API Keys (硬编码在前端 JS 中，不显示输入框) ===
+const GEMINI_KEY = 'AIzaSyBcyMWMfDTomn6xKSva2qKkX-Y_-3q-f-s';
+const DEEPSEEK_KEY = 'sk-5db70f3896d140dda50e700257324391';
+const TAVILY_KEY = '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';
 
-
-// === Google Search Venue Info (via Apps Script proxy) ===
-const SEARCH_PROXY_URL = 'https://script.google.com/macros/s/AKfycbzvAwnkGOQtghRhtUnbhD-63A1dP97ES6RUQhn1W_kMwClgK49iIHttgKRD_P4NyO16ZA/exec';
-
+// === 施設検索 (Tavily Search API) ===
 async function searchVenueInfo(idx) {
     const day = days[idx];
     const city = day.city || '';
-    const rawText = day.text || day.notes || '';
-    const venueHints = rawText.split(/[\n,，、。]+/).filter(s => s.trim()).slice(0, 3).join(' ');
-    if (!city.trim() && !venueHints.trim()) { alert('请先在当前日填写城市或行程内容，以便搜索'); return; }
+    // Use manual keyword input if filled, otherwise extract from text
+    const kwInput = document.getElementById('searchKw' + idx);
+    let venueHints = kwInput ? kwInput.value.trim() : '';
+    if (!venueHints) {
+        const rawText = day.text || day.notes || '';
+        // Filter out logistics lines (接送机/前往/入住/晚餐/午餐/酒店/返回)
+        const lines = rawText.split(/[\n]/).filter(s => {
+            const t = s.trim();
+            if (!t) return false;
+            if (t.startsWith('-抵达') || t.startsWith('-前往') || t.startsWith('-入住') || t.startsWith('-酒店') || t.startsWith('-返回') || t.startsWith('-出发')) return false;
+            return /[館寺園院美術館神社体験塔]/.test(t) || /[a-zA-Z]{3,}/.test(t);
+        });
+        venueHints = lines.map(l => l.replace(/^[-\d\s.、，：:]+/, '').trim()).join(' ');
+        if (!venueHints) venueHints = rawText.split(/[\n,，、。]+/).filter(s => s.trim() && !s.trim().startsWith('-抵达') && !s.trim().startsWith('-前往') && !s.trim().startsWith('-入住') && !s.trim().startsWith('-酒店')).slice(0, 2).join(' ');
+    }
+    if (!city.trim() && !venueHints.trim()) { alert(t('searchEmpty')); return; }
 
     const cards = document.querySelectorAll('.day-card');
     const btn = cards[idx]?.querySelector('.search-venue');
     if (btn) { btn.textContent = '⏳ 検索中...'; btn.classList.add('spinning'); }
 
     try {
-        console.log('[Kinoko Search] Sending to Apps Script proxy...');
-        console.log('[Kinoko Search] City:', city, 'Hints:', venueHints);
-
-        const resp = await fetch(SEARCH_PROXY_URL, {
+        const queryText = '「' + venueHints + '」 ' + city + ' 営業時間 料金 アクセス 日本語で回答してください';
+        const resp = await fetch('https://api.tavily.com/search', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ city, hints: venueHints })
+            body: JSON.stringify({
+                api_key: TAVILY_KEY,
+                query: queryText,
+                search_depth: 'advanced',
+                include_answer: true,
+                max_results: 3
+            })
         });
-
-        console.log('[Kinoko Search] Proxy status:', resp.status);
+        if (!resp.ok) throw new Error(`Tavily ${resp.status}`);
         const data = await resp.json();
-        console.log('[Kinoko Search] Proxy response:', JSON.stringify(data).substring(0, 300));
-
-        if (!data.success) {
-            throw new Error(data.error || '不明なエラー');
-        }
+        const answerText = (data.answer || '').trim();
+        // Only keep official URL if available in top results
+        const officialUrl = Array.isArray(data.results) && data.results.length
+            ? data.results.find(r => r.url && (r.url.includes('.co.jp') || r.url.includes('tokyotower') || r.url.includes('gotokyo') || r.url.includes('shibuya')))?.url || ''
+            : '';
+        if (!answerText && !officialUrl) throw new Error('空応答');
+        const text = answerText + (officialUrl ? '\n\n公式URL：' + officialUrl : '');
 
         const existingNotes = day.notes || '';
         const divider = existingNotes.trim() ? '\n\n---\n\n' : '';
-        days[idx].notes = existingNotes + divider + '【施設最新情報】\n' + data.text;
+        days[idx].notes = existingNotes + divider + '【施設最新情報】\n' + text;
         days[idx]._activeTab = 'notes';
         renderEditor();
         updatePreview();
 
-        if (btn) { btn.textContent = '🔍 検索'; btn.classList.remove('spinning'); }
+        if (btn) { btn.textContent = t('searchBtn'); btn.classList.remove('spinning'); }
     } catch (e) {
-        console.error('[Kinoko Search] Error:', e);
-        alert('施設情報の取得に失敗しました: ' + e.message);
-        if (btn) { btn.textContent = '🔍 検索'; btn.classList.remove('spinning'); }
+        console.error('[Kinoko Search]', e);
+        alert(t('searchError') + ': ' + e.message);
+        if (btn) { btn.textContent = t('searchBtn'); btn.classList.remove('spinning'); }
     }
 }
 
-// === AI Expand ===
+// === AI 拡写 (DeepSeek direct) ===
 async function aiExpandDay(idx) {
-    if (!aiApiKey) { alert('请先填写 DeepSeek API Key'); document.getElementById('aiApiKey').focus(); return; }
     const day = days[idx];
     const framework = (day._activeTab === 'notes' ? day.notes : day.text) || '';
     if (!framework.trim()) { alert('当前页面没有内容，请先输入行程框架'); return; }
 
-    // Show loading
     const cards = document.querySelectorAll('.day-card');
     const btn = cards[idx]?.querySelector('.ai-expand');
     if (btn) { btn.textContent = '⏳ 生成中...'; btn.classList.add('spinning'); }
 
     try {
-        const prompt = `你是为高端日本定制旅行品牌 Kinoko Club Concierge 撰写行程的文案。
-
-【写作风格强制要求】
-- 高端、精炼、简洁。每一句都携带事实信息（人名、地名、年代、数字、时长）。
-- 用中短句，单句不超过30字。宁可拆成两句也不写长句。
-- 数字优先：容量、时长、年代、价格——能用数字就不用形容词。
-- 从具象出发：先说地点/人物，再说背景事实，最后说独特之处。
-- 写景用具体元素（木造、苔藓、白砂、光影），不写抽象感受。
-- 介绍型语气，非推销型。用「本次」「由……亲自」「我们安排」开头。
-
-【禁止】
-- 禁止「美轮美奂」「无与伦比」「震撼心灵」「终身难忘」等空洞词
-- 禁止替客人写感受（「您一定会爱上」「令人叹为观止」）
-- 禁止堆砌形容词和感叹号
-- 禁止写长段落散文
-
-【结构要求】
-- 用中文输出
-- 保留原框架的所有项目
-- 每天以时间/动作为锚点展开，列出具体时段
-- 体验内容部分用短语罗列，描述要克制
-- 标题4-12字，有画面感，不用「的地得」
-- 最后附一个「内部备注」区块，用 bullet point 列出需确认事项
-
-行程框架：
-${framework}`;
+        const prompt = `你是为高端日本定制旅行品牌 Kinoko Club Concierge 撰写行程的文案。\n\n【写作风格强制要求】\n- 高端、精炼、简洁。每一句都携带事实信息（人名、地名、年代、数字、时长）。\n- 用中短句，单句不超过30字。宁可拆成两句也不写长句。\n- 数字优先：容量、时长、年代、价格——能用数字就不用形容词。\n- 从具象出发：先说地点/人物，再说背景事实，最后说独特之处。\n- 写景用具体元素（木造、苔藓、白砂、光影），不写抽象感受。\n- 介绍型语气，非推销型。用「本次」「由……亲自」「我们安排」开头。\n\n【禁止】\n- 禁止「美轮美奂」「无与伦比」「震撼心灵」「终身难忘」等空洞词\n- 禁止替客人写感受（「您一定会爱上」「令人叹为观止」）\n- 禁止堆砌形容词和感叹号\n- 禁止写长段落散文\n\n【结构要求】\n- 用中文输出\n- 保留原框架的所有项目\n- 每天以时间/动作为锚点展开，列出具体时段\n- 体验内容部分用短语罗列，描述要克制\n- 标题4-12字，有画面感，不用「的地得」\n- 最后附一个「内部备注」区块，用 bullet point 列出需确认事项\n\n行程框架：\n${framework}`;
 
         const resp = await fetch('https://api.deepseek.com/v1/chat/completions', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${aiApiKey}` },
-            body: JSON.stringify({
-                model: 'deepseek-v4-flash',
-                messages: [{ role: 'user', content: prompt }],
-                temperature: 0.7,
-                max_tokens: 4096
-            })
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${DEEPSEEK_KEY}` },
+            body: JSON.stringify({ model: 'deepseek-v4-flash', messages: [{ role: 'user', content: prompt }], temperature: 0.7, max_tokens: 4096 })
         });
-
-        if (!resp.ok) { throw new Error(`API error: ${resp.status}`); }
+        if (!resp.ok) throw new Error(`DeepSeek ${resp.status}`);
         const data = await resp.json();
         const result = data.choices?.[0]?.message?.content || '';
+        if (!result) throw new Error('空応答');
 
-        if (!result) { throw new Error('空响应'); }
-
-        // Split result into client text and notes
         const noteMatch = result.match(/内部备注[：:]\s*\n?([\s\S]*)/i);
         let clientText = result;
         let notesText = '';
@@ -493,6 +741,7 @@ ${framework}`;
 
         if (btn) { btn.textContent = '✨ 扩写'; btn.classList.remove('spinning'); }
     } catch (e) {
+        console.error('[Kinoko Expand]', e);
         alert('AI 扩写失败: ' + e.message);
         if (btn) { btn.textContent = '✨ 扩写'; btn.classList.remove('spinning'); }
     }
@@ -500,12 +749,14 @@ ${framework}`;
 
 // === Day Management ===
 function addDay(text='', notes='', date='', city='') {
-    days.push({ text, notes, date, city });
+    pushHistory();
+    days.push({ text, notes, date, city, images: [], imageFit: 'cover' });
+    autoSave();
     renderEditor();
     updatePreview();
 }
 
-function deleteDay(idx) { days.splice(idx, 1); renderEditor(); updatePreview(); }
+function deleteDay(idx) { pushHistory(); days.splice(idx, 1); autoSave(); renderEditor(); updatePreview(); }
 
 function switchTab(dayIdx, tab) {
     const day = days[dayIdx];
@@ -513,8 +764,149 @@ function switchTab(dayIdx, tab) {
     renderEditor();
 }
 
+// === Day Images ===
+function renderDayImages(i, d) {
+    const images = d.images || [];
+    const fit = d.imageFit === 'contain' ? 'contain' : 'cover';
+    let html = images.map((img, j) => {
+        const isPortrait = img.portrait;
+        const isHalf = img.half;
+        const total = images.length;
+        return `
+        <div class="img-slot${isHalf ? ' half' : ''}${isPortrait ? ' portrait' : ''}">
+            ${img.url ? `<img src="${esc(img.url)}" alt="" style="object-fit:${fit};${isPortrait ? 'max-width:60%;margin:0 auto;' : ''}">` : ''}
+            ${img.url ? `<button class="img-delete" onclick="removeDayImage(${i},${j})">✕</button>` : ''}
+            ${img.url ? `<button class="img-orient" onclick="toggleImageOrientation(${i},${j})">${isPortrait ? '⬍' : '⬍'}</button>` : ''}
+            ${img.url ? `<button class="img-half-btn" onclick="toggleImageHalf(${i},${j})">${isHalf ? '◫' : '▭'}</button>` : ''}
+            ${img.url ? `<div class="img-reorder">${j > 0 ? `<button onclick="moveImage(${i},${j},-1)">▲</button>` : ''}${j < total - 1 ? `<button onclick="moveImage(${i},${j},1)">▼</button>` : ''}</div>` : ''}
+        </div>`;
+    }).join('');
+    html += `<div class="img-slot img-slot-add" onclick="document.getElementById('dayImgUpload${i}').click()"><span class="img-placeholder">+</span></div>`;
+    return html;
+}
+
+function toggleImageHalf(i, j) {
+    pushHistory(true);
+    days[i].images[j].half = !days[i].images[j].half;
+    autoSave();
+    const grid = document.getElementById('dayImages' + i);
+    if (grid) grid.innerHTML = renderDayImages(i, days[i]);
+    updatePreview();
+}
+
+function moveImage(i, j, dir) {
+    pushHistory(true);
+    const arr = days[i].images;
+    const target = j + dir;
+    if (target < 0 || target >= arr.length) return;
+    [arr[j], arr[target]] = [arr[target], arr[j]];
+    autoSave();
+    const grid = document.getElementById('dayImages' + i);
+    if (grid) grid.innerHTML = renderDayImages(i, days[i]);
+    updatePreview();
+}
+
+function toggleImageFit(i) {
+    const d = days[i];
+    d.imageFit = d.imageFit === 'contain' ? 'cover' : 'contain';
+    autoSave();
+    const btn = document.getElementById('imgFitBtn' + i);
+    if (btn) btn.textContent = d.imageFit === 'contain' ? t('imgContain') : t('imgFit');
+    const grid = document.getElementById('dayImages' + i);
+    if (grid) grid.innerHTML = renderDayImages(i, d);
+    updatePreview();
+}
+
+function toggleImageOrientation(i, j) {
+    pushHistory(true);
+    days[i].images[j].portrait = !days[i].images[j].portrait;
+    autoSave();
+    const grid = document.getElementById('dayImages' + i);
+    if (grid) grid.innerHTML = renderDayImages(i, days[i]);
+    updatePreview();
+}
+
+function addImageFromUrl(i) {
+    const input = document.getElementById('imgUrlInput' + i);
+    const url = input.value.trim();
+    if (!url) return;
+    if (!/^https?:\/\//.test(url)) { alert('请输入有效的图片链接（以 http:// 或 https:// 开头）'); return; }
+    pushHistory(true);
+    if (!days[i].images) days[i].images = [];
+    days[i].images.push({ url, caption: '', portrait: false, half: false });
+    autoSave();
+    const grid = document.getElementById('dayImages' + i);
+    if (grid) grid.innerHTML = renderDayImages(i, days[i]);
+    updatePreview();
+    input.value = '';
+}
+
+function uploadDayImage(i, input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        pushHistory(true);
+        if (!days[i].images) days[i].images = [];
+        days[i].images.push({ url: e.target.result, caption: '', portrait: false, half: false });
+        autoSave();
+        const grid = document.getElementById('dayImages' + i);
+        if (grid) grid.innerHTML = renderDayImages(i, days[i]);
+        updatePreview();
+        input.value = '';
+    };
+    reader.readAsDataURL(file);
+}
+
+function removeDayImage(i, j) {
+    pushHistory(true);
+    days[i].images.splice(j, 1);
+    autoSave();
+    const grid = document.getElementById('dayImages' + i);
+    if (grid) grid.innerHTML = renderDayImages(i, days[i]);
+    updatePreview();
+}
+
+function autoSearchImages(i) {
+    const kw = document.getElementById('imgSearchKw' + i).value.trim();
+    const d = days[i];
+    let keywords = kw;
+    if (!keywords) {
+        const landmarks = d.text.match(/[一-龥]{2,6}(?:寺|神社|公園|城|園|美術館|博物館|塔|市場|通り|温泉)/g);
+        keywords = landmarks ? landmarks[0] : (d.city || '日本 観光');
+    }
+    const hint = document.getElementById('bulkHint');
+    hint.textContent = '搜图中…';
+    fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(keywords)}&per_page=2&locale=ja-JP`, {
+        headers: { Authorization: 'mlcyd9lD0RGW3yZiKpjoXFmTi1gSSBvjdPDcneE5FUNwf53T3Y7LQUI4' }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (!data.photos || data.photos.length === 0) {
+            hint.textContent = '未找到匹配图片';
+            setTimeout(() => { hint.textContent = ''; }, 3000);
+            return;
+        }
+        pushHistory(true);
+        if (!d.images) d.images = [];
+        data.photos.forEach(p => d.images.push({ url: p.src.original, caption: '', portrait: false, half: false }));
+        autoSave();
+        const grid = document.getElementById('dayImages' + i);
+        if (grid) grid.innerHTML = renderDayImages(i, d);
+        updatePreview();
+        hint.textContent = `✓ 已添加 ${data.photos.length} 张`;
+        setTimeout(() => { hint.textContent = ''; }, 3000);
+    })
+    .catch(err => {
+        hint.textContent = '搜索失败: ' + err.message;
+        setTimeout(() => { hint.textContent = ''; }, 3000);
+    });
+}
+
 function updateDay(dayIdx, field, value) {
+    pushHistory();
     days[dayIdx][field] = value;
+    autoSave();
     updatePreview();
 }
 
@@ -527,30 +919,410 @@ function renderEditor() {
         <div class="day-card">
             <div class="day-header">
                 <div class="day-number">${i + 1}</div>
-                <input type="date" class="day-date" value="${esc(d.date)}" oninput="updateDay(${i},'date',this.value)">
+                <input type="text" class="day-date" value="${esc(d.date)}" placeholder="日付を選択" readonly onclick="showCalendar(${i}, event)">
                 ${wi.html}
                 <input class="day-city" placeholder="${t('city')}" value="${esc(d.city)}" oninput="updateDay(${i},'city',this.value)">
-                <button class="ai-expand" onclick="aiExpandDay(${i})" title="AI 扩写">✨ 扩写</button>
-                <button class="search-venue" onclick="searchVenueInfo(${i})" title="施設情報を検索">🔍 検索</button>
-                <button class="day-delete" onclick="deleteDay(${i})" title="删除">✕</button>
+                <button class="ai-expand" onclick="aiExpandDay(${i})" title="${t('aiExpand')}">${t('aiExpand')}</button>
+                <input class="search-keyword" id="searchKw${i}" placeholder="${t('searchPlaceholder')}">
+                <button class="search-venue" onclick="searchVenueInfo(${i})" title="${t('searchTooltip')}">${t('searchBtn')}</button>
+                <button class="day-delete" onclick="deleteDay(${i})" title="${t('clearLogo')}">✕</button>
             </div>
             <div class="day-tabs">
                 <div class="day-tab ${activeTab==='client'?'active':''}" onclick="switchTab(${i},'client')">${t('client')}</div>
                 <div class="day-tab ${activeTab==='notes'?'active':''}" onclick="switchTab(${i},'notes')">${t('notes')}</div>
             </div>
             <div class="day-content">
-                <textarea placeholder="行程内容…" oninput="updateDay(${i},'text',this.value)" class="${activeTab==='notes'?'hidden':''}">${esc(d.text)}</textarea>
-                <textarea placeholder="内部备注（不出现在客户版）" oninput="updateDay(${i},'notes',this.value)" class="${activeTab==='notes'?'':'hidden'}">${esc(d.notes)}</textarea>
+                <textarea placeholder="${t('dayTextPlaceholder')}" oninput="updateDay(${i},'text',this.value)" class="${activeTab==='notes'?'hidden':''}">${esc(d.text)}</textarea>
+                <textarea placeholder="${t('notesPlaceholder')}" oninput="updateDay(${i},'notes',this.value)" class="${activeTab==='notes'?'':'hidden'}">${esc(d.notes)}</textarea>
             </div>
+            <div class="day-images">
+                <div class="day-images-bar">
+                    <span style="font-size:0.75rem;color:var(--gold);font-weight:600;align-self:center;">图片添加</span>
+                    <span style="flex:1"></span>
+                    <input type="text" class="img-search-kw" id="imgUrlInput${i}" placeholder="图片链接" style="width:180px">
+                    <button class="toolbar-item" onclick="addImageFromUrl(${i})">${t('linkImage')}</button>
+                    <input type="text" class="img-search-kw" id="imgSearchKw${i}" placeholder="景点关键字" style="width:100px">
+                    <button class="toolbar-item" onclick="autoSearchImages(${i})">${t('searchImage')}</button>
+                    <label class="toolbar-item">${t('uploadImage')}<input type="file" accept="image/*" style="display:none" onchange="uploadDayImage(${i},this)" id="dayImgUpload${i}"></label>
+                </div>
+                <div class="day-images-grid" id="dayImages${i}">
+                    ${renderDayImages(i, d)}
+                </div>
+            </div>
+            <input type="file" accept="image/*" id="dayImgUpload${i}" style="display:none" onchange="uploadDayImage(${i},this)">
         </div>`;
     }).join('');
+    // Update toolbar buttons (defensive: only if elements exist)
+    const $ = (id) => document.getElementById(id);
+    if ($('addDayBtn')) $('addDayBtn').textContent = t('addDay');
+    if ($('genLinkBtn')) $('genLinkBtn').textContent = t('genLink');
+    if ($('exportPDFBtn')) $('exportPDFBtn').textContent = t('exportPDF');
+    if ($('exportWordBtn')) $('exportWordBtn').textContent = t('exportWord');
+    if ($('clientName')) $('clientName').placeholder = t('customerNamePh');
+    updateUndoRedoButtons();
+}
+
+// === Save & Undo/Redo ===
+function getSnapshot() {
+    return {
+        days: JSON.parse(JSON.stringify(days)),
+        tripInfo: JSON.parse(JSON.stringify(tripInfo)),
+        clientLogoData: clientLogoData,
+        clientName: document.getElementById('clientName')?.value || ''
+    };
+}
+
+function pushHistory(force) {
+    const now = Date.now();
+    if (!force && now - lastHistTime < 800) return;
+    lastHistTime = now;
+    if (historyIndex < historyStack.length - 1) {
+        historyStack = historyStack.slice(0, historyIndex + 1);
+    }
+    historyStack.push(getSnapshot());
+    if (historyStack.length > MAX_HISTORY) { historyStack.shift(); } else { historyIndex++; }
+    if (historyIndex >= MAX_HISTORY) historyIndex = historyStack.length - 1;
+}
+
+function undo() {
+    if (historyIndex <= 0) return;
+    historyIndex--;
+    restoreSnapshot(historyStack[historyIndex]);
+}
+
+function redo() {
+    if (historyIndex >= historyStack.length - 1) return;
+    historyIndex++;
+    restoreSnapshot(historyStack[historyIndex]);
+}
+
+function restoreSnapshot(s) {
+    days = JSON.parse(JSON.stringify(s.days));
+    tripInfo = JSON.parse(JSON.stringify(s.tripInfo));
+    clientLogoData = s.clientLogoData || '';
+    const cn = document.getElementById('clientName');
+    if (cn) cn.value = s.clientName || '';
+    // Update trip info fields
+    if (document.getElementById('tripBrief')) document.getElementById('tripBrief').value = tripInfo.brief || '';
+    if (document.getElementById('tripAdult')) document.getElementById('tripAdult').value = tripInfo.adult || '';
+    if (document.getElementById('tripPax')) document.getElementById('tripPax').value = tripInfo.kidsCount || '';
+    if (document.getElementById('tripKidsAge')) document.getElementById('tripKidsAge').value = tripInfo.kidsAge || '';
+    if (document.getElementById('tripTourNumber')) document.getElementById('tripTourNumber').value = tripInfo.tourNum || '';
+    // Logo preview
+    const lp = document.getElementById('clientLogoPreview');
+    if (lp) { lp.src = clientLogoData || ''; lp.style.display = clientLogoData ? 'inline' : 'none'; }
+    renderEditor();
+    updatePreview();
+    autoSave();
+}
+
+function updateUndoRedoButtons() {
+    const ub = document.getElementById('undoBtn');
+    const rb = document.getElementById('redoBtn');
+    if (ub) ub.style.opacity = historyIndex > 0 ? '1' : '0.35';
+    if (rb) rb.style.opacity = historyIndex < historyStack.length - 1 ? '1' : '0.35';
+}
+
+// Auto-save to localStorage
+function autoSave() {
+    try {
+        localStorage.setItem('kinoko_save', JSON.stringify(getSnapshot()));
+    } catch(e) {}
+}
+
+function saveState() {
+    autoSave();
+    const btn = document.getElementById('saveBtn');
+    if (btn) { btn.textContent = t('saved'); setTimeout(() => { btn.textContent = t('save'); }, 1500); }
+}
+
+function loadSaved() {
+    try {
+        const raw = localStorage.getItem('kinoko_save');
+        if (!raw) return false;
+        const s = JSON.parse(raw);
+        if (!s.days || !Array.isArray(s.days)) return false;
+        days = s.days;
+        tripInfo = s.tripInfo || { brief: '东京5日奢华游', adult: '', kidsCount: '', kidsAge: '' };
+        clientLogoData = s.clientLogoData || '';
+        const cn = document.getElementById('clientName');
+        if (cn && s.clientName) cn.value = s.clientName;
+        // trip info fields
+        if (document.getElementById('tripBrief')) document.getElementById('tripBrief').value = tripInfo.brief || '';
+        if (document.getElementById('tripAdult')) document.getElementById('tripAdult').value = tripInfo.adult || '';
+        if (document.getElementById('tripPax')) document.getElementById('tripPax').value = tripInfo.kidsCount || '';
+        if (document.getElementById('tripKidsAge')) document.getElementById('tripKidsAge').value = tripInfo.kidsAge || '';
+        if (document.getElementById('tripTourNumber')) document.getElementById('tripTourNumber').value = tripInfo.tourNum || '';
+        const lp = document.getElementById('clientLogoPreview');
+        if (lp) { lp.src = clientLogoData || ''; lp.style.display = clientLogoData ? 'inline' : 'none'; }
+        return true;
+    } catch(e) { return false; }
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        if (e.shiftKey) { e.preventDefault(); redo(); }
+        else { e.preventDefault(); undo(); }
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault(); saveState();
+    }
+});
+
+function onClientNameChange(val) {
+    pushHistory();
+    autoSave();
+    updatePreview();
+}
+
+// === Trip Info ===
+let tripInfo = { brief: '东京5日奢华游', adult: '', kidsCount: '', kidsAge: '', tourNum: '' };
+
+function updateTripInfo() {
+    pushHistory();
+    tripInfo.brief = document.getElementById('tripBrief')?.value || '';
+    tripInfo.adult = document.getElementById('tripAdult')?.value || '';
+    tripInfo.kidsCount = document.getElementById('tripPax')?.value || '';
+    tripInfo.kidsAge = document.getElementById('tripKidsAge')?.value || '';
+    tripInfo.tourNum = document.getElementById('tripTourNumber')?.value || '';
+    autoSave();
+    updatePreview();
+}
+
+function syncTourNumber() {
+    // tour number is now handled by tripTourNumber in trip-info
+}
+
+// === Bulk Import ===
+function setupBulkDrop() {
+    const zone = document.getElementById('bulkFileZone');
+    if (!zone) return;
+    ['dragenter','dragover','dragleave','drop'].forEach(ev => {
+        zone.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); });
+    });
+    ['dragenter','dragover'].forEach(ev => zone.addEventListener(ev, () => zone.classList.add('dragover')));
+    ['dragleave','drop'].forEach(ev => zone.addEventListener(ev, () => zone.classList.remove('dragover')));
+    zone.addEventListener('drop', e => {
+        const files = e.dataTransfer.files;
+        if (files.length > 0) processBulkFile(files[0]);
+    });
+}
+
+function handleBulkFile(input) {
+    if (input.files.length > 0) processBulkFile(input.files[0]);
+    input.value = '';
+}
+
+function processBulkFile(file) {
+    const hint = document.getElementById('bulkHint');
+    hint.textContent = '读取文件中…';
+    const ext = file.name.split('.').pop().toLowerCase();
+    const reader = new FileReader();
+
+    const parseText = (text) => {
+        document.getElementById('bulkText').value = text;
+        hint.textContent = '✓ 已读取，点击「解析并填充」';
+        setTimeout(() => { hint.textContent = ''; }, 3000);
+    };
+
+    if (ext === 'txt' || ext === 'csv') {
+        reader.onload = e => {
+            let text = e.target.result;
+            if (ext === 'csv') {
+                // Simple CSV: join rows with line breaks, skip header if present
+                const lines = text.split(/\r?\n/).filter(l => l.trim());
+                text = lines.join('\n');
+            }
+            parseText(text);
+        };
+        reader.readAsText(file);
+    } else if (ext === 'pdf') {
+        reader.onload = async (e) => {
+            const typedarray = new Uint8Array(e.target.result);
+            try {
+                const pdfjsLib = window['pdfjs-dist/build/pdf'];
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                const pdf = await pdfjsLib.getDocument({ data: typedarray }).promise;
+                let text = '';
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const content = await page.getTextContent();
+                    text += content.items.map(it => it.str).join(' ') + '\n';
+                }
+                parseText(text);
+            } catch (err) {
+                hint.textContent = 'PDF 解析失败: ' + err.message;
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    } else if (ext === 'docx') {
+        reader.onload = async (e) => {
+            try {
+                const result = await mammoth.extractRawText({ arrayBuffer: e.target.result });
+                parseText(result.value);
+            } catch (err) {
+                hint.textContent = 'Word 解析失败: ' + err.message;
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    } else if (ext === 'xlsx') {
+        reader.onload = (e) => {
+            try {
+                const wb = XLSX.read(e.target.result, { type: 'array' });
+                const sheet = wb.Sheets[wb.SheetNames[0]];
+                const csv = XLSX.utils.sheet_to_csv(sheet);
+                parseText(csv);
+            } catch (err) {
+                hint.textContent = 'Excel 解析失败: ' + err.message;
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    } else {
+        hint.textContent = '不支持的文件格式';
+    }
+}
+
+function toggleBulkImport() {
+    const body = document.getElementById('bulkBody');
+    const toggle = document.getElementById('bulkToggle');
+    if (body.style.display === 'none') {
+        body.style.display = 'block';
+        toggle.classList.add('open');
+    } else {
+        body.style.display = 'none';
+        toggle.classList.remove('open');
+    }
+}
+
+function parseBulkText() {
+    const raw = document.getElementById('bulkText').value.trim();
+    if (!raw) { document.getElementById('bulkHint').textContent = '请先粘贴行程文字'; return; }
+
+    // Assemble all day markers into one ordered list
+    const dayMarkers = findDayMarkers(raw);
+    if (dayMarkers.length === 0) { document.getElementById('bulkHint').textContent = '未识别到日期或 Day 标记'; return; }
+
+    // Build segments
+    const segments = [];
+    for (let i = 0; i < dayMarkers.length; i++) {
+        const start = dayMarkers[i].idx + dayMarkers[i].text.length;
+        const end = i + 1 < dayMarkers.length ? dayMarkers[i + 1].idx : raw.length;
+        segments.push(dayMarkers[i].text + '\n' + raw.slice(start, end).trim());
+    }
+
+    const parsed = segments.map(seg => parseDaySegment(seg));
+    pushHistory(true);
+    days = parsed;
+    autoSave();
+    renderEditor();
+    updatePreview();
+    document.getElementById('bulkHint').textContent = `✓ 已解析 ${parsed.length} 天`;
+    setTimeout(() => { document.getElementById('bulkHint').textContent = ''; }, 3000);
+}
+
+function findDayMarkers(raw) {
+    const results = [];
+    // Build a single combined regex that matches all patterns at once
+    const patterns = [
+        // Day X / DAY X / day x (English)
+        '(?:^|\n)\s*(Day|DAY|day)\s*(\\d+)\\s*',
+        // D1 / D2 / d1 (letter D)
+        '(?:^|\n)\s*[Dd]\\s*(\\d+)\\s*',
+        // 第X天 / 第x天
+        '(?:^|\n)\s*第\\s*(\\d+)\\s*天',
+        // X月X日 / X月X号 (Chinese dates)
+        '(?:^|\n)\s*(\\d{1,2})\\s*月\\s*(\\d{1,2})\\s*[日号]',
+        // X-X / X/X (numeric dates, like 4-1 or 4/1)
+        '(?:^|\n)\s*(\\d{1,2})\\s*[-\\/]\\s*(\\d{1,2})\\s*(?!\\d)',
+        // X日目 (Japanese)
+        '(?:^|\n)\s*(\\d+)\\s*日目',
+    ];
+
+    // Collect all matches with positions
+    const matches = [];
+    patterns.forEach((pat, pi) => {
+        const re = new RegExp(pat, 'gi');
+        let m;
+        while ((m = re.exec(raw)) !== null) {
+            const full = m[0];
+            const startIdx = raw.indexOf(full, m.index);
+            // Determine the display text based on pattern type
+            let text = full.trim();
+            // For numeric date patterns, normalize
+            if (pi === 4) { // X-X or X/X
+                const month = m[1], md = m[2];
+                text = `${month}月${md}日`;
+            } else if (pi === 3) { // X月X日/号
+                text = `${m[1]}月${m[2]}日`;
+            } else if (pi === 1) { // D1
+                text = `D${m[1]}`;
+            }
+            matches.push({ idx: startIdx, text, endIdx: startIdx + full.length });
+        }
+    });
+
+    // Sort by position and deduplicate overlapping matches (keep earlier, longer)
+    matches.sort((a, b) => a.idx - b.idx || b.text.length - a.text.length);
+    const filtered = [];
+    for (const m of matches) {
+        const last = filtered[filtered.length - 1];
+        if (!last || m.idx >= last.idx + last.text.length) {
+            filtered.push(m);
+        }
+    }
+    return filtered;
+}
+
+function parseDaySegment(seg) {
+    let date = '';
+    const lines = seg.split('\n');
+    // Extract date from first line
+    const firstLine = lines[0];
+    const dateMatch = firstLine.match(/(\d{1,2})\s*月\s*(\d{1,2})\s*日|(\d{1,2})[\/\-\.](\d{1,2})(?!\d)/);
+    if (dateMatch) {
+        let ds = dateMatch[0];
+        if (/月/.test(ds)) {
+            const m3 = ds.match(/(\d{1,2})月(\d{1,2})日/);
+            ds = `2026-${String(parseInt(m3[1])).padStart(2,'0')}-${String(parseInt(m3[2])).padStart(2,'0')}`;
+        } else if (/^\d{1,2}[\/\-\.]\d{1,2}$/.test(ds)) {
+            const parts2 = ds.split(/[\/\-\.]/);
+            ds = `2026-${String(parseInt(parts2[0])).padStart(2,'0')}-${String(parseInt(parts2[1])).padStart(2,'0')}`;
+        }
+        date = ds;
+    }
+    // Extract city from known names
+    let city = '';
+    const cityRe = /東京|大阪|京都|名古屋|札幌|福岡|神戸|横浜|軽井沢|箱根|日光|富士山|河口湖|奈良|広島|長崎|金沢|沖縄|仙台|別府|轻井泽/g;
+    const cityMatch = seg.match(cityRe);
+    if (cityMatch) city = cityMatch[0];
+    // Remove header line, keep only content
+    const contentLines = [];
+    let skipped = false;
+    for (const line of lines) {
+        if (!skipped && /^(?:Day\s*|DAY\s*|day\s*|第\s*|D\s*)\d+|^\d{1,2}月\d{1,2}[日号]|^\d{1,2}[-\/]\d{1,2}|^\d+日目/i.test(line.trim())) {
+            skipped = true; continue;
+        }
+        contentLines.push(line);
+    }
+    return { text: contentLines.join('\n').trim(), notes: '', date, city };
 }
 
 // === Preview ===
+let previewMode = 'client';
+
+function setPreviewMode(mode) {
+    previewMode = mode;
+    document.getElementById('toggleClient').classList.toggle('active', mode === 'client');
+    document.getElementById('toggleInternal').classList.toggle('active', mode === 'internal');
+    document.getElementById('toggleClient').textContent = t('client');
+    document.getElementById('toggleInternal').textContent = t('internal');
+    updatePreview();
+}
+
 function updatePreview() {
     const clientName = document.getElementById('clientName').value;
-    document.getElementById('previewClientName').textContent = clientName || t('noTitle');
-    document.getElementById('previewSubtitle').textContent = t('subtitle');
+    document.getElementById('previewClientName').textContent = clientName || t('customerNamePh');
 
     // Logo
     const logoEl = document.getElementById('previewLogo');
@@ -558,14 +1330,30 @@ function updatePreview() {
 
     // Days
     const daysEl = document.getElementById('previewDays');
-    daysEl.innerHTML = days.map((d, i) => {
+    // Tour number + trip info — all rendered inside previewDays
+    const tourNum = (document.getElementById('tripTourNumber')?.value?.trim()) || tripInfo.tourNum || '';
+    const paxParts = [];
+    if (tripInfo.adult) paxParts.push('成人' + tripInfo.adult + '名');
+    if (tripInfo.kidsCount) paxParts.push('儿童' + tripInfo.kidsCount + '名');
+    if (tripInfo.kidsAge) paxParts[paxParts.length-1] += ' ' + tripInfo.kidsAge;
+    const infoHTML = `
+        <div style="text-align:center;font-size:0.82rem;color:var(--gray);margin-bottom:1rem;">
+            <div style="margin-top:0.2rem;">${tourNum ? 'KNO-' + tourNum : 'KNO-ツアー番号'}</div>
+            <div style="margin-top:0.2rem;">${tripInfo.brief || '行程简介'}</div>
+            <div style="font-size:0.75rem;margin-top:0.2rem;">${paxParts.length ? paxParts.join(' · ') : '出行人数'}</div>
+        </div>`;
+    
+    daysEl.innerHTML = infoHTML + days.map((d, i) => {
         const wi = getWeekdayInfo(d.date);
+        const imagesHTML = buildPreviewImages(d);
         return `
         <div class="preview-day">
             <div class="day-label">Day ${i + 1}${d.date ? ' — ' + formatDateDisplay(d.date) : ''}${wi.weekdayText ? ' (' + wi.weekdayText + ')' : ''}${wi.holidayName ? ' 🎌 ' + wi.holidayName : ''}</div>
             ${d.city ? `<div class="day-location">📍 ${d.city}</div>` : ''}
-            ${wi.holidayName ? `<div class="day-holiday" style="display:inline-block;margin-top:0.2rem;">⚠️ ${wi.holidayName} — 多くの施設が休業の場合があります</div>` : ''}
+            ${wi.holidayName ? `<div class="day-holiday" style="display:inline-block;margin-top:0.2rem;">${t('holidayWarning', wi.holidayName)}</div>` : ''}
             <div class="day-text">${formatText(d.text)}</div>
+            ${imagesHTML}
+            ${previewMode === 'internal' && d.notes ? `<div class="preview-notes"><strong>${t('internalNotesLabel')}</strong><br>${formatText(d.notes)}</div>` : ''}
         </div>
         `;
     }).join('');
@@ -574,9 +1362,26 @@ function updatePreview() {
     document.querySelector('.kinoko-footer').textContent = t('footer');
 }
 
+function buildPreviewImages(d) {
+    const images = d.images || [];
+    if (images.length === 0) return '';
+    const fit = d.imageFit === 'contain' ? 'contain' : 'cover';
+    const valid = images.filter(img => img.url);
+    if (valid.length === 0) return '';
+    return `<div class="preview-img-grid">${valid.map(img => {
+        const w = img.half ? 'calc(50% - 0.15rem)' : '100%';
+        const pw = img.portrait ? '50%' : '100%';
+        return `<div class="preview-img-cell" style="flex:0 0 ${w};min-width:0;border-radius:6px;overflow:hidden;"><img src="${esc(img.url)}" alt="" style="object-fit:${fit};width:${pw};height:auto;border-radius:6px;${img.portrait?'margin:0 auto;':''}"></div>`;
+    }).join('')}</div>`;
+}
+
 function formatText(text) {
     if (!text) return '';
-    return text.split('\n').filter(l => l.trim()).map(l => `<p>${l}</p>`).join('');
+    return text.split('\n').filter(l => l.trim()).map(l => {
+        // Convert URLs to clickable links
+        const linked = l.replace(/(https?:\/\/[^\s<>]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+        return `<p>${linked}</p>`;
+    }).join('');
 }
 
 function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
@@ -587,23 +1392,45 @@ function handleLogoUpload(e) {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
+        pushHistory(true);
         clientLogoData = reader.result;
         document.getElementById('clientLogoPreview').src = clientLogoData;
+        document.getElementById('clientLogoPreview').style.display = 'inline';
+        autoSave();
         updatePreview();
     };
     reader.readAsDataURL(file);
 }
 function clearLogo() {
+    pushHistory(true);
     clientLogoData = '';
     document.getElementById('clientLogoPreview').src = '';
+    document.getElementById('clientLogoPreview').style.display = 'none';
     document.getElementById('clientLogoInput').value = '';
+    autoSave();
     updatePreview();
 }
 
 // === Language ===
 function switchLanguage(lang) {
     currentLanguage = lang;
-    document.getElementById('addDayBtn');
+    // Update toggle buttons
+    document.getElementById('toggleClient').textContent = t('client');
+    document.getElementById('toggleInternal').textContent = t('internal');
+    // Update trip info labels
+    const tripLabels = document.querySelectorAll('.trip-row label');
+    if (tripLabels[0]) tripLabels[0].textContent = t('tripBriefLabel');
+    if (tripLabels[1]) tripLabels[1].textContent = t('tourNumLabel');
+    if (tripLabels[2]) tripLabels[2].textContent = t('tripPaxLabel');
+    // Update trip info placeholders
+    document.getElementById('tripBrief').placeholder = t('tripBriefPh');
+    // Update toolbar buttons
+    const ub = document.getElementById('undoBtn'); if (ub) ub.textContent = t('undo');
+    const rb = document.getElementById('redoBtn'); if (rb) rb.textContent = t('redo');
+    const sb = document.getElementById('saveBtn'); if (sb) sb.textContent = t('save');
+    const gl = document.getElementById('genLinkBtn'); if (gl) gl.textContent = t('genLink');
+    const ep = document.getElementById('exportPDFBtn'); if (ep) ep.textContent = t('exportPDF');
+    const ew = document.getElementById('exportWordBtn'); if (ew) ew.textContent = t('exportWord');
     renderEditor();
     updatePreview();
 }
@@ -635,7 +1462,7 @@ function exportWord() {
 
 function generateExportHTML() {
     const clientName = document.getElementById('clientName').value;
-    const tourNum = document.getElementById('tourNumber').value;
+    const tourNum = 'KNO-' + (tripInfo.tourNum || 'ツアー番号');
     const daysHTML = days.map((d, i) => {
         const wi = getWeekdayInfo(d.date);
         return `
@@ -650,7 +1477,7 @@ function generateExportHTML() {
 
     return `<!DOCTYPE html><html lang="${currentLanguage}"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>行程 — ${escHtml(clientName)}</title>
 <style>
-body{font-family:'Noto Serif JP','Source Han Serif SC','Hiragino Mincho ProN',Georgia,serif;background:#FDF8EE;color:#1a2a3a;max-width:800px;margin:0 auto;padding:2rem;}
+body{font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Serif JP','Source Han Serif SC','Hiragino Mincho ProN',Georgia,serif;background:#FDF8EE;color:#1a2a3a;max-width:800px;margin:0 auto;padding:2rem;}
 .client-logo{max-height:60px;margin-bottom:0.5rem;}
 h1{font-size:1.3rem;color:#1a2a3a;font-weight:500;margin-bottom:0.2rem;}
 .subtitle{font-size:0.85rem;color:#6a7a8a;margin-bottom:1.5rem;}
@@ -746,14 +1573,17 @@ function getWeekdayInfo(dateStr) {
     if (dt.getMonth() !== m - 1) return result; // invalid date
 
     const dayOfWeek = dt.getDay();
-    const weekdayJP = WEEKDAYS_JP[dayOfWeek];
+
+    const weekdayMap = { zh: WEEKDAYS_TW, en: WEEKDAYS_EN, 'zh-tw': WEEKDAYS_TW, ja: WEEKDAYS_JP };
+    const curWeekdays = weekdayMap[currentLanguage] || WEEKDAYS_JP;
+    const wd = curWeekdays[dayOfWeek];
 
     let cssClass = 'weekday';
     if (dayOfWeek === 0) cssClass = 'sun';
     else if (dayOfWeek === 6) cssClass = 'sat';
 
-    result.weekdayText = weekdayJP;
-    result.html = `<span class="day-weekday ${cssClass}">${weekdayJP}</span>`;
+    result.weekdayText = wd;
+    result.html = `<span class="day-weekday ${cssClass}">${wd}</span>`;
 
     // Check holiday
     const dateKey = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
@@ -765,11 +1595,85 @@ function getWeekdayInfo(dateStr) {
     return result;
 }
 
+// === Custom Calendar ===
+let calYear = 2026, calMonth = 4, calDayIndex = -1;
+
+function showCalendar(dayIdx, event) {
+    event.stopPropagation();
+    calDayIndex = dayIdx;
+    const cur = days[dayIdx]?.date;
+    if (cur && cur.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        [calYear, calMonth] = cur.split('-').map(Number);
+    } else {
+        const now = new Date();
+        calYear = now.getFullYear();
+        calMonth = now.getMonth() + 1;
+    }
+    renderCalendar();
+    const popup = document.getElementById('calPopup');
+    const input = event.target;
+    const rect = input.getBoundingClientRect();
+    popup.style.left = Math.min(rect.left, window.innerWidth - 280) + 'px';
+    popup.style.top = (rect.bottom + 4) + 'px';
+    popup.classList.add('show');
+    document.getElementById('calOverlay').classList.add('show');
+}
+
+function renderCalendar() {
+    const firstDay = new Date(calYear, calMonth - 1, 1).getDay();
+    const daysInMonth = new Date(calYear, calMonth, 0).getDate();
+    const weekdayMap = { zh: WEEKDAYS_TW, en: WEEKDAYS_EN, 'zh-tw': WEEKDAYS_TW, ja: WEEKDAYS_JP };
+    const curWeekdays = weekdayMap[currentLanguage] || WEEKDAYS_JP;
+    document.getElementById('calWeekdays').innerHTML = curWeekdays.map(w => `<span>${w}</span>`).join('');
+    document.getElementById('calMonthYear').textContent = `${calYear}年${calMonth}月`;
+    let html = '';
+    for (let i = 0; i < firstDay; i++) html += '<div class="cal-day empty"></div>';
+    for (let d = 1; d <= daysInMonth; d++) {
+        const dateKey = `${calYear}-${String(calMonth).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const dow = new Date(calYear, calMonth - 1, d).getDay();
+        let cls = 'cal-day';
+        if (dow === 0) cls += ' sunday';
+        if (dow === 6) cls += ' saturday';
+        if (JP_HOLIDAYS[dateKey]) cls += ' holiday';
+        if (calDayIndex >= 0 && days[calDayIndex]?.date === dateKey) cls += ' selected';
+        const hName = JP_HOLIDAYS[dateKey] || '';
+        html += `<div class="${cls}" title="${hName}" onclick="selectDate('${dateKey}')">${d}</div>`;
+    }
+    document.getElementById('calDays').innerHTML = html;
+}
+
+function selectDate(dateKey) {
+    if (calDayIndex >= 0) {
+        pushHistory(true);
+        days[calDayIndex].date = dateKey;
+        renderEditor();
+        updatePreview();
+        autoSave();
+    }
+    closeCalendar();
+}
+
+function closeCalendar() {
+    document.getElementById('calPopup').classList.remove('show');
+    document.getElementById('calOverlay').classList.remove('show');
+    calDayIndex = -1;
+}
+
+function navCal(delta) {
+    calMonth += delta;
+    if (calMonth > 12) { calMonth = 1; calYear++; }
+    if (calMonth < 1) { calMonth = 12; calYear--; }
+    if (calYear < 2025) { calYear = 2025; calMonth = 1; }
+    if (calYear > 2027) { calYear = 2027; calMonth = 12; }
+    renderCalendar();
+}
+
 // === Init ===
 function init() {
-    loadApiKey();
-    // Add some sample days from Mio's example
-    addDay(
+    const restored = loadSaved();
+    if (!restored) {
+        // No saved data — use sample days
+        addDay(
 `-抵达东京机场，专车专导接机
 -前往酒店办理入住
 -晚餐：包船夜游+晚餐或日式庭院餐厅晚宴
@@ -777,8 +1681,8 @@ function init() {
 '',
 '',
 '东京'
-    );
-    addDay(
+        );
+        addDay(
 `-上午：太田伸之交流会
 太田伸之先生是三宅一生的前社长，也曾任三越伊势丹控股的高管，深度参与百货业转型与品牌战略，在日本百货行业有重要的影响力。零售业转型、时尚服装及高端品牌相关经验可安排专讲+百货商场参观。
 -午餐：精进料理（日式素食）
@@ -789,8 +1693,8 @@ function init() {
 '太田伸之：需提前沟通确认专讲+商场参观安排\n寿司吧台：人数多时需分两个区域',
 '',
 '东京'
-    );
-    addDay(
+        );
+        addDay(
 `-上午：相扑稽古见学包场体验
 -午餐：鳗鱼饭/寿喜烧
 -下午：艺妓茶道体验/盆栽美术馆特别参观
@@ -799,8 +1703,8 @@ function init() {
 '永田町謳歌：极少对外提供预约渠道，需提前确认',
 '',
 '东京'
-    );
-    addDay(
+        );
+        addDay(
 `-前往轻井泽
 -轻井泽千住博美术馆游览
 -午餐：当地特色小资简餐餐厅
@@ -811,17 +1715,26 @@ function init() {
 '',
 '',
 '轻井泽→东京'
-    );
-    addDay(
+        );
+        addDay(
 `-根据航班时间出发前往机场`,
 '',
 '',
 '东京'
-    );
+        );
+    }
     renderEditor();
     updatePreview();
+    // Push initial history after init
+    historyStack = [getSnapshot()];
+    historyIndex = 0;
+    updateUndoRedoButtons();
+    autoSave();
 }
 init();
+
+// File import
+setupBulkDrop();
 </script>
 </body>
 </html>
