@@ -140,7 +140,7 @@ body::before {
 }
 .day-header input { font-size: 0.85rem; padding: 0.3rem 0.5rem; border: 1px solid var(--border); border-radius: 4px; font-family: inherit; flex: 1; }
 .day-header input:focus { outline: none; border-color: var(--gold-light); }
-.day-header .day-date { width: 120px; }
+.day-header .day-date { width: 140px; font-family: inherit; }
 .day-header .day-city { width: 100px; }
 .day-delete { color: #c0a0a0; cursor: pointer; font-size: 1.1rem; border: none; background: none; padding: 0.2rem; }
 .day-delete:hover { color: #c0392b; }
@@ -353,7 +353,7 @@ function renderEditor() {
         <div class="day-card">
             <div class="day-header">
                 <div class="day-number">${i + 1}</div>
-                <input class="day-date" placeholder="${t('date')}" value="${esc(d.date)}" oninput="updateDay(${i},'date',this.value)">
+                <input type="date" class="day-date" value="${esc(d.date)}" oninput="updateDay(${i},'date',this.value)">
                 ${wi.html}
                 <input class="day-city" placeholder="${t('city')}" value="${esc(d.city)}" oninput="updateDay(${i},'city',this.value)">
                 <button class="day-delete" onclick="deleteDay(${i})" title="删除">✕</button>
@@ -386,7 +386,7 @@ function updatePreview() {
         const wi = getWeekdayInfo(d.date);
         return `
         <div class="preview-day">
-            <div class="day-label">Day ${i + 1}${d.date ? ' — ' + d.date : ''}${wi.weekdayText ? ' (' + wi.weekdayText + ')' : ''}${wi.holidayName ? ' 🎌 ' + wi.holidayName : ''}</div>
+            <div class="day-label">Day ${i + 1}${d.date ? ' — ' + formatDateDisplay(d.date) : ''}${wi.weekdayText ? ' (' + wi.weekdayText + ')' : ''}${wi.holidayName ? ' 🎌 ' + wi.holidayName : ''}</div>
             ${d.city ? `<div class="day-location">📍 ${d.city}</div>` : ''}
             ${wi.holidayName ? `<div class="day-holiday" style="display:inline-block;margin-top:0.2rem;">⚠️ ${wi.holidayName} — 多くの施設が休業の場合があります</div>` : ''}
             <div class="day-text">${formatText(d.text)}</div>
@@ -464,7 +464,7 @@ function generateExportHTML() {
         const wi = getWeekdayInfo(d.date);
         return `
         <div style="margin-bottom:1.5rem; padding-left:1.5rem; border-left:2px solid #C9A96E;">
-            <div style="font-size:0.9rem; color:#8B6914; font-weight:600;">Day ${i + 1}${d.date ? ' — ' + d.date : ''}${wi.weekdayText ? ' (' + wi.weekdayText + ')' : ''}${wi.holidayName ? ' 🎌 ' + wi.holidayName : ''}</div>
+            <div style="font-size:0.9rem; color:#8B6914; font-weight:600;">Day ${i + 1}${d.date ? ' — ' + formatDateDisplay(d.date) : ''}${wi.weekdayText ? ' (' + wi.weekdayText + ')' : ''}${wi.holidayName ? ' 🎌 ' + wi.holidayName : ''}</div>
             ${d.city ? `<div style="font-size:0.82rem; color:#6a7a8a;">📍 ${d.city}</div>` : ''}
             ${wi.holidayName ? `<div style="font-size:0.7rem; color:#d35400; margin-top:0.2rem;">⚠️ ${wi.holidayName} — 多くの施設が休業の場合があります</div>` : ''}
             <div style="font-size:0.88rem; line-height:1.8; color:#1a2a3a; margin-top:0.3rem;">${formatText(d.text)}</div>
@@ -533,6 +533,14 @@ const WEEKDAYS_JP = ['日', '月', '火', '水', '木', '金', '土'];
 const WEEKDAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const WEEKDAYS_FR = ['dim', 'lun', 'mar', 'mer', 'jeu', 'ven', 'sam'];
 const WEEKDAYS_TW = ['日', '一', '二', '三', '四', '五', '六'];
+
+function formatDateDisplay(dateStr) {
+    // Convert YYYY-MM-DD to YYYY/M/D display for Chinese context
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length === 3) return `${parseInt(parts[0])}/${parseInt(parts[1])}/${parseInt(parts[2])}`;
+    return dateStr;
+}
 
 function getWeekdayInfo(dateStr) {
     const result = { html: '', weekdayText: '', holidayName: '' };
