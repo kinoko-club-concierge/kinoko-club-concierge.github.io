@@ -98,6 +98,18 @@ body::before {
 .ai-expand:hover { background: #7b4f9d; color: #fff; }
 .ai-expand.spinning { opacity: 0.7; pointer-events: none; }
 
+/* Google Search Section */
+.google-section { margin-bottom: 1rem; padding: 0.6rem 0.8rem; background: #f4f9f6; border: 1px solid #d4e8dc; border-radius: 6px; display: flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; }
+.google-section .google-label { color: #2e7d32; font-weight: 500; white-space: nowrap; }
+.google-section input { flex: 1; border: 1px solid #c8dcc8; border-radius: 4px; padding: 0.3rem 0.5rem; font-size: 0.78rem; font-family: inherit; }
+.google-section input:focus { outline: none; border-color: #4a9e5d; }
+.google-section .google-save { padding: 0.3rem 0.7rem; border-radius: 4px; border: none; background: #2e7d32; color: #fff; cursor: pointer; font-size: 0.75rem; font-family: inherit; }
+.google-section .google-save:hover { background: #256b28; }
+.google-section .google-status { font-size: 0.7rem; white-space: nowrap; }
+.search-venue { font-size: 0.73rem; padding: 0.25rem 0.55rem; border-radius: 4px; border: 1px solid #4a9e5d; background: #f4f9f6; color: #2e7d32; cursor: pointer; font-family: inherit; }
+.search-venue:hover { background: #2e7d32; color: #fff; }
+.search-venue.spinning { opacity: 0.7; pointer-events: none; }
+
 /* Customer branding */
 .customer-brand { margin-bottom: 1.5rem; }
 .customer-brand label { font-size: 0.78rem; color: var(--gray); display: block; margin-bottom: 0.3rem; }
@@ -296,6 +308,14 @@ body::before {
             <span class="ai-status" id="aiStatus"></span>
         </div>
 
+        <!-- Google Search API Key -->
+        <div class="google-section" id="googleSection">
+            <span class="google-label">🔍 施設検索</span>
+            <input type="password" id="googleApiKey" placeholder="Google API Key (AIza...)">
+            <button class="google-save" onclick="saveGoogleKey()">保存</button>
+            <span class="google-status" id="googleStatus"></span>
+        </div>
+
         <!-- Customer Branding -->
         <div class="customer-brand">
             <input type="text" id="clientName" placeholder="客户公司名 / Client Company Name" oninput="updatePreview()">
@@ -362,6 +382,85 @@ function loadApiKey() {
         document.getElementById('aiApiKey').value = aiApiKey;
         document.getElementById('aiStatus').textContent = '✅';
         document.getElementById('aiStatus').style.color = '#2e7d32';
+    }
+}
+
+// === Google API Key Management ===
+let googleApiKey = localStorage.getItem('kinoko_google_key') || '';
+function saveGoogleKey() {
+    googleApiKey = document.getElementById('googleApiKey').value.trim();
+    if (googleApiKey) {
+        localStorage.setItem('kinoko_google_key', googleApiKey);
+        document.getElementById('googleStatus').textContent = '✅';
+        document.getElementById('googleStatus').style.color = '#2e7d32';
+    } else {
+        localStorage.removeItem('kinoko_google_key');
+        document.getElementById('googleStatus').textContent = '';
+    }
+}
+
+// === Google Search Venue Info ===
+async function searchVenueInfo(idx) {
+    if (!googleApiKey) { alert('请先填写 Google API Key'); document.getElementById('googleApiKey').focus(); return; }
+    const day = days[idx];
+    // Build search query from city + text content
+    const city = day.city || '';
+    const rawText = day.text || day.notes || '';
+    // Try to extract venue names from the text
+    const venueHints = rawText.split(/[\n,，、。]+/).filter(s => s.trim()).slice(0, 3).join(' ');
+    if (!city.trim() && !venueHints.trim()) { alert('请先在当前日填写城市或行程内容，以便搜索'); return; }
+
+    // Show loading
+    const cards = document.querySelectorAll('.day-card');
+    const btn = cards[idx]?.querySelector('.search-venue');
+    if (btn) { btn.textContent = '⏳ 検索中...'; btn.classList.add('spinning'); }
+
+    try {
+        const searchQuery = `日本 ${city} ${venueHints} 観光施設 開館時間 料金 最新情報 site:ac.jp OR site:or.jp OR site:go.jp`;
+        const prompt = `以下の日本国内の観光施設・レストラン・美術館について、公式ウェブサイトから最新情報を日本語で調べてください。以下のフォーマットで簡潔に出力してください：
+
+検索対象: ${city} ${venueHints}
+
+【出力フォーマット】
+■ 施設名
+  開館時間：
+  休館日：
+  料金：
+  現在の展示/イベント：
+  公式URL：
+  備考：
+
+各施設について最新の正確な情報のみを記載。情報が見つからない項目は「要確認」と記載。`;
+
+        const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${googleApiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                tools: [{ googleSearch: {} }]
+            })
+        });
+
+        if (!resp.ok) {
+            const errText = await resp.text();
+            throw new Error(`API error ${resp.status}: ${errText.substring(0, 200)}`);
+        }
+        const data = await resp.json();
+        const result = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        if (!result) { throw new Error('空响应'); }
+
+        // Append to internal notes
+        const existingNotes = day.notes || '';
+        const divider = existingNotes.trim() ? '\n\n---\n\n' : '';
+        days[idx].notes = existingNotes + divider + '【施設最新情報】\n' + result;
+        days[idx]._activeTab = 'notes';
+        renderEditor();
+        updatePreview();
+
+        if (btn) { btn.textContent = '🔍 検索'; btn.classList.remove('spinning'); }
+    } catch (e) {
+        alert('施設情報の取得に失敗しました: ' + e.message);
+        if (btn) { btn.textContent = '🔍 検索'; btn.classList.remove('spinning'); }
     }
 }
 
@@ -477,6 +576,7 @@ function renderEditor() {
                 ${wi.html}
                 <input class="day-city" placeholder="${t('city')}" value="${esc(d.city)}" oninput="updateDay(${i},'city',this.value)">
                 <button class="ai-expand" onclick="aiExpandDay(${i})" title="AI 扩写">✨ 扩写</button>
+                <button class="search-venue" onclick="searchVenueInfo(${i})" title="施設情報を検索">🔍 検索</button>
                 <button class="day-delete" onclick="deleteDay(${i})" title="删除">✕</button>
             </div>
             <div class="day-tabs">
@@ -713,6 +813,11 @@ function getWeekdayInfo(dateStr) {
 // === Init ===
 function init() {
     loadApiKey();
+    if (googleApiKey) {
+        document.getElementById('googleApiKey').value = googleApiKey;
+        document.getElementById('googleStatus').textContent = '✅';
+        document.getElementById('googleStatus').style.color = '#2e7d32';
+    }
     // Add some sample days from Mio's example
     addDay(
 `-抵达东京机场，专车专导接机
