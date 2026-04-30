@@ -403,73 +403,59 @@ function saveGoogleKey() {
 async function searchVenueInfo(idx) {
     if (!googleApiKey) { alert('请先填写 Google API Key'); document.getElementById('googleApiKey').focus(); return; }
     const day = days[idx];
-    // Build search query from city + text content
     const city = day.city || '';
     const rawText = day.text || day.notes || '';
-    // Try to extract venue names from the text
     const venueHints = rawText.split(/[\n,，、。]+/).filter(s => s.trim()).slice(0, 3).join(' ');
     if (!city.trim() && !venueHints.trim()) { alert('请先在当前日填写城市或行程内容，以便搜索'); return; }
 
-    // Show loading
     const cards = document.querySelectorAll('.day-card');
     const btn = cards[idx]?.querySelector('.search-venue');
     if (btn) { btn.textContent = '⏳ 検索中...'; btn.classList.add('spinning'); }
 
     try {
-        const searchQuery = `日本 ${city} ${venueHints} 観光施設 開館時間 料金 最新情報 site:ac.jp OR site:or.jp OR site:go.jp`;
-        const prompt = `以下の日本国内の観光施設・レストラン・美術館について、公式ウェブサイトから最新情報を日本語で調べてください。以下のフォーマットで簡潔に出力してください：
+        const prompt = `日本 ${city} にある「${venueHints}」について、公式情報を日本語で簡潔にまとめてください：
 
-検索対象: ${city} ${venueHints}
-
-【出力フォーマット】
 ■ 施設名
   開館時間：
   休館日：
   料金：
   現在の展示/イベント：
   公式URL：
-  備考：
 
-各施設について最新の正確な情報のみを記載。情報が見つからない項目は「要確認」と記載。`;
+情報が見つからない項目は「要確認」と記載。`;
 
-        // Retry up to 3 times with exponential backoff (for 429 rate limits)
-        let resp, data, lastErr;
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${googleApiKey}`;
+        console.log('[Kinoko Search] API Key (last 8):', googleApiKey.slice(-8));
+        console.log('[Kinoko Search] Prompt:', prompt.substring(0, 100));
+
+        let resp, data;
         for (let attempt = 0; attempt < 3; attempt++) {
             if (attempt > 0) {
-                const delay = Math.pow(2, attempt) * 1000;
+                const delay = Math.pow(2, attempt) * 1500;
                 if (btn) { btn.textContent = `⏳ 再試行 ${attempt}/2...`; }
                 await new Promise(r => setTimeout(r, delay));
             }
-            try {
-                resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${googleApiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: prompt }] }],
-                        tools: [{ googleSearch: {} }]
-                    })
-                });
-                if (resp.ok) break;
-                if (resp.status !== 429 && resp.status !== 503) {
-                    const errText = await resp.text();
-                    throw new Error(`API error ${resp.status}: ${errText.substring(0, 200)}`);
-                }
-                lastErr = `API ${resp.status} (attempt ${attempt + 1}/3)`;
-            } catch (e) {
-                if (attempt === 2) throw e;
-                lastErr = e.message;
+            resp = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }]
+                })
+            });
+            console.log(`[Kinoko Search] Attempt ${attempt + 1}: status=${resp.status}`);
+            if (resp.ok) break;
+            const errText = await resp.text();
+            console.log('[Kinoko Search] Error body:', errText.substring(0, 300));
+            if (resp.status !== 429 && resp.status !== 503) {
+                throw new Error(`API ${resp.status}: ${errText.substring(0, 200)}`);
             }
+            if (attempt === 2) throw new Error(`API ${resp.status} (tried 3 times): ${errText.substring(0, 200)}`);
         }
-        if (!resp?.ok) {
-            if (resp) {
-                const errText = await resp.text();
-                throw new Error(`API error ${resp.status}: ${errText.substring(0, 200)}`);
-            }
-            throw new Error(lastErr || '请求失败');
-        }
+
         data = await resp.json();
+        console.log('[Kinoko Search] Response:', JSON.stringify(data).substring(0, 300));
         const result = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-        if (!result) { throw new Error('空响应'); }
+        if (!result) { throw new Error('空响应（Console で詳細を確認してください）'); }
 
         // Append to internal notes
         const existingNotes = day.notes || '';
