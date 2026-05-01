@@ -10,6 +10,9 @@
 body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Serif JP',Georgia,serif; background:var(--cream); color:var(--dark); min-height:100vh; }
 .topbar { background:#fff; border-bottom:1px solid var(--border); padding:14px 24px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:10; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
 .topbar-left { display:flex; align-items:center; gap:12px; }
+.topbar-left .header-divider { width:1px; height:32px; background:#DBD4CF; flex-shrink:0; }
+.topbar-left h1 { font-size:1.1rem; font-weight:400; color:var(--dark); margin:0; font-family:'Hiragino Mincho ProN','Songti SC','Noto Serif CJK SC',serif; letter-spacing:0.02em; }
+.topbar-left .header-sub { font-size:0.65rem; color:var(--gray); letter-spacing:0.08em; text-transform:uppercase; }
 .topbar-left .brand-text {  font-size:0.7rem; color:#8a6d3b; letter-spacing:0.5px; }
 .topbar-left .brand { font-size:16px; font-weight:600; color:var(--dark); }
 .container { max-width:1100px; margin:0 auto; padding:24px; }
@@ -68,7 +71,11 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 <div class="topbar">
     <div class="topbar-left">
         <img src="brand-logo.png?v=1" alt="Kinoko Club Concierge" style="height:36px;">
-        <h1 style="font-size:1rem;font-weight:400;color:var(--gray);margin:0;">行程管理中心</h1>
+        <div class="header-divider"></div>
+        <div>
+            <h1>行程管理中心</h1>
+            <span class="header-sub">Dashboard</span>
+        </div>
     </div>
     <div style="display:flex;gap:8px;">
     </div>
