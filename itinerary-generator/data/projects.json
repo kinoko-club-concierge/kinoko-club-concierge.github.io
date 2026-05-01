@@ -3,7 +3,7 @@
     "id": "etc7yj",
     "name": "2023",
     "created_at": 1777632865280,
-    "pinned": true,
+    "pinned": false,
     "itinerary_count": 1,
     "child_count": 2
   },
@@ -117,7 +117,8 @@
     "created_at": 1777658446226,
     "updated_at": 1777658446226,
     "itinerary_count": 0,
-    "child_count": 0
+    "child_count": 0,
+    "pinned": true
   },
   {
     "id": "fk9agq7",
