@@ -32,6 +32,8 @@ h1 { font-size: 1.3rem; color: var(--dark); font-weight: 500; margin-bottom: 0.2
 .day-text { font-size: 0.88rem; line-height: 1.8; color: var(--dark); margin-top: 0.3rem; }
 .day-text p { margin-bottom: 0.3rem; }
 .day-text a { color: var(--gold); }
+.day-images { display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0.5rem 0; }
+.day-images img { border-radius: 6px; display: block; }
 .footer { text-align: center; font-size: 0.7rem; color: var(--gray); margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e8e5db; }
 .error { text-align: center; color: #d35400; padding: 3rem; font-size: 0.9rem; }
 .loading { text-align: center; color: var(--gray); padding: 5rem; }
@@ -76,6 +78,16 @@ h1 { font-size: 1.3rem; color: var(--dark); font-weight: 500; margin-bottom: 0.2
             html += '<div class="day">';
             html += '<div class="day-label">Day ' + (i + 1) + (day.t ? ' — ' + day.t : '') + '</div>';
             if (day.c) html += '<div class="day-location">📍 ' + day.c + '</div>';
+            if (day.imgs && day.imgs.length) {
+                var fit = day.fit || 'cover';
+                html += '<div class="day-images">';
+                day.imgs.forEach(function(img) {
+                    var w = img.h ? 'calc(50% - 0.15rem)' : '100%';
+                    var pw = img.p ? '50%' : '100%';
+                    html += '<div style="flex:0 0 ' + w + ';min-width:0;border-radius:6px;overflow:hidden;' + (img.p ? 'text-align:center;' : '') + '"><img src="' + esc(img.u) + '" alt="" style="object-fit:' + fit + ';width:' + pw + ';height:auto;border-radius:6px;"></div>';
+                });
+                html += '</div>';
+            }
             if (day.x) html += '<div class="day-text">' + formatText(day.x) + '</div>';
             html += '</div>';
         });

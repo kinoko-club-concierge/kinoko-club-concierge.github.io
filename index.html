@@ -561,6 +561,7 @@ body::before {
     <div class="cal-days" id="calDays"></div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
@@ -1337,9 +1338,9 @@ function updatePreview() {
     if (tripInfo.kidsCount) paxParts.push('儿童' + tripInfo.kidsCount + '名');
     if (tripInfo.kidsAge) paxParts[paxParts.length-1] += ' ' + tripInfo.kidsAge;
     const infoHTML = `
-        <div style="text-align:center;font-size:0.82rem;color:var(--gray);margin-bottom:1rem;padding-top:1rem;">
-            <div style="margin-top:0.2rem;">${tourNum ? 'KNO-' + tourNum : 'KNO-ツアー番号'}</div>
+        <div style="text-align:center;font-size:0.82rem;color:var(--gray);margin-bottom:1rem;padding-top:4rem;">
             <div style="margin-top:0.2rem;">${tripInfo.brief || '行程简介'}</div>
+            <div style="margin-top:0.2rem;">${tourNum ? 'KNO-' + tourNum : 'KNO-ツアー番号'}</div>
             <div style="font-size:0.75rem;margin-top:0.2rem;">${paxParts.length ? paxParts.join(' · ') : '出行人数'}</div>
         </div>`;
     
@@ -1437,11 +1438,33 @@ function switchLanguage(lang) {
 
 // === Export ===
 function exportWeb() {
-    const html = generateExportHTML();
-    // Save to localStorage and open in new tab
-    localStorage.setItem('kinoko_itinerary', html);
-    const w = window.open('about:blank');
-    w.document.write(html);
+    const btn = document.getElementById('genLinkBtn');
+    const orig = btn?.textContent;
+    if (btn) btn.textContent = '生成中…';
+    try {
+        const data = {
+            n: document.getElementById('clientName')?.value || '',
+            i: tripInfo,
+            d: days.map(d => ({
+                t: d.date || '',
+                c: d.city || '',
+                x: d.text || '',
+                o: d.notes || '',
+                imgs: (d.images || []).filter(img => img.url).map(img => ({ u: img.url, p: img.portrait || false, h: img.half || false })),
+                fit: d.imageFit || 'cover'
+            }))
+        };
+        const json = JSON.stringify(data);
+        const compressed = LZString.compressToEncodedURIComponent(json);
+        const url = `${location.origin}${location.pathname}share/?d=${compressed}`;
+        navigator.clipboard.writeText(url).then(() => {
+            if (btn) { btn.textContent = '✓ 已复制链接'; setTimeout(() => { btn.textContent = orig || '🔗 生成链接'; }, 2000); }
+        }).catch(() => {});
+        window.open(url, '_blank');
+    } catch (e) {
+        if (btn) btn.textContent = orig || '🔗 生成链接';
+        alert('生成失败: ' + e.message);
+    }
 }
 
 function exportPDF() {
