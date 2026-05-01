@@ -244,11 +244,12 @@ function render() {
     }
     
     // Sort
-    if (currentSort === 'az') {
-        items.sort(function(a,b) { return (a.data.name||'').localeCompare(b.data.name||''); });
-    } else if (currentSort === 'za') {
-        items.sort(function(a,b) { return (b.data.name||'').localeCompare(a.data.name||''); });
-    }
+    items.sort(function(a,b) {
+        if ((a.data.pinned|0) !== (b.data.pinned|0)) return (b.data.pinned|0) - (a.data.pinned|0);
+        if (currentSort === 'az') return (a.data.name||'').localeCompare(b.data.name||'');
+        if (currentSort === 'za') return (b.data.name||'').localeCompare(a.data.name||'');
+        return 0;
+    });
     
     if (!items.length) {
         container.innerHTML = '<div class="empty-state"><div class="e-icon">📭</div><p>' + (q ? '没有匹配的内容' : '文件夹为空') + '</p>' +
@@ -301,15 +302,18 @@ function renderListItem(item) {
     var dd = item.type === 'folder'
         ? '<div class="item" draggable="true" data-type="folder" data-id="' + esc(d.id) + '" onclick="navTo(\'' + esc(d.id) + '\')">'
         : '<div class="item" draggable="true" data-type="itinerary" data-id="' + esc(d.id) + '" data-proj="' + esc(d.project_id) + '" onclick="openItinerary(\'' + esc(d.project_id) + '\', \'' + esc(d.id) + '\')">';
-    dd += '<span class="icon">' + (item.type === 'folder' ? '📂' : '📄') + '</span>';
+    dd += '<span class="icon">' + (d.pinned ? '📌 ' : '') + (item.type === 'folder' ? '📂' : '📄') + '</span>';
     dd += '<span class="name">' + escH(d.name) + '</span>';
     dd += '<span class="meta">' + (item.type === 'folder' ? ((d.itinerary_count||0) + ' 行程') : escH(d.project_name)) + '</span>';
     dd += '<span class="date">' + (item.type === 'folder' ? timeAgo(d.updated_at) : dateStr(d)) + '</span>';
     dd += '<span class="actions">';
     if (item.type === 'folder') {
+        dd += '<button class="action-btn" onclick="event.stopPropagation();togglePin(\'folder\',\'' + esc(d.id) + '\',' + (d.pinned ? 'true' : 'false') + ')">' + (d.pinned ? '📌 取消置顶' : '📌 置顶') + '</button>';
         dd += '<button class="action-btn" onclick="event.stopPropagation();renameFolder(\'' + esc(d.id) + '\',\'' + escJs(d.name) + '\')">重命名</button>';
         dd += '<button class="action-btn del" onclick="event.stopPropagation();deleteFolder(\'' + esc(d.id) + '\')">删除</button>';
     } else {
+        dd += '<button class="action-btn" onclick="event.stopPropagation();togglePin(\'itinerary\',\'' + esc(d.id) + '\',' + (d.pinned ? 'true' : 'false') + ')">' + (d.pinned ? '📌 取消置顶' : '📌 置顶') + '</button>';
+        dd += '<button class="action-btn" onclick="event.stopPropagation();duplicateItinerary(\'' + esc(d.project_id) + '\',\'' + esc(d.id) + '\')">📋 复制</button>';
         dd += '<button class="action-btn" onclick="event.stopPropagation();renameItinerary(\'' + esc(d.project_id) + '\',\'' + esc(d.id) + '\',\'' + escJs(d.name) + '\')">重命名</button>';
         dd += '<button class="action-btn del" onclick="event.stopPropagation();deleteItinerary(\'' + esc(d.project_id) + '\',\'' + esc(d.id) + '\')">删除</button>';
     }
@@ -467,6 +471,21 @@ function timeAgo(ts) {
 function esc(s) { return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
 function escH(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function escJs(s) { return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"'); }
+
+function duplicateItinerary(pid, iid) {
+    fetch('https://kinoko-share.yujian1933.workers.dev/api/projects/' + pid + '/duplicate', {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ id: iid })
+    }).then(function() { refresh(); });
+}
+
+function togglePin(type, id, current) {
+    var endpoint = type === 'folder' ? '/api/projects/pin' : '/api/itineraries/pin';
+    fetch('https://kinoko-share.yujian1933.workers.dev' + endpoint, {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ id: id, pinned: !current })
+    }).then(function() { refresh(); });
+}
 
 // === Trash ===
 function showTrash() {
