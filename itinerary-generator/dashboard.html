@@ -49,7 +49,8 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 .item { display:flex; align-items:center; padding:11px 14px; background:#fff; border-radius:6px; cursor:pointer; border:1px solid transparent; transition:all 0.12s; gap:0; }
 .item:hover { border-color:var(--gold-light); background:var(--cream); }
 .item.dragging { opacity:0.5; }
-.item.drag-over { border-color:var(--gold); background:var(--cream); box-shadow:inset 0 0 0 2px var(--gold-light); }
+.item.drag-over { border-color:var(--gold); background:linear-gradient(135deg, var(--cream), #fff8e1); box-shadow:0 0 0 2px var(--gold); position:relative; }
+.item.drag-over::after { content:'松开放入此文件夹'; position:absolute; right:100px; top:50%; transform:translateY(-50%); font-size:11px; color:var(--gold); font-weight:600; white-space:nowrap; pointer-events:none; }
 .item .name { flex:1; min-width:120px; font-size:14px; color:var(--dark); font-weight:500; word-break:break-all; padding-right:20px; }
 .item .meta { font-size:12px; color:#888; white-space:nowrap; flex:1; text-align:center; padding:0 12px; }
 .item.pinned { background: rgba(139,105,20,0.06); border-left: 3px solid var(--gold); padding-left: 13px; border-radius: 0 6px 6px 0; }
@@ -64,7 +65,8 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 .grid-card { background:#fff; border-radius:8px; padding:16px; cursor:pointer; border:1px solid var(--border); transition:all 0.15s; }
 .grid-card:hover { border-color:var(--gold-light); box-shadow:0 4px 12px rgba(139,105,20,0.08); transform:translateY(-1px); }
 .grid-card.dragging { opacity:0.5; }
-.grid-card.drag-over { border-color:var(--gold); box-shadow:inset 0 0 0 2px var(--gold-light); }
+.grid-card.drag-over { border-color:var(--gold); box-shadow:0 0 0 2px var(--gold); background:linear-gradient(135deg, var(--cream), #fff8e1); position:relative; }
+.grid-card.drag-over::after { content:'松开放入'; position:absolute; right:12px; bottom:12px; font-size:10px; color:var(--gold); font-weight:600; pointer-events:none; }
 .grid-card .gc-icon { font-size:24px; margin-bottom:8px; }
 .grid-card .gc-name { font-size:14px; font-weight:500; color:var(--dark); margin-bottom:4px; word-break:break-all; }
 .grid-card .gc-meta { font-size:11px; color:var(--gray); }
@@ -421,7 +423,7 @@ function render() {
         : projects.filter(function(p) { return !p.parent; });
     var itineraryItems = currentFolder
         ? allData.filter(function(it) { return it.project_id === currentFolder; })
-        : [];
+        : allData.filter(function(it) { return !it.project_id; });
     
     // Apply search
     if (q) {
@@ -486,10 +488,10 @@ function renderGridCard(item) {
             '<div class="gc-date">' + timeAgo(d.updated_at) + '</div>' +
             '</div>';
     } else {
-        return '<div class="grid-card" draggable="true" data-type="itinerary" data-id="' + esc(d.id) + '" data-proj="' + esc(d.project_id) + '" onclick="openItinerary(\'' + esc(d.project_id) + '\', \'' + esc(d.id) + '\')">' +
+        return '<div class="grid-card" draggable="true" data-type="itinerary" data-id="' + esc(d.id) + '" data-proj="' + esc(d.project_id||'') + '" onclick="openItinerary(\'' + esc(d.project_id||'') + '\', \'' + esc(d.id) + '\')">' +
             '<div class="gc-icon"></div>' +
             '<div class="gc-name">' + escH(d.name) + '</div>' +
-            '<div class="gc-meta">' + escH(d.project_name) + '</div>' +
+            '<div class="gc-meta">' + (d.project_name ? escH(d.project_name) : '<em style="color:#aaa;">未归档</em>') + '</div>' +
             '<div class="gc-date">' + dateStr(d) + '</div>' +
             '</div>';
     }
@@ -500,13 +502,13 @@ function renderListItem(item) {
     var pinnedClass = d.pinned ? ' pinned' : '';
     var dd = item.type === 'folder'
         ? '<div class="item' + pinnedClass + '" draggable="true" data-type="folder" data-id="' + esc(d.id) + '" onclick="navTo(\'' + esc(d.id) + '\')">'
-        : '<div class="item' + pinnedClass + '" draggable="true" data-type="itinerary" data-id="' + esc(d.id) + '" data-proj="' + esc(d.project_id) + '" onclick="openItinerary(\'' + esc(d.project_id) + '\', \'' + esc(d.id) + '\')">';
+        : '<div class="item' + pinnedClass + '" draggable="true" data-type="itinerary" data-id="' + esc(d.id) + '" data-proj="' + esc(d.project_id||'') + '" onclick="openItinerary(\'' + esc(d.project_id||'') + '\', \'' + esc(d.id) + '\')">';
     dd += '<span class="name">' + escH(d.name) + '</span>';
     if (item.type === 'folder') {
         dd += '<span class="meta">' + (d.itinerary_count||0) + ' 项目</span>';
         dd += '<span class="date">' + formatDate(d.updated_at) + '</span>';
     } else {
-        dd += '<span class="meta">' + escH(d.project_name) + '</span>';
+        dd += '<span class="meta">' + (d.project_name ? escH(d.project_name) : '<em style="color:#aaa;">未归档</em>') + '</span>';
         dd += '<span class="date">' + dateStr(d) + '</span>';
     }
     dd += '<span class="actions">';
@@ -516,9 +518,9 @@ function renderListItem(item) {
         dd += '<button class="action-btn del" onclick="event.stopPropagation();deleteFolder(\'' + esc(d.id) + '\')">删除</button>';
     } else {
         dd += '<button class="action-btn" onclick="event.stopPropagation();togglePin(\'itinerary\',\'' + esc(d.id) + '\',' + (d.pinned ? 'true' : 'false') + ')">' + (d.pinned ? '取消置顶' : '置顶') + '</button>';
-        dd += '<button class="action-btn" onclick="event.stopPropagation();duplicateItinerary(\'' + esc(d.project_id) + '\',\'' + esc(d.id) + '\')">复制</button>';
-        dd += '<button class="action-btn" onclick="event.stopPropagation();renameItinerary(\'' + esc(d.project_id) + '\',\'' + esc(d.id) + '\',\'' + escJs(d.name) + '\')">重命名</button>';
-        dd += '<button class="action-btn del" onclick="event.stopPropagation();deleteItinerary(\'' + esc(d.project_id) + '\',\'' + esc(d.id) + '\')">删除</button>';
+        dd += '<button class="action-btn" onclick="event.stopPropagation();duplicateItinerary(\'' + esc(d.project_id||'') + '\',\'' + esc(d.id) + '\')">复制</button>';
+        dd += '<button class="action-btn" onclick="event.stopPropagation();renameItinerary(\'' + esc(d.project_id||'') + '\',\'' + esc(d.id) + '\',\'' + escJs(d.name) + '\')">重命名</button>';
+        dd += '<button class="action-btn del" onclick="event.stopPropagation();deleteItinerary(\'' + esc(d.project_id||'') + '\',\'' + esc(d.id) + '\')">删除</button>';
     }
     dd += '</span></div>';
     return dd;
@@ -586,6 +588,11 @@ function moveItinerary(iid, fromProj, toProj) {
             it = allData.splice(i, 1)[0];
             break;
         }
+        // Also handle null/empty fromProj matching null project_id
+        if (!fromProj && !allData[i].project_id && allData[i].id === iid) {
+            it = allData.splice(i, 1)[0];
+            break;
+        }
     }
     if (it) { it.project_id = toProj; allData.push(it); }
     ghSyncAll();
@@ -604,28 +611,10 @@ function createItem(type) {
         ghSyncAll();
     } else {
         if (currentFolder) {
-            // Inside a folder/subfolder: directly create there
             quickCreate(currentFolder);
         } else {
-            // Root list view: pick from ALL folders
-            var allFolders = [];
-            function flattenFolders(list, depth) {
-                for (var fi = 0; fi < list.length; fi++) {
-                    var f = list[fi];
-                    var prefix = depth > 0 ? '  '.repeat(depth) + '└ ' : '';
-                    allFolders.push({id: f.id, label: prefix + f.name});
-                    var children = projects.filter(function(c) { return c.parent === f.id; });
-                    if (children.length) flattenFolders(children, depth + 1);
-                }
-            }
-            flattenFolders(projects.filter(function(p) { return !p.parent; }), 0);
-            if (!allFolders.length) { alert('请先创建一个文件夹'); return; }
-            var opts = allFolders.map(function(f) { return f.label; }).join('\n');
-            var choice = prompt('选择目标文件夹：\n' + opts, allFolders[0].label);
-            if (!choice) return;
-            var picked = allFolders.find(function(f) { return f.label === choice.trim(); });
-            if (!picked) { alert('未找到该文件夹'); return; }
-            quickCreate(picked.id);
+            // Root level: create unattached, user drags to folder later
+            quickCreate(null);
         }
     }
 }
@@ -637,7 +626,9 @@ function quickCreate(pid) {
     var now = Date.now();
     allData.push({id: newId, name: name, project_id: pid, project_name: '', created_at: now, updated_at: now, pinned: false});
     ghSyncAll();
-    window.location.href = 'index.html#project=' + pid + '&itinerary=' + newId;
+    if (pid) {
+        window.location.href = 'index.html#project=' + pid + '&itinerary=' + newId;
+    }
 }
 
 function renameFolder(pid, oldName) {
