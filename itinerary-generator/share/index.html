@@ -113,6 +113,7 @@ h1 { font-size: 1.3rem; color: var(--dark); font-weight: 500; margin-bottom: 0.2
     if (id) {
         var retries = 0;
         var DATA_URL = 'https://kinoko-share.yujian1933.workers.dev/data/' + id + '.json';
+        var loaded = false;
         function loadData() {
             fetch(DATA_URL)
                 .then(function(res) {
@@ -127,9 +128,16 @@ h1 { font-size: 1.3rem; color: var(--dark); font-weight: 500; margin-bottom: 0.2
                     }
                     return res.json();
                 })
-                .then(function(data) { if (data) renderTrip(data); })
-                .catch(function(e) { showError('加载失败：' + e.message); });
+                .then(function(data) { if (data && !loaded) { loaded = true; renderTrip(data); } })
+                .catch(function(e) { if (!loaded) showError('加载失败：' + e.message); });
         }
+        // Listen for direct data from editor page (instant, no network)
+        window.addEventListener('message', function(e) {
+            if (e.data && e.data.type === 'kinoko_trip' && e.data.data && !loaded) {
+                loaded = true;
+                renderTrip(e.data.data);
+            }
+        });
         loadData();
         return;
     }
