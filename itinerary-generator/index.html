@@ -1442,6 +1442,7 @@ function exportWeb() {
     const orig = btn?.textContent;
     if (btn) btn.textContent = '生成中…';
 
+    const SHARE_ORIGIN = 'https://kinoko-club-concierge.github.io';
     const basePath = location.pathname.replace(/\/?(index\.html)?$/, '').replace(/\/$/, '');
     const data = {
         n: document.getElementById('clientName')?.value || '',
@@ -1465,9 +1466,8 @@ function exportWeb() {
 
     function longUrl() {
         var json = JSON.stringify(data);
-        // Use standard base64 + URL encoding — no lz-string encoding gotchas
         var encoded = encodeURIComponent(btoa(unescape(encodeURIComponent(json))));
-        return location.origin + basePath + '/share/?v=73&d=' + encoded;
+        return SHARE_ORIGIN + basePath + '/share/?v=73&d=' + encoded;
     }
 
     // localhost → short link via local server
@@ -1476,13 +1476,10 @@ function exportWeb() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
-        })
-        .then(function(res) { return res.json(); })
-        .then(function(result) {
-            if (result.id) onDone(location.origin + basePath + '/share/?id=' + result.id);
+        }).then(function(res) { return res.json(); }).then(function(result) {
+            if (result.id) onDone(SHARE_ORIGIN + basePath + '/share/?id=' + result.id);
             else onDone(longUrl());
-        })
-        .catch(function() { onDone(longUrl()); });
+        }).catch(function() { onDone(longUrl()); });
         return;
     }
 
@@ -1492,7 +1489,7 @@ function exportWeb() {
         headers: { 'Content-Type': 'application/json', 'Bypass-Tunnel-Reminder': 'true' },
         body: JSON.stringify(data)
     }).then(function(res) { return res.json(); }).then(function(result) {
-        if (result.id) onDone(location.origin + basePath + '/share/?id=' + result.id);
+        if (result.id) onDone(SHARE_ORIGIN + basePath + '/share/?id=' + result.id);
         else onDone(longUrl());
     }).catch(function() { onDone(longUrl()); });
 }
