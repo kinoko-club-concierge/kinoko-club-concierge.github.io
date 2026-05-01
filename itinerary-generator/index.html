@@ -72,6 +72,18 @@ body::before {
 .btn { border: none; color: #fff; font-weight: 500; }
 .btn-gold { background: var(--gold); }
 .btn-gold:hover { background: #7a5a10; }
+
+.gen-link-wrap { position: relative; display: inline-block; }
+.gen-menu {
+    position: absolute; top: 100%; left: 0; z-index: 100;
+    background: #fff; border: 1px solid var(--border); border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1); min-width: 140px; overflow: hidden;
+}
+.gen-menu div {
+    padding: 0.5rem 1rem; font-size: 0.82rem; cursor: pointer; color: var(--dark);
+    transition: background 0.15s;
+}
+.gen-menu div:hover { background: var(--cream); color: var(--gold); }
 .btn-outline { background: #fff; border: 1px solid var(--border); color: var(--dark); }
 .btn-outline:hover { background: #f5f3ea; }
 
@@ -451,7 +463,13 @@ body::before {
         <button class="btn btn-outline" id="undoBtn" onclick="undo()" title="撤回 Ctrl+Z">↩ 撤回</button>
         <button class="btn btn-outline" id="redoBtn" onclick="redo()" title="重做 Ctrl+Shift+Z">↪ 重做</button>
         <button class="btn btn-outline" id="saveBtn" onclick="saveState()">保存</button>
-        <button class="btn btn-gold" id="genLinkBtn" onclick="exportWeb()">🔗 生成链接</button>
+        <div class="gen-link-wrap" id="genLinkWrap">
+        <button class="btn btn-gold" id="genLinkBtn" onclick="toggleGenMenu()">🔗 生成链接 ▾</button>
+        <div class="gen-menu" id="genMenu" style="display:none">
+            <div onclick="doExport('client')">生成客户版</div>
+            <div onclick="doExport('internal')">生成内部版</div>
+        </div>
+        </div>
         <button class="btn btn-outline" id="exportPDFBtn" onclick="exportPDF()">PDF</button>
         <button class="btn btn-outline" id="exportWordBtn" onclick="exportWord()">Word</button>
         <select id="langSelect" onchange="switchLanguage(this.value)">
@@ -1437,56 +1455,69 @@ function switchLanguage(lang) {
 }
 
 // === Export ===
-function exportWeb() {
+function toggleGenMenu() {
+    var menu = document.getElementById('genMenu');
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+
+// Close menu when clicking outside
+document.addEventListener('click', function(e) {
+    var wrap = document.getElementById('genLinkWrap');
+    var menu = document.getElementById('genMenu');
+    if (wrap && menu && !wrap.contains(e.target)) {
+        menu.style.display = 'none';
+    }
+});
+
+function doExport(mode) {
+    // Close menu
+    document.getElementById('genMenu').style.display = 'none';
+
     const btn = document.getElementById('genLinkBtn');
     const orig = btn?.textContent;
     if (btn) btn.textContent = '生成中…';
 
     // Open preview window immediately to avoid popup blocker
     var preview = window.open('about:blank', '_blank');
-    // Fallback: if popup blocked, turn button into clickable link
-    var popupBlocked = !preview;
 
     const SHARE_ORIGIN = 'https://kinoko-club-concierge.github.io';
     const basePath = location.pathname.replace(/\/?(index\.html)?$/, '').replace(/\/$/, '');
     const data = {
         n: document.getElementById('clientName')?.value || '',
         i: tripInfo,
-        d: days.map(d => ({
-            t: d.date || '',
-            c: d.city || '',
-            x: d.text || '',
-            o: d.notes || '',
-            imgs: (d.images || []).filter(img => img.url).map(img => ({ u: img.url, p: img.portrait || false, h: img.half || false })),
-            fit: d.imageFit || 'cover'
-        }))
+        d: days.map(function(d) {
+            return {
+                t: d.date || '',
+                c: d.city || '',
+                x: d.text || '',
+                o: mode === 'internal' ? (d.notes || '') : '',
+                imgs: (d.images || []).filter(function(img) { return img.url; }).map(function(img) { return { u: img.url, p: img.portrait || false, h: img.half || false }; }),
+                fit: d.imageFit || 'cover'
+            };
+        })
     };
 
     function onDone(url) {
-        // Always update button
-        if (btn) { btn.textContent = '✓ 已复制链接'; setTimeout(function() { btn.textContent = '🔗 生成链接'; }, 2000); }
+        if (btn) { btn.textContent = '✓ 已复制链接'; setTimeout(function() { btn.textContent = '🔗 生成链接 ▾'; }, 2000); }
         navigator.clipboard.writeText(url).catch(function() {});
         if (preview) {
-            // Pass raw data directly to popup — zero network, instant render
             preview.location = url;
             var timer = setInterval(function() {
                 preview.postMessage({ type: 'kinoko_trip', data: data }, '*');
             }, 200);
             setTimeout(function() { clearInterval(timer); }, 5000);
-        }
-            // Popup blocked — turn button into clickable link
+        } else {
             if (btn) {
                 btn.textContent = '✓ 已复制 — 点我打开';
                 btn.onclick = function() { window.open(url, '_blank'); };
-                setTimeout(function() { btn.textContent = orig || '🔗 生成链接'; btn.onclick = exportWeb; }, 5000);
+                setTimeout(function() { btn.textContent = '🔗 生成链接 ▾'; btn.onclick = toggleGenMenu; }, 5000);
             }
         }
     }
 
     function onError() {
-        if (btn) btn.textContent = orig || '🔗 生成链接';
+        if (btn) btn.textContent = '🔗 生成链接 ▾';
         if (preview) preview.close();
-        if (!preview && btn) btn.onclick = exportWeb;
     }
 
     function longUrl() {
