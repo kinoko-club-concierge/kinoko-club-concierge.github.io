@@ -149,20 +149,36 @@ function loadAll() {
 }
 
 function refresh() {
-    // Read from GitHub Pages static JSON (always accessible in China)
-    var base = 'https://kinoko-club-concierge.github.io/itinerary-generator/data/';
-    Promise.all([
-        fetch(base + 'projects.json?v=' + Date.now()).then(function(r) { return r.json(); }),
-        fetch(base + 'itineraries.json?v=' + Date.now()).then(function(r) { return r.json(); })
-    ]).then(function(results) {
-        projects = results[0] || [];
-        allData = results[1] || [];
-        renderBreadcrumb();
-        render();
-    }).catch(function(e) {
-        document.getElementById('content').innerHTML = '<div class="empty-state"><div class="e-icon">⚠️</div><p>无法连接服务器</p><p class="sub">请检查网络或稍后再试</p></div>';
-        console.error(e);
-    });
+    // Try localhost first, fall back to GitHub Pages static JSON
+    var base = 'http://localhost:8765/api/';
+    fetch(base + 'projects')
+        .then(function(r) { return r.json(); })
+        .then(function(p) {
+            projects = p || [];
+            return fetch(base + 'itineraries');
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+            allData = d || [];
+            renderBreadcrumb();
+            render();
+        })
+        .catch(function() {
+            // Fallback: GitHub Pages static JSON
+            var gh = 'https://kinoko-club-concierge.github.io/itinerary-generator/data/';
+            Promise.all([
+                fetch(gh + 'projects.json?v=' + Date.now()).then(function(r) { return r.json(); }),
+                fetch(gh + 'itineraries.json?v=' + Date.now()).then(function(r) { return r.json(); })
+            ]).then(function(results) {
+                projects = results[0] || [];
+                allData = results[1] || [];
+                renderBreadcrumb();
+                render();
+            }).catch(function(e) {
+                document.getElementById('content').innerHTML = '<div class="empty-state"><div class="e-icon">⚠️</div><p>无法连接服务器</p><p class="sub">请确认已通过 localhost:8765 打开编辑器</p></div>';
+                console.error(e);
+            });
+        });
 }
 
 function renderBreadcrumb() {
@@ -305,17 +321,17 @@ function renderListItem(item) {
     var dd = item.type === 'folder'
         ? '<div class="item" draggable="true" data-type="folder" data-id="' + esc(d.id) + '" onclick="navTo(\'' + esc(d.id) + '\')">'
         : '<div class="item" draggable="true" data-type="itinerary" data-id="' + esc(d.id) + '" data-proj="' + esc(d.project_id) + '" onclick="openItinerary(\'' + esc(d.project_id) + '\', \'' + esc(d.id) + '\')">';
-    dd += '<span class="icon">' + (d.pinned ? '📌 ' : '') + (item.type === 'folder' ? '📂' : '📄') + '</span>';
+    dd += '<span class="icon">' + (d.pinned ? '' : '') + (item.type === 'folder' ? '📂' : '📄') + '</span>';
     dd += '<span class="name">' + escH(d.name) + '</span>';
     dd += '<span class="meta">' + (item.type === 'folder' ? ((d.itinerary_count||0) + ' 行程') : escH(d.project_name)) + '</span>';
     dd += '<span class="date">' + (item.type === 'folder' ? timeAgo(d.updated_at) : dateStr(d)) + '</span>';
     dd += '<span class="actions">';
     if (item.type === 'folder') {
-        dd += '<button class="action-btn" onclick="event.stopPropagation();togglePin(\'folder\',\'' + esc(d.id) + '\',' + (d.pinned ? 'true' : 'false') + ')">' + (d.pinned ? '📌 取消置顶' : '📌 置顶') + '</button>';
+        dd += '<button class="action-btn" onclick="event.stopPropagation();togglePin(\'folder\',\'' + esc(d.id) + '\',' + (d.pinned ? 'true' : 'false') + ')">' + (d.pinned ? '取消置顶' : '置顶') + '</button>';
         dd += '<button class="action-btn" onclick="event.stopPropagation();renameFolder(\'' + esc(d.id) + '\',\'' + escJs(d.name) + '\')">重命名</button>';
         dd += '<button class="action-btn del" onclick="event.stopPropagation();deleteFolder(\'' + esc(d.id) + '\')">删除</button>';
     } else {
-        dd += '<button class="action-btn" onclick="event.stopPropagation();togglePin(\'itinerary\',\'' + esc(d.id) + '\',' + (d.pinned ? 'true' : 'false') + ')">' + (d.pinned ? '📌 取消置顶' : '📌 置顶') + '</button>';
+        dd += '<button class="action-btn" onclick="event.stopPropagation();togglePin(\'itinerary\',\'' + esc(d.id) + '\',' + (d.pinned ? 'true' : 'false') + ')">' + (d.pinned ? '取消置顶' : '置顶') + '</button>';
         dd += '<button class="action-btn" onclick="event.stopPropagation();duplicateItinerary(\'' + esc(d.project_id) + '\',\'' + esc(d.id) + '\')">📋 复制</button>';
         dd += '<button class="action-btn" onclick="event.stopPropagation();renameItinerary(\'' + esc(d.project_id) + '\',\'' + esc(d.id) + '\',\'' + escJs(d.name) + '\')">重命名</button>';
         dd += '<button class="action-btn del" onclick="event.stopPropagation();deleteItinerary(\'' + esc(d.project_id) + '\',\'' + esc(d.id) + '\')">删除</button>';
