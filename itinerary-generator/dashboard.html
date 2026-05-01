@@ -14,48 +14,46 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 .topbar-left h1 { font-size:1.1rem; font-weight:400; color:var(--dark); margin:0 0 2px 0; font-family:'Hiragino Mincho ProN','Songti SC','Noto Serif CJK SC',serif; letter-spacing:0.04em; }
 .topbar-left .header-sub { font-size:0.6rem; color:var(--gray); letter-spacing:0.18em; text-transform:uppercase; display:block; line-height:1; }
 .container { max-width:900px; margin:0 auto; padding:24px; }
-/* Search bar */
-.search-row { display:flex; gap:10px; margin-bottom:20px; align-items:center; }
+/* Breadcrumb */
+.breadcrumb { display:flex; align-items:center; gap:6px; margin-bottom:16px; font-size:13px; color:var(--gray); flex-wrap:wrap; }
+.breadcrumb a { color:var(--gold); text-decoration:none; cursor:pointer; }
+.breadcrumb a:hover { text-decoration:underline; }
+.breadcrumb .sep { color:var(--border); }
+/* Search row */
+.search-row { display:flex; gap:10px; margin-bottom:16px; align-items:center; }
 .search-row input { flex:1; padding:10px 16px; border:1px solid var(--border); border-radius:6px; font-size:14px; background:#fff; font-family:inherit; outline:none; }
 .search-row input:focus { border-color:var(--gold-light); box-shadow:0 0 0 3px rgba(139,105,20,0.08); }
-.search-row .btn { padding:10px 20px; border:none; border-radius:6px; font-size:13px; cursor:pointer; font-family:inherit; white-space:nowrap; }
+.btn { padding:10px 20px; border:none; border-radius:6px; font-size:13px; cursor:pointer; font-family:inherit; white-space:nowrap; }
 .btn-gold { background:#8a6d3b; color:#fff; }
 .btn-gold:hover { background:#7a5d2b; }
 .btn-outline { background:#fff; border:1px solid var(--border); color:var(--dark); }
 .btn-outline:hover { background:var(--cream); }
-/* View toggle */
-.month-label .view-tabs { display:flex; gap:2px; }
-.month-label .view-tab { padding:3px 8px; border:1px solid var(--border); border-radius:3px; font-size:11px; cursor:pointer; background:none; color:var(--gray); font-family:inherit; }
-.month-label .view-tab:hover { border-color:var(--gold-light); }
-.month-label .view-tab.active { background:var(--gold); color:#fff; border-color:var(--gold); }
-/* Month tabs */
-.month-tabs { display:flex; gap:6px; margin-bottom:24px; flex-wrap:wrap; }
-.month-tab { padding:6px 16px; border:1px solid var(--border); border-radius:16px; font-size:13px; cursor:pointer; background:#fff; color:var(--gray); font-family:inherit; transition:all 0.15s; }
-.month-tab:hover { border-color:var(--gold-light); }
-.month-tab.active { background:var(--gold); color:#fff; border-color:var(--gold); }
-/* Timeline */
-.month-group { margin-bottom:32px; }
-.month-label { font-size:13px; color:var(--gray); letter-spacing:0.5px; padding:0 0 8px 0; border-bottom:1px solid var(--border); margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; }
-.month-label .view-tabs { display:flex; gap:2px; }
-.month-label .view-tab { padding:3px 8px; border:1px solid var(--border); border-radius:3px; font-size:11px; cursor:pointer; background:none; color:var(--gray); font-family:inherit; }
-.month-label .view-tab:hover { border-color:var(--gold-light); }
-.month-label .view-tab.active { background:var(--gold); color:#fff; border-color:var(--gold); }
-.sort-btn { font-size:11px; padding:3px 8px; border:1px solid var(--border); border-radius:3px; cursor:pointer; background:none; color:var(--gray); font-family:inherit; margin-left:4px; }
-.sort-btn:hover { border-color:var(--gold-light); }
-.sort-btn.active { background:var(--gold); color:#fff; border-color:var(--gold); }
-.timeline-list { display:flex; flex-direction:column; gap:2px; }
-.timeline-item { display:flex; align-items:center; padding:12px 16px; background:#fff; border-radius:6px; cursor:pointer; border:1px solid transparent; transition:all 0.12s; gap:14px; }
-.timeline-item:hover { border-color:var(--gold-light); background:var(--cream); }
-.ti-date { font-size:13px; color:var(--gray); white-space:nowrap; min-width:130px; font-variant-numeric:tabular-nums; }
-.ti-date .arrow { color:var(--gold-light); margin:0 4px; }
-.ti-name { flex:1; font-size:14px; color:var(--dark); font-weight:500; }
-.ti-folder { font-size:11px; color:var(--gray); background:var(--cream); padding:2px 8px; border-radius:10px; white-space:nowrap; }
-.ti-meta { font-size:11px; color:var(--gray); white-space:nowrap; min-width:60px; text-align:right; }
-.ti-arrow { color:var(--gray); font-size:12px; }
+/* Controls bar */
+.controls-bar { display:flex; justify-content:flex-end; align-items:center; gap:8px; margin-bottom:16px; }
+.ctrl-btn { font-size:11px; padding:3px 8px; border:1px solid var(--border); border-radius:3px; cursor:pointer; background:none; color:var(--gray); font-family:inherit; }
+.ctrl-btn:hover { border-color:var(--gold-light); }
+.ctrl-btn.active { background:var(--gold); color:#fff; border-color:var(--gold); }
+/* Item list */
+.item-list { display:flex; flex-direction:column; gap:2px; }
+.item { display:flex; align-items:center; padding:11px 14px; background:#fff; border-radius:6px; cursor:pointer; border:1px solid transparent; transition:all 0.12s; gap:12px; }
+.item:hover { border-color:var(--gold-light); background:var(--cream); }
+.item.dragging { opacity:0.5; }
+.item.drag-over { border-color:var(--gold); background:var(--cream); box-shadow:inset 0 0 0 2px var(--gold-light); }
+.item .icon { font-size:18px; min-width:24px; text-align:center; }
+.item .name { flex:1; font-size:14px; color:var(--dark); font-weight:500; word-break:break-all; }
+.item .meta { font-size:11px; color:var(--gray); white-space:nowrap; }
+.item .date { font-size:11px; color:var(--gray); white-space:nowrap; min-width:80px; text-align:right; }
+.item .actions { display:flex; gap:4px; opacity:0; transition:opacity 0.15s; }
+.item:hover .actions { opacity:1; }
+.item .action-btn { font-size:10px; padding:2px 6px; border:1px solid var(--border); border-radius:3px; background:none; cursor:pointer; color:var(--gray); font-family:inherit; }
+.item .action-btn:hover { border-color:var(--gold-light); color:var(--dark); }
+.item .action-btn.del:hover { border-color:#c44; color:#c44; }
 /* Grid view */
 .grid-view { display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:12px; }
 .grid-card { background:#fff; border-radius:8px; padding:16px; cursor:pointer; border:1px solid var(--border); transition:all 0.15s; }
 .grid-card:hover { border-color:var(--gold-light); box-shadow:0 4px 12px rgba(139,105,20,0.08); transform:translateY(-1px); }
+.grid-card.dragging { opacity:0.5; }
+.grid-card.drag-over { border-color:var(--gold); box-shadow:inset 0 0 0 2px var(--gold-light); }
 .grid-card .gc-icon { font-size:24px; margin-bottom:8px; }
 .grid-card .gc-name { font-size:14px; font-weight:500; color:var(--dark); margin-bottom:4px; word-break:break-all; }
 .grid-card .gc-meta { font-size:11px; color:var(--gray); }
@@ -66,9 +64,10 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 .empty-state p { font-size:14px; margin-bottom:6px; }
 .empty-state .sub { font-size:12px; color:#999; }
 @media (max-width:768px) {
-    .container { padding:16px; }
-    .topbar { padding:10px 16px; }
-    .ti-date { min-width:100px; font-size:12px; }
+    .container { padding:12px; }
+    .topbar { padding:10px 14px; }
+    .item .actions { opacity:1; }
+    .item .date { display:none; }
     .search-row { flex-wrap:wrap; }
 }
 </style>
@@ -89,13 +88,22 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 </div>
 
 <div class="container">
+    <div class="breadcrumb" id="breadcrumb"></div>
+
     <div class="search-row">
-        <input type="text" id="searchInput" placeholder="搜索文件夹或行程…" oninput="doSearch()">
-        <button class="btn btn-gold" onclick="newProject()">+ 新建文件夹</button>
-        <button class="btn btn-outline" onclick="newItinerary()">+ 新建行程</button>
+        <input type="text" id="searchInput" placeholder="搜索…" oninput="doSearch()">
+        <button class="btn btn-gold" onclick="createItem('folder')">+ 新建文件夹</button>
+        <button class="btn btn-outline" onclick="createItem('itinerary')">+ 新建行程</button>
     </div>
 
-    <div class="month-tabs" id="monthTabs"></div>
+    <div class="controls-bar" id="controlsBar">
+        <button class="ctrl-btn active" id="sortTime" onclick="setSort('time')">按时间</button>
+        <button class="ctrl-btn" id="sortAZ" onclick="setSort('az')">A→Z</button>
+        <button class="ctrl-btn" id="sortZA" onclick="setSort('za')">Z→A</button>
+        <span style="color:var(--border);font-size:11px;">|</span>
+        <button class="ctrl-btn active" id="viewList" onclick="setView('list')">☰</button>
+        <button class="ctrl-btn" id="viewGrid" onclick="setView('grid')">▦</button>
+    </div>
 
     <div id="content">
         <div class="empty-state"><div class="e-icon">📋</div><p>加载中…</p></div>
@@ -105,64 +113,80 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 <script>
 var allData = [];
 var projects = [];
-var activeMonth = 'all';
+var currentFolder = null; // null=root, string=project_id
 var currentView = 'list';
-var currentSort = 'time'; // 'time', 'az', 'za'
-
-function setView(v) {
-    currentView = v;
-    localStorage.setItem('kinoko_dash_view', v);
-    render();
-}
-
-function setSort(s) {
-    currentSort = s;
-    localStorage.setItem('kinoko_dash_sort', s);
-    render();
-}
+var currentSort = 'time';
+var dragItem = null;
 
 function loadAll() {
-    // Restore view preference
-    var saved = localStorage.getItem('kinoko_dash_view');
-    if (saved) currentView = saved;
+    var savedView = localStorage.getItem('kinoko_dash_view');
+    if (savedView) setView(savedView);
     var savedSort = localStorage.getItem('kinoko_dash_sort');
-    if (savedSort) currentSort = savedSort;
-    
-    // Load both projects and itineraries
+    if (savedSort) setSort(savedSort);
+    refresh();
+}
+
+function refresh() {
     Promise.all([
         fetch('http://localhost:8765/api/projects').then(function(r) { return r.json(); }),
         fetch('http://localhost:8765/api/itineraries').then(function(r) { return r.json(); })
     ]).then(function(results) {
         projects = results[0] || [];
         allData = results[1] || [];
-        renderMonthTabs();
+        renderBreadcrumb();
         render();
     }).catch(function() {
         document.getElementById('content').innerHTML = '<div class="empty-state"><div class="e-icon">⚠️</div><p>无法连接本地服务</p><p class="sub">请确认已通过 localhost:8765 打开编辑器</p></div>';
     });
 }
 
-function renderMonthTabs() {
-    var months = {};
-    var now = new Date();
-    var thisMonth = now.getFullYear() + '-' + (now.getMonth() + 1);
-    for (var i = 0; i < allData.length; i++) {
-        var m = monthKey(allData[i]);
-        if (m) months[m] = (months[m] || 0) + 1;
+function renderBreadcrumb() {
+    var bc = document.getElementById('breadcrumb');
+    var html = '<a onclick="navTo(null)">📁 所有文件</a>';
+    if (currentFolder) {
+        var proj = findProject(currentFolder);
+        if (proj) {
+            var chain = [];
+            var p = proj;
+            while (p) {
+                chain.unshift(p);
+                p = p.parent ? findProject(p.parent) : null;
+            }
+            for (var i = 0; i < chain.length; i++) {
+                html += ' <span class="sep">›</span> <a onclick="navTo(\'' + esc(chain[i].id) + '\')">' + escH(chain[i].name) + '</a>';
+            }
+        }
     }
-    var keys = Object.keys(months).sort().reverse();
-    var html = '<button class="month-tab' + (activeMonth === 'all' ? ' active' : '') + '" onclick="setMonth(\'all\')">全部</button>';
-    for (var j = 0; j < keys.length; j++) {
-        var label = keys[j] === thisMonth ? '本月（' + monthLabel(keys[j]) + '）' : monthLabel(keys[j]);
-        var active = activeMonth === keys[j] ? ' active' : '';
-        html += '<button class="month-tab' + active + '" onclick="setMonth(\'' + keys[j] + '\')">' + label + '</button>';
-    }
-    document.getElementById('monthTabs').innerHTML = keys.length > 0 ? html : '';
+    bc.innerHTML = html;
 }
 
-function setMonth(m) {
-    activeMonth = m;
-    renderMonthTabs();
+function findProject(pid) {
+    for (var i = 0; i < projects.length; i++) {
+        if (projects[i].id === pid) return projects[i];
+    }
+    return null;
+}
+
+function navTo(pid) {
+    currentFolder = pid;
+    renderBreadcrumb();
+    render();
+}
+
+function setView(v) {
+    currentView = v;
+    document.getElementById('viewList').classList.toggle('active', v === 'list');
+    document.getElementById('viewGrid').classList.toggle('active', v === 'grid');
+    localStorage.setItem('kinoko_dash_view', v);
+    render();
+}
+
+function setSort(s) {
+    currentSort = s;
+    document.getElementById('sortTime').classList.toggle('active', s === 'time');
+    document.getElementById('sortAZ').classList.toggle('active', s === 'az');
+    document.getElementById('sortZA').classList.toggle('active', s === 'za');
+    localStorage.setItem('kinoko_dash_sort', s);
     render();
 }
 
@@ -172,196 +196,242 @@ function render() {
     var container = document.getElementById('content');
     var q = (document.getElementById('searchInput').value || '').toLowerCase().trim();
     
-    // Filter itineraries
-    var filtered = allData;
+    // Get items in current folder
+    var folderItems = currentFolder
+        ? projects.filter(function(p) { return p.parent === currentFolder; })
+        : projects.filter(function(p) { return !p.parent; });
+    var itineraryItems = currentFolder
+        ? allData.filter(function(it) { return it.project_id === currentFolder; })
+        : [];
+    
+    // Apply search
     if (q) {
-        filtered = allData.filter(function(it) {
-            return (it.name || '').toLowerCase().indexOf(q) >= 0 ||
-                   (it.dep_date || '').toLowerCase().indexOf(q) >= 0 ||
-                   (it.project_name || '').toLowerCase().indexOf(q) >= 0;
-        });
-    }
-    if (activeMonth !== 'all') {
-        filtered = filtered.filter(function(it) { return monthKey(it) === activeMonth; });
+        folderItems = folderItems.filter(function(p) { return (p.name||'').toLowerCase().indexOf(q) >= 0; });
+        itineraryItems = itineraryItems.filter(function(it) { return (it.name||'').toLowerCase().indexOf(q) >= 0 || (it.dep_date||'').toLowerCase().indexOf(q) >= 0; });
+        if (!currentFolder) {
+            itineraryItems = allData.filter(function(it) { return (it.name||'').toLowerCase().indexOf(q) >= 0 || (it.dep_date||'').toLowerCase().indexOf(q) >= 0; });
+        }
     }
     
-    // Filter projects
-    var filteredProjects = projects;
-    if (q) {
-        filteredProjects = projects.filter(function(p) {
-            return (p.name || '').toLowerCase().indexOf(q) >= 0;
-        });
+    // Merge into one list
+    var items = [];
+    for (var i = 0; i < folderItems.length; i++) {
+        items.push({ type: 'folder', data: folderItems[i] });
     }
-    
-    var hasFolders = filteredProjects.length > 0;
-    var hasItineraries = filtered.length > 0;
+    for (var j = 0; j < itineraryItems.length; j++) {
+        items.push({ type: 'itinerary', data: itineraryItems[j] });
+    }
     
     // Sort
     if (currentSort === 'az') {
-        filteredProjects.sort(function(a,b) { return (a.name||'').localeCompare(b.name||''); });
-        filtered.sort(function(a,b) { return (a.name||'').localeCompare(b.name||''); });
+        items.sort(function(a,b) { return (a.data.name||'').localeCompare(b.data.name||''); });
     } else if (currentSort === 'za') {
-        filteredProjects.sort(function(a,b) { return (b.name||'').localeCompare(a.name||''); });
-        filtered.sort(function(a,b) { return (b.name||'').localeCompare(a.name||''); });
+        items.sort(function(a,b) { return (b.data.name||'').localeCompare(a.data.name||''); });
     }
-    // Default 'time' — already sorted by departure date from API
+    // 'time': folders by created_at desc, itineraries by dep_date desc — keep merged order stable
     
-    var html = '';
-    var toggleRendered = false;
-    
-    if (!hasFolders && !hasItineraries) {
-        container.innerHTML = '<div class="empty-state"><div class="e-icon">📭</div><p>' + (q ? '没有匹配的内容' : '还没有任何文件夹或行程') + '</p>' + (q ? '' : '<div style="margin-top:12px;display:flex;gap:8px;justify-content:center;"><button class="btn btn-gold" onclick="newProject()">+ 新建文件夹</button><button class="btn btn-outline" onclick="newItinerary()" style="border:1px solid var(--border);border-radius:6px;padding:10px 18px;cursor:pointer;font-family:inherit;">+ 新建行程</button></div>') + '</div>';
+    if (!items.length) {
+        container.innerHTML = '<div class="empty-state"><div class="e-icon">📭</div><p>' + (q ? '没有匹配的内容' : '文件夹为空') + '</p>' +
+            (!q ? '<div style="margin-top:12px;display:flex;gap:8px;justify-content:center;"><button class="btn btn-gold" onclick="createItem(\'folder\')">+ 新建文件夹</button><button class="btn btn-outline" onclick="createItem(\'itinerary\')">+ 新建行程</button></div>' : '') + '</div>';
         return;
     }
     
-    if (!hasFolders && !hasItineraries) {
-    
-    // Helper: section label with optional view toggle
-    function sectionLabel(text) {
-        var label = '<div class="month-label"><span>' + text + '</span><div style="display:flex;align-items:center;gap:4px;">';
-        // Sort buttons
-        label += '<button class="sort-btn' + (currentSort === 'time' ? ' active' : '') + '" onclick="setSort(\'time\')">按时间</button>';
-        label += '<button class="sort-btn' + (currentSort === 'az' ? ' active' : '') + '" onclick="setSort(\'az\')">A→Z</button>';
-        label += '<button class="sort-btn' + (currentSort === 'za' ? ' active' : '') + '" onclick="setSort(\'za\')">Z→A</button>';
-        if (!toggleRendered) {
-            toggleRendered = true;
-            label += '<span style="color:var(--border);margin:0 4px;">|</span>' +
-                '<button class="sort-btn' + (currentView === 'list' ? ' active' : '') + '" onclick="setView(\'list\')">☰</button>' +
-                '<button class="sort-btn' + (currentView === 'grid' ? ' active' : '') + '" onclick="setView(\'grid\')">▦</button>';
-        }
-        label += '</div></div>';
-        return label;
-    }
-    
     if (currentView === 'grid') {
-        // Grid view — same groups as list
-        // Folders
-        if (hasFolders) {
-            html += '<div class="month-group">';
-            html += sectionLabel('📁 文件夹 · ' + filteredProjects.length + ' 个');
-            html += '<div class="grid-view">';
-            for (var fi = 0; fi < filteredProjects.length; fi++) {
-                var p = filteredProjects[fi];
-                html += '<div class="grid-card" onclick="openProject(\'' + esc(p.id) + '\')">';
-                html += '<div class="gc-icon">📂</div>';
-                html += '<div class="gc-name">' + escH(p.name) + '</div>';
-                html += '<div class="gc-meta">' + (p.itinerary_count || 0) + ' 个行程</div>';
-                html += '<div class="gc-date">' + timeAgo(p.updated_at) + '</div>';
-                html += '</div>';
-            }
-            html += '</div></div>';
+        var html = '<div class="grid-view">';
+        for (var gi = 0; gi < items.length; gi++) {
+            var item = items[gi];
+            html += renderGridCard(item);
         }
-        // Itineraries grouped by month
-        if (hasItineraries) {
-            var groups = {};
-            for (var j = 0; j < filtered.length; j++) {
-                var m = monthKey(filtered[j]) || '无日期';
-                if (!groups[m]) groups[m] = [];
-                groups[m].push(filtered[j]);
-            }
-            var keys = Object.keys(groups).sort().reverse();
-            for (var g = 0; g < keys.length; g++) {
-                var items = groups[keys[g]];
-                html += '<div class="month-group">';
-                html += sectionLabel((keys[g] === '无日期' ? '未标注日期' : monthLabel(keys[g])) + ' · ' + items.length + ' 个行程');
-                html += '<div class="grid-view">';
-                for (var k = 0; k < items.length; k++) {
-                    var it = items[k];
-                    html += '<div class="grid-card" onclick="openItinerary(\'' + esc(it.project_id) + '\', \'' + esc(it.id) + '\')">';
-                    html += '<div class="gc-icon">📄</div>';
-                    html += '<div class="gc-name">' + escH(it.name) + '</div>';
-                    html += '<div class="gc-meta">' + escH(it.project_name) + '</div>';
-                    html += '<div class="gc-date">' + dateRange(it) + '</div>';
-                    html += '</div>';
-                }
-                html += '</div></div>';
-            }
-        }
+        html += '</div>';
+        container.innerHTML = html;
     } else {
-        // List view — timeline
-    
-    // Show folders section
-    if (hasFolders) {
-        html += '<div class="month-group">';
-        html += sectionLabel('📁 文件夹 · ' + filteredProjects.length + ' 个');
-        html += '<div class="timeline-list">';
-        for (var i = 0; i < filteredProjects.length; i++) {
-            var p = filteredProjects[i];
-            html += '<div class="timeline-item" onclick="openProject(\'' + esc(p.id) + '\')" style="gap:8px;">';
-            html += '<span style="font-size:18px;">📂</span>';
-            html += '<span class="ti-name">' + escH(p.name) + '</span>';
-            html += '<span class="ti-folder">' + (p.itinerary_count || 0) + ' 行程</span>';
-            html += '<span class="ti-meta">' + timeAgo(p.updated_at) + '</span>';
-            html += '<span class="ti-arrow">→</span>';
-            html += '</div>';
+        var html = '<div class="item-list">';
+        for (var li = 0; li < items.length; li++) {
+            html += renderListItem(items[li]);
         }
-        html += '</div></div>';
+        html += '</div>';
+        container.innerHTML = html;
     }
     
-    // Show itineraries
-    if (hasItineraries) {
-        var groups = {};
-        for (var j = 0; j < filtered.length; j++) {
-            var m = monthKey(filtered[j]) || '无日期';
-            if (!groups[m]) groups[m] = [];
-            groups[m].push(filtered[j]);
-        }
-        var keys = Object.keys(groups).sort().reverse();
-        for (var g = 0; g < keys.length; g++) {
-            var items = groups[keys[g]];
-            html += '<div class="month-group">';
-            html += sectionLabel((keys[g] === '无日期' ? '未标注日期' : monthLabel(keys[g])) + ' · ' + items.length + ' 个行程');
-            html += '<div class="timeline-list">';
-            for (var k = 0; k < items.length; k++) {
-                var it = items[k];
-                html += '<div class="timeline-item" onclick="openItinerary(\'' + esc(it.project_id) + '\', \'' + esc(it.id) + '\')">';
-                html += '<span class="ti-date">' + dateRange(it) + '</span>';
-                html += '<span class="ti-name">' + escH(it.name) + '</span>';
-                html += '<span class="ti-folder">' + escH(it.project_name) + '</span>';
-                html += '<span class="ti-meta">' + timeAgo(it.updated_at) + '</span>';
-                html += '<span class="ti-arrow">→</span>';
-                html += '</div>';
+    // Attach drag listeners
+    attachDragListeners();
+}
+
+function renderGridCard(item) {
+    var d = item.data;
+    if (item.type === 'folder') {
+        return '<div class="grid-card" draggable="true" data-type="folder" data-id="' + esc(d.id) + '" onclick="navTo(\'' + esc(d.id) + '\')">' +
+            '<div class="gc-icon">📂</div>' +
+            '<div class="gc-name">' + escH(d.name) + '</div>' +
+            '<div class="gc-meta">' + (d.itinerary_count || 0) + ' 行程</div>' +
+            '<div class="gc-date">' + timeAgo(d.updated_at) + '</div>' +
+            '</div>';
+    } else {
+        return '<div class="grid-card" draggable="true" data-type="itinerary" data-id="' + esc(d.id) + '" data-proj="' + esc(d.project_id) + '" onclick="openItinerary(\'' + esc(d.project_id) + '\', \'' + esc(d.id) + '\')">' +
+            '<div class="gc-icon">📄</div>' +
+            '<div class="gc-name">' + escH(d.name) + '</div>' +
+            '<div class="gc-meta">' + escH(d.project_name) + '</div>' +
+            '<div class="gc-date">' + dateStr(d) + '</div>' +
+            '</div>';
+    }
+}
+
+function renderListItem(item) {
+    var d = item.data;
+    var dd = item.type === 'folder'
+        ? '<div class="item" draggable="true" data-type="folder" data-id="' + esc(d.id) + '" onclick="navTo(\'' + esc(d.id) + '\')">'
+        : '<div class="item" draggable="true" data-type="itinerary" data-id="' + esc(d.id) + '" data-proj="' + esc(d.project_id) + '" onclick="openItinerary(\'' + esc(d.project_id) + '\', \'' + esc(d.id) + '\')">';
+    dd += '<span class="icon">' + (item.type === 'folder' ? '📂' : '📄') + '</span>';
+    dd += '<span class="name">' + escH(d.name) + '</span>';
+    dd += '<span class="meta">' + (item.type === 'folder' ? ((d.itinerary_count||0) + ' 行程') : escH(d.project_name)) + '</span>';
+    dd += '<span class="date">' + (item.type === 'folder' ? timeAgo(d.updated_at) : dateStr(d)) + '</span>';
+    dd += '<span class="actions">';
+    if (item.type === 'folder') {
+        dd += '<button class="action-btn" onclick="event.stopPropagation();renameFolder(\'' + esc(d.id) + '\',\'' + escJs(d.name) + '\')">重命名</button>';
+        dd += '<button class="action-btn del" onclick="event.stopPropagation();deleteFolder(\'' + esc(d.id) + '\')">删除</button>';
+    } else {
+        dd += '<button class="action-btn" onclick="event.stopPropagation();renameItinerary(\'' + esc(d.project_id) + '\',\'' + esc(d.id) + '\',\'' + escJs(d.name) + '\')">重命名</button>';
+        dd += '<button class="action-btn del" onclick="event.stopPropagation();deleteItinerary(\'' + esc(d.project_id) + '\',\'' + esc(d.id) + '\')">删除</button>';
+    }
+    dd += '</span></div>';
+    return dd;
+}
+
+// === Drag & Drop ===
+function attachDragListeners() {
+    var items = document.querySelectorAll('[draggable="true"]');
+    for (var i = 0; i < items.length; i++) {
+        items[i].addEventListener('dragstart', function(e) {
+            dragItem = {
+                type: this.dataset.type,
+                id: this.dataset.id,
+                proj: this.dataset.proj
+            };
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        });
+        items[i].addEventListener('dragend', function(e) {
+            this.classList.remove('dragging');
+            dragItem = null;
+            document.querySelectorAll('.drag-over').forEach(function(el) { el.classList.remove('drag-over'); });
+        });
+        items[i].addEventListener('dragover', function(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            if (dragItem && this.dataset.type === 'folder' && dragItem.type !== this.dataset.type && this.dataset.id !== dragItem.proj) {
+                // Only highlight folders as drop targets, and not the folder the item is already in
+                if (dragItem.type === 'folder' && this.dataset.id === dragItem.id) return;
+                if (dragItem.type === 'itinerary' && this.dataset.id === dragItem.proj) return;
             }
-            html += '</div></div>';
-        }
+            if (!dragItem || this === e.target.closest('[draggable]')) return;
+            this.classList.add('drag-over');
+        });
+        items[i].addEventListener('dragleave', function(e) {
+            this.classList.remove('drag-over');
+        });
+        items[i].addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('drag-over');
+            if (!dragItem) return;
+            if (dragItem.type === 'folder' && this.dataset.type === 'folder') {
+                // Move folder into this folder
+                if (dragItem.id === this.dataset.id) return;
+                moveFolder(dragItem.id, this.dataset.id);
+            } else if (dragItem.type === 'itinerary' && this.dataset.type === 'folder') {
+                // Move itinerary into this folder
+                if (dragItem.proj === this.dataset.id) return;
+                moveItinerary(dragItem.id, dragItem.proj, this.dataset.id);
+            }
+        });
     }
-    } // end list view
-    
-    container.innerHTML = html;
 }
 
-function monthKey(it) {
-    var d = it.dep_date || '';
-    var parts = d.split(/[\/\-]/);
-    if (parts.length >= 2) {
-        var y = parts.length === 3 ? parts[0] : '2026';
-        return y + '-' + parts[parts.length - 2];
+function moveFolder(pid, newParent) {
+    fetch('http://localhost:8765/api/projects/move', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({id: pid, parent: newParent})
+    }).then(function() { refresh(); });
+}
+
+function moveItinerary(iid, fromProj, toProj) {
+    fetch('http://localhost:8765/api/itineraries/move', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({id: iid, from: fromProj, to: toProj})
+    }).then(function() { refresh(); });
+}
+
+// === CRUD ===
+function createItem(type) {
+    if (type === 'folder') {
+        var name = prompt('文件夹名称：');
+        if (!name) return;
+        fetch('http://localhost:8765/api/projects/create', {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({name: name, parent: currentFolder || null})
+        }).then(function() { refresh(); });
+    } else {
+        var targets = currentFolder ? [findProject(currentFolder)] : projects.filter(function(p) { return !p.parent; });
+        if (!targets.length) { alert('请先创建一个文件夹'); return; }
+        var opts = targets.map(function(p) { return p.name; }).join('\n');
+        var fname = prompt('选择文件夹：\n' + opts, targets[0].name);
+        if (!fname) return;
+        var proj = targets.find(function(p) { return p.name === fname.trim(); });
+        if (!proj) { alert('未找到该文件夹'); return; }
+        quickCreate(proj.id);
     }
-    return '';
 }
 
-function monthLabel(key) {
-    var parts = key.split('-');
-    if (parts.length === 2) return parts[0] + '年' + parseInt(parts[1]) + '月';
-    return key;
+function quickCreate(pid) {
+    var name = prompt('行程名称：');
+    if (!name) return;
+    fetch('http://localhost:8765/api/projects/' + pid + '/save', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({name: name, trip: {n:'', i:{}, d:[]}})
+    }).then(function(r) { return r.json(); }).then(function(res) {
+        window.location.href = 'index.html#project=' + pid + '&itinerary=' + res.id;
+    });
 }
 
-function dateRange(it) {
-    var d1 = fmtDate(it.dep_date);
-    var d2 = fmtDate(it.end_date);
-    if (!d1) return '—';
-    if (d1 === d2) return d1;
-    return d1 + ' <span class="arrow">→</span> ' + d2;
+function renameFolder(pid, oldName) {
+    var name = prompt('新名称：', oldName);
+    if (!name || name === oldName) return;
+    fetch('http://localhost:8765/api/projects/' + pid + '/save', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({name: name, id: pid, trip: {}})
+    }).then(function() { refresh(); });
 }
 
-function fmtDate(s) {
-    if (!s) return '';
-    var parts = s.split(/[\/\-]/);
-    if (parts.length === 2) return parts[0] + '/' + parts[1];
-    if (parts.length === 3) return parts[1] + '/' + parts[2];
-    return s;
+function renameItinerary(pid, iid, oldName) {
+    var name = prompt('新名称：', oldName);
+    if (!name || name === oldName) return;
+    fetch('http://localhost:8765/api/projects/' + pid + '/save', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({name: name, id: iid})
+    }).then(function() { refresh(); });
 }
 
+function deleteFolder(pid) {
+    if (!confirm('删除此文件夹及其中所有行程？')) return;
+    fetch('http://localhost:8765/api/projects/delete', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({id: pid})
+    }).then(function() { refresh(); });
+}
+
+function deleteItinerary(pid, iid) {
+    if (!confirm('删除此行程？')) return;
+    fetch('http://localhost:8765/api/projects/' + pid + '/delete', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({id: iid})
+    }).then(function() { refresh(); });
+}
+
+function openItinerary(pid, iid) {
+    window.location.href = 'index.html#project=' + pid + '&itinerary=' + iid;
+}
+
+// === Helpers ===
+function dateStr(it) { return it.dep_date || ''; }
 function timeAgo(ts) {
     if (!ts) return '';
     var diff = Date.now() - ts;
@@ -374,75 +444,9 @@ function timeAgo(ts) {
     if (days < 30) return days + '天前';
     return Math.floor(days / 30) + '个月前';
 }
-
-function newItinerary() {
-    fetch('http://localhost:8765/api/projects')
-        .then(function(r) { return r.json(); })
-        .then(function(projects) {
-            if (!projects || !projects.length) {
-                // No project yet — create one
-                var name = prompt('创建第一个文件夹（如：2026-05）：');
-                if (!name) return;
-                fetch('http://localhost:8765/api/projects/create', {
-                    method: 'POST', headers: {'Content-Type':'application/json'},
-                    body: JSON.stringify({name: name})
-                }).then(function(r) { return r.json(); }).then(function(p) {
-                    quickCreate(p.id);
-                });
-                return;
-            }
-            var opts = projects.map(function(p) { return p.name; }).join('\n');
-            var fname = prompt('选择文件夹（输入名称）：\n' + opts, projects[0].name);
-            if (!fname) return;
-            var proj = projects.find(function(p) { return p.name === fname.trim(); });
-            if (!proj) { alert('未找到该文件夹'); return; }
-            quickCreate(proj.id);
-        })
-        .catch(function() { alert('无法连接本地服务'); });
-}
-
-function quickCreate(pid) {
-    var name = prompt('行程名称（如：05-02~05-06 东京团）：');
-    if (!name) return;
-    fetch('http://localhost:8765/api/projects/' + pid + '/save', {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({name: name, trip: {n:'', i:{}, d:[]}})
-    }).then(function(r) { return r.json(); }).then(function(res) {
-        window.location.href = 'index.html#project=' + pid + '&itinerary=' + res.id;
-    });
-}
-
-function newProject() {
-    var name = prompt('文件夹名称（如：2026）：');
-    if (!name) return;
-    fetch('http://localhost:8765/api/projects/create', {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({name: name})
-    }).then(function(r) { return r.json(); }).then(function() { loadAll(); });
-}
-
-function openProject(pid) {
-    // Click a folder — load its itineraries
-    fetch('http://localhost:8765/api/projects/' + pid)
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-            var its = data.itineraries || [];
-            if (!its.length) {
-                var name = prompt('该文件夹下暂无行程，输入第一个行程名称：');
-                if (!name) return;
-                quickCreate(pid, name);
-            } else {
-                openItinerary(pid, its[its.length - 1].id);
-            }
-        });
-}
-
-function openItinerary(pid, iid) {
-    window.location.href = 'index.html#project=' + pid + '&itinerary=' + iid;
-}
-
 function esc(s) { return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
 function escH(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function escJs(s) { return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"'); }
 
 loadAll();
 </script>
