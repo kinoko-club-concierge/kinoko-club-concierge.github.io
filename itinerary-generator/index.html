@@ -1466,6 +1466,11 @@ function exportWeb() {
         navigator.clipboard.writeText(url).catch(function() {});
         if (preview) {
             preview.location = url;
+            // Pass raw data directly to popup — zero network, instant render
+            var timer = setInterval(function() {
+                preview.postMessage({ type: 'kinoko_trip', data: data }, '*');
+            }, 200);
+            setTimeout(function() { clearInterval(timer); }, 5000);
             if (btn) { btn.textContent = '✓ 已复制链接'; setTimeout(function() { btn.textContent = orig || '🔗 生成链接'; }, 2000); }
         } else {
             // Popup blocked — turn button into clickable link
