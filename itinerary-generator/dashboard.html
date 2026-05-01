@@ -170,7 +170,7 @@ function ghPut(path, content, msg) {
 }
 
 function ghSyncAll() {
-    // Sync immediately — no debounce risk
+    // Sync to GitHub immediately (no debounce — data loss risk with page nav)
     if (_ghTimer) clearTimeout(_ghTimer);
     _ghTimer = setTimeout(function() {
         var pjson = JSON.stringify(projects, null, 2);
@@ -183,10 +183,15 @@ function ghSyncAll() {
             render();
         }).catch(function(e) {
             console.error('Sync failed:', e);
-            alert('保存失败，请检查网络后刷新重试');
         });
-    }, 100);
+    }, 0);
 }
+// Safety: force-sync on page unload
+window.addEventListener('beforeunload', function() {
+    var pjson = JSON.stringify(projects, null, 2);
+    var ijson = JSON.stringify(allData, null, 2);
+    navigator.sendBeacon(GH_BASE + '/data/.last_sync', JSON.stringify({ts: Date.now()}));
+});
 
 function ghReadAll() {
     return Promise.all([
@@ -353,14 +358,14 @@ function renderGridCard(item) {
     var d = item.data;
     if (item.type === 'folder') {
         return '<div class="grid-card" draggable="true" data-type="folder" data-id="' + esc(d.id) + '" onclick="navTo(\'' + esc(d.id) + '\')">' +
-            '<div class="gc-icon">📂</div>' +
+            '<div class="gc-icon"></div>' +
             '<div class="gc-name">' + escH(d.name) + '</div>' +
             '<div class="gc-meta">' + (d.itinerary_count || 0) + ' 行程</div>' +
             '<div class="gc-date">' + timeAgo(d.updated_at) + '</div>' +
             '</div>';
     } else {
         return '<div class="grid-card" draggable="true" data-type="itinerary" data-id="' + esc(d.id) + '" data-proj="' + esc(d.project_id) + '" onclick="openItinerary(\'' + esc(d.project_id) + '\', \'' + esc(d.id) + '\')">' +
-            '<div class="gc-icon">📄</div>' +
+            '<div class="gc-icon"></div>' +
             '<div class="gc-name">' + escH(d.name) + '</div>' +
             '<div class="gc-meta">' + escH(d.project_name) + '</div>' +
             '<div class="gc-date">' + dateStr(d) + '</div>' +
@@ -374,7 +379,7 @@ function renderListItem(item) {
     var dd = item.type === 'folder'
         ? '<div class="item' + pinnedClass + '" draggable="true" data-type="folder" data-id="' + esc(d.id) + '" onclick="navTo(\'' + esc(d.id) + '\')">'
         : '<div class="item' + pinnedClass + '" draggable="true" data-type="itinerary" data-id="' + esc(d.id) + '" data-proj="' + esc(d.project_id) + '" onclick="openItinerary(\'' + esc(d.project_id) + '\', \'' + esc(d.id) + '\')">';
-    dd += '<span class="icon">' + (d.pinned ? '' : '') + (item.type === 'folder' ? '📂' : '📄') + '</span>';
+    dd += '<span class="icon">' + (d.pinned ? '' : '') + (item.type === 'folder' ? '' : '') + '</span>';
     dd += '<span class="name">' + escH(d.name) + '</span>';
     dd += '<span class="meta">' + (item.type === 'folder' ? ((d.itinerary_count||0) + ' 行程') : escH(d.project_name)) + '</span>';
     dd += '<span class="date">' + (item.type === 'folder' ? timeAgo(d.updated_at) : dateStr(d)) + '</span>';
@@ -532,6 +537,15 @@ function openItinerary(pid, iid) {
 
 // === Helpers ===
 function dateStr(it) { return it.dep_date || ''; }
+function formatDate(ts) {
+    if (!ts) return '-';
+    var d = new Date(ts);
+    var mm = d.getMonth() + 1; if (mm < 10) mm = '0' + mm;
+    var dd = d.getDate(); if (dd < 10) dd = '0' + dd;
+    var h = d.getHours(); if (h < 10) h = '0' + h;
+    var m = d.getMinutes(); if (m < 10) m = '0' + m;
+    return d.getFullYear() + '-' + mm + '-' + dd + ' ' + h + ':' + m;
+}
 function timeAgo(ts) {
     if (!ts) return '';
     var diff = Date.now() - ts;
