@@ -265,11 +265,13 @@ function ghSyncAll() {
             ghPut('data/itineraries.json', ijson)
         ]).then(function() {
             _dataFresh = true;
+            localStorage.setItem('kinoko_last_sync_ok', '1');
             updateSyncBadge('ok');
             refresh();
             showToast('已保存', 'ok');
         }).catch(function(e) {
             console.error('Sync failed:', e);
+            localStorage.setItem('kinoko_last_sync_ok', '0');
             updateSyncBadge('err');
             showToast('云端保存失败，但数据已存本地，刷新不丢', 'err');
         });
@@ -309,7 +311,7 @@ function loadAll() {
     } else {
         renderBreadcrumb();
         render();
-        updateSyncBadge(_dataFresh ? 'ok' : 'err');
+        updateSyncBadge(localStorage.getItem('kinoko_last_sync_ok') === '1' ? 'ok' : 'err');
     }
 }
 
