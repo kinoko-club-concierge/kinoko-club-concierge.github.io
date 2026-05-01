@@ -26,6 +26,7 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 .section-divider { border-bottom:1px solid var(--border); margin-bottom:8px; }
 .list-header { display:none; align-items:center; padding:6px 14px; font-size:11px; color:#999; font-weight:500; }
 .list-header.visible { display:flex; }
+.list-header .lh-icon { width:26px; flex:0 0 auto; }
 .list-header .lh-name { flex:1; min-width:120px; padding-right:20px; }
 .list-header .lh-meta { width:100px; text-align:center; padding:0 12px; flex:0 0 auto; }
 .list-header .lh-date { width:140px; text-align:right; padding-left:20px; flex:0 0 auto; }
@@ -155,6 +156,7 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
         </span>
     </div>
     <div class="list-header" id="listHeader">
+        <span class="lh-icon"></span>
         <span class="lh-name">文件名</span>
         <span class="lh-meta">类别</span>
         <span class="lh-date">修改时间</span>
