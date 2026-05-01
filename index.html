@@ -490,11 +490,14 @@ body::before {
 </head>
 <body>
 
-<div class="sidebar-tab" id="sidebarTab" onclick="toggleSidebar()">客户档案</div>
+<div class="sidebar-tab" id="sidebarTab" onclick="toggleSidebar()">工作区</div>
 <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
-        <span>📁 客户档案</span>
+        <span>📁 工作区</span>
         <button onclick="toggleSidebar()">×</button>
+    </div>
+    <div style="padding:4px 16px 8px;border-bottom:1px solid var(--border);">
+        <a href="dashboard.html" style="font-size:11px;color:var(--gold);text-decoration:none;">← 仪表盘</a>
     </div>
     <div class="sidebar-list" id="sidebarList"></div>
     <div class="sidebar-footer">
@@ -1993,7 +1996,6 @@ function openItinerary(pid, iid) {
             renderPreview();
             saveState();
             renderProjects();
-            alert('已加载：' + (trip.n || '行程'));
         })
         .catch(function() { alert('加载失败'); });
 }
@@ -2099,6 +2101,20 @@ function escAttr(s) { return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'
 
 // === Init ===
 function init() {
+    // Check URL hash for project/itinerary loading
+    var hash = window.location.hash;
+    if (hash && hash.indexOf('project=') >= 0) {
+        var params = {};
+        hash.replace('#', '').split('&').forEach(function(p) {
+            var kv = p.split('=');
+            params[kv[0]] = decodeURIComponent(kv[1]);
+        });
+        if (params.project && params.itinerary) {
+            activeProjectId = params.project;
+            activeItineraryId = params.itinerary;
+        }
+    }
+
     const restored = loadSaved();
     if (!restored) {
         // No saved data — use sample days
@@ -2159,6 +2175,11 @@ function init() {
     historyIndex = 0;
     updateUndoRedoButtons();
     autoSave();
+
+    // Auto-load from dashboard hash
+    if (activeProjectId && activeItineraryId) {
+        openItinerary(activeProjectId, activeItineraryId);
+    }
 }
 init();
 

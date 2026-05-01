@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kinoko Club Concierge — 行程管理</title>
+<style>
+:root { --gold: #8B6914; --gold-light: #C9A96E; --cream: #FDF8EE; --dark: #1a2a3a; --gray: #6a7a8a; --border: #e8e5db; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Serif JP',Georgia,serif; background:var(--cream); color:var(--dark); min-height:100vh; }
+.topbar { background:#fff; border-bottom:1px solid var(--border); padding:14px 24px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:10; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
+.topbar-left { display:flex; align-items:center; gap:12px; }
+.topbar-left img { height:28px; }
+.topbar-left .brand { font-size:16px; font-weight:600; color:var(--dark); }
+.topbar-left .sub { font-size:12px; color:var(--gray); }
+.container { max-width:1100px; margin:0 auto; padding:24px; }
+.search-bar { display:flex; gap:10px; margin-bottom:24px; align-items:center; }
+.search-bar input { flex:1; padding:10px 16px; border:1px solid var(--border); border-radius:6px; font-size:14px; background:#fff; font-family:inherit; outline:none; }
+.search-bar input:focus { border-color:var(--gold-light); box-shadow:0 0 0 3px rgba(139,105,20,0.08); }
+.search-bar .btn { padding:10px 20px; border:none; border-radius:6px; font-size:14px; cursor:pointer; font-family:inherit; white-space:nowrap; }
+.btn-gold { background:var(--gold); color:#fff; }
+.btn-gold:hover { background:#7a5a10; }
+.btn-outline { background:#fff; border:1px solid var(--border); color:var(--dark); }
+.btn-outline:hover { background:#f5f3ea; }
+.section-title { font-size:13px; color:var(--gray); text-transform:uppercase; letter-spacing:1px; margin:28px 0 12px; padding-bottom:8px; border-bottom:1px solid var(--border); }
+.project-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:14px; }
+.project-card { background:#fff; border-radius:8px; padding:18px; cursor:pointer; border:1px solid var(--border); transition:all 0.15s; }
+.project-card:hover { border-color:var(--gold-light); box-shadow:0 4px 12px rgba(139,105,20,0.08); transform:translateY(-1px); }
+.project-card .p-icon { font-size:28px; margin-bottom:8px; }
+.project-card .p-name { font-size:15px; font-weight:600; color:var(--dark); margin-bottom:4px; }
+.project-card .p-meta { font-size:12px; color:var(--gray); }
+.project-card .p-actions { margin-top:12px; display:flex; gap:8px; }
+.project-card .p-actions button { font-size:11px; padding:4px 10px; border:1px solid var(--border); border-radius:4px; background:none; cursor:pointer; color:var(--gray); font-family:inherit; }
+.project-card .p-actions button:hover { border-color:var(--gold); color:var(--gold); background:var(--cream); }
+.project-card .p-actions .del:hover { border-color:#c0392b; color:#c0392b; }
+.recent-list { display:flex; flex-direction:column; gap:4px; }
+.recent-item { display:flex; align-items:center; padding:10px 14px; background:#fff; border-radius:6px; cursor:pointer; border:1px solid transparent; transition:all 0.15s; }
+.recent-item:hover { border-color:var(--gold-light); background:var(--cream); }
+.recent-item .r-name { flex:1; font-size:14px; color:var(--dark); }
+.recent-item .r-folder { font-size:11px; color:var(--gold); background:var(--cream); padding:2px 8px; border-radius:10px; margin-right:10px; }
+.recent-item .r-time { font-size:11px; color:var(--gray); white-space:nowrap; }
+.recent-item .r-arrow { color:var(--gray); margin-left:10px; font-size:12px; }
+.empty-state { text-align:center; padding:60px 20px; color:var(--gray); }
+.empty-state .e-icon { font-size:48px; margin-bottom:16px; }
+.empty-state p { margin-bottom:8px; font-size:14px; }
+.empty-state button { margin-top:12px; }
+@media (max-width:768px) {
+    .container { padding:16px; }
+    .project-grid { grid-template-columns:1fr; }
+    .topbar { padding:10px 16px; }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+    <div class="topbar-left">
+        <span style="font-size:22px;">🍄</span>
+        <div>
+            <div class="brand">Kinoko Club Concierge</div>
+            <div class="sub">行程管理中心</div>
+        </div>
+    </div>
+    <div style="display:flex;gap:8px;">
+        <button class="btn btn-outline" onclick="window.open('index.html','_blank')">📝 编辑器中打开</button>
+    </div>
+</div>
+
+<div class="container">
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="搜索文件夹或行程…" oninput="doSearch()">
+        <button class="btn btn-gold" onclick="newProject()">+ 新建文件夹</button>
+    </div>
+
+    <div class="section-title">📁 文件夹</div>
+    <div class="project-grid" id="projectGrid">
+        <div class="empty-state"><div class="e-icon">📂</div><p>还没有任何文件夹</p><button class="btn btn-gold" onclick="newProject()">创建第一个文件夹</button></div>
+    </div>
+
+    <div class="section-title" id="recentTitle" style="display:none;">🕐 最近编辑</div>
+    <div class="recent-list" id="recentList"></div>
+</div>
+
+<script>
+var projects = [];
+
+function loadAll() {
+    fetch('http://localhost:8765/api/projects')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            projects = data || [];
+            renderGrid();
+            renderRecent();
+        })
+        .catch(function() {
+            document.getElementById('projectGrid').innerHTML = '<div class="empty-state"><div class="e-icon">⚠️</div><p>无法连接本地服务</p><p style="font-size:12px;">请确认本地服务器已启动：localhost:8765</p></div>';
+        });
+}
+
+function renderGrid() {
+    var grid = document.getElementById('projectGrid');
+    if (!projects.length) {
+        grid.innerHTML = '<div class="empty-state"><div class="e-icon">📂</div><p>还没有任何文件夹</p><button class="btn btn-gold" onclick="newProject()">创建第一个文件夹</button></div>';
+        return;
+    }
+    var html = '';
+    for (var i = 0; i < projects.length; i++) {
+        var p = projects[i];
+        var count = p.itinerary_count || 0;
+        var updated = p.updated_at ? timeAgo(p.updated_at) : '';
+        html += '<div class="project-card" onclick="openProject(\'' + esc(p.id) + '\')">';
+        html += '<div class="p-icon">📁</div>';
+        html += '<div class="p-name">' + escH(p.name) + '</div>';
+        html += '<div class="p-meta">' + count + ' 个行程' + (updated ? ' · ' + updated : '') + '</div>';
+        html += '<div class="p-actions" onclick="event.stopPropagation()">';
+        html += '<button onclick="renameProject(\'' + esc(p.id) + '\', \'' + escJs(p.name) + '\')">✏️ 重命名</button>';
+        html += '<button class="del" onclick="deleteProject(\'' + esc(p.id) + '\')">🗑 删除</button>';
+        html += '</div></div>';
+    }
+    grid.innerHTML = html;
+}
+
+function renderRecent() {
+    var list = document.getElementById('recentList');
+    var title = document.getElementById('recentTitle');
+    var all = [];
+    for (var i = 0; i < projects.length; i++) {
+        var p = projects[i];
+        var its = p._itineraries || [];
+        for (var j = 0; j < its.length; j++) {
+            all.push({ projectId: p.id, projectName: p.name, id: its[j].id, name: its[j].name, updated: its[j].updated_at || its[j].created_at });
+        }
+    }
+    all.sort(function(a, b) { return (b.updated || 0) - (a.updated || 0); });
+    all = all.slice(0, 10);
+    if (!all.length) {
+        title.style.display = 'none';
+        list.innerHTML = '';
+        return;
+    }
+    title.style.display = '';
+    var html = '';
+    for (var k = 0; k < all.length; k++) {
+        var item = all[k];
+        html += '<div class="recent-item" onclick="openItinerary(\'' + esc(item.projectId) + '\', \'' + esc(item.id) + '\')">';
+        html += '<span class="r-folder">' + escH(item.projectName) + '</span>';
+        html += '<span class="r-name">' + escH(item.name) + '</span>';
+        html += '<span class="r-time">' + timeAgo(item.updated) + '</span>';
+        html += '<span class="r-arrow">→</span>';
+        html += '</div>';
+    }
+    list.innerHTML = html;
+}
+
+function openProject(pid) {
+    // Load itineraries and show in the card
+    fetch('http://localhost:8765/api/projects/' + pid)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            var its = data.itineraries || [];
+            var proj = null;
+            for (var i = 0; i < projects.length; i++) {
+                if (projects[i].id === pid) { proj = projects[i]; proj._itineraries = its; break; }
+            }
+            if (!its.length) {
+                // Create first itinerary
+                var name = prompt('该文件夹下暂无行程，输入第一个行程名称：');
+                if (!name) return;
+                saveQuickItinerary(pid, name);
+            } else {
+                // Navigate to editor with first itinerary
+                openItinerary(pid, its[its.length - 1].id);
+            }
+        });
+}
+
+function openItinerary(pid, iid) {
+    window.location.href = 'index.html#project=' + pid + '&itinerary=' + iid;
+}
+
+function newProject() {
+    var name = prompt('文件夹名称：', '');
+    if (!name) return;
+    fetch('http://localhost:8765/api/projects/create', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({name: name})
+    }).then(function(r) { return r.json(); }).then(function() { loadAll(); });
+}
+
+function renameProject(pid, oldName) {
+    var name = prompt('新名称：', oldName);
+    if (!name || name === oldName) return;
+    fetch('http://localhost:8765/api/projects/' + pid + '/save', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({name: name, id: pid, trip: {}})
+    }).then(function(r) { return r.json(); }).then(function() { loadAll(); });
+}
+
+function deleteProject(pid) {
+    if (!confirm('删除此文件夹及其中所有行程？此操作不可恢复。')) return;
+    fetch('http://localhost:8765/api/projects/delete', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({id: pid})
+    }).then(function() { loadAll(); });
+}
+
+function saveQuickItinerary(pid, name) {
+    fetch('http://localhost:8765/api/projects/' + pid + '/save', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({name: name, trip: {n:'', i:{}, d:[]}})
+    }).then(function(r) { return r.json(); }).then(function(res) {
+        openItinerary(pid, res.id);
+    });
+}
+
+function doSearch() {
+    var q = document.getElementById('searchInput').value.toLowerCase().trim();
+    var cards = document.querySelectorAll('.project-card');
+    cards.forEach(function(card) {
+        var text = (card.textContent || '').toLowerCase();
+        card.style.display = q && !text.includes(q) ? 'none' : '';
+    });
+    var items = document.querySelectorAll('.recent-item');
+    items.forEach(function(item) {
+        var text = (item.textContent || '').toLowerCase();
+        item.style.display = q && !text.includes(q) ? 'none' : '';
+    });
+}
+
+function timeAgo(ts) {
+    if (!ts) return '';
+    var diff = Date.now() - ts;
+    var mins = Math.floor(diff / 60000);
+    if (mins < 1) return '刚刚';
+    if (mins < 60) return mins + '分钟前';
+    var hrs = Math.floor(mins / 60);
+    if (hrs < 24) return hrs + '小时前';
+    var days = Math.floor(hrs / 24);
+    if (days < 30) return days + '天前';
+    return Math.floor(days / 30) + '个月前';
+}
+
+function esc(s) { return s.replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
+function escH(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function escJs(s) { return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"'); }
+
+loadAll();
+</script>
+</body>
+</html>
