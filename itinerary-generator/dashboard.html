@@ -157,8 +157,9 @@ function refresh() {
         allData = results[1] || [];
         renderBreadcrumb();
         render();
-    }).catch(function() {
-        document.getElementById('content').innerHTML = '<div class="empty-state"><div class="e-icon">⚠️</div><p>无法连接本地服务</p><p class="sub">请确认已通过 localhost:8765 打开编辑器</p></div>';
+    }).catch(function(e) {
+        document.getElementById('content').innerHTML = '<div class="empty-state"><div class="e-icon">⚠️</div><p>无法连接服务器</p><p class="sub">请检查网络或稍后再试</p></div>';
+        console.error(e);
     });
 }
 
