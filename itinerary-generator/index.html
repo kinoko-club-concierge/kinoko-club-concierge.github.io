@@ -1536,7 +1536,7 @@ function doExport(mode) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         }).then(function(res) { return res.json(); }).then(function(result) {
-            if (result.id) onDone(SHARE_ORIGIN + basePath + '/share/?v=89&id=' + result.id);
+            if (result.id) onDone(SHARE_ORIGIN + basePath + '/share/?v=90&id=' + result.id);
             else onDone(longUrl());
         }).catch(function() { onDone(longUrl()); });
         return;
@@ -1548,7 +1548,7 @@ function doExport(mode) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
     }).then(function(res) { return res.json(); }).then(function(result) {
-        if (result.id) onDone(SHARE_ORIGIN + basePath + '/share/?v=89&id=' + result.id);
+        if (result.id) onDone(SHARE_ORIGIN + basePath + '/share/?v=90&id=' + result.id);
         else onDone(longUrl());
     }).catch(function() { onDone(longUrl()); });
 }
