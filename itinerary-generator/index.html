@@ -480,13 +480,6 @@ body::before {
             <div onclick="exportPDF('internal')">内部版</div>
         </div>
         </div>
-        <div class="gen-link-wrap" id="wordWrap">
-        <button class="btn btn-outline" id="exportWordBtn" onclick="toggleWordMenu()">Word ▾</button>
-        <div class="gen-menu" id="wordMenu" style="display:none">
-            <div onclick="exportWord('client')">客户版</div>
-            <div onclick="exportWord('internal')">内部版</div>
-        </div>
-        </div>
         <select id="langSelect" onchange="switchLanguage(this.value)">
             <option value="zh">简体中文</option>
             <option value="en">English</option>
@@ -644,7 +637,6 @@ const langLabels = {
     selectDate: { zh: '📅 选择日期', en: '📅 Select Date', 'zh-tw': '📅 選擇日期', ja: '📅 日付を選択' },
     genLink: { zh: '🔗 生成链接', en: '🔗 Share Link', 'zh-tw': '🔗 生成連結', ja: '🔗 リンク生成' },
     exportPDF: { zh: 'PDF ▾', en: 'PDF ▾', 'zh-tw': 'PDF ▾', ja: 'PDF ▾' },
-    exportWord: { zh: 'Word ▾', en: 'Word ▾', 'zh-tw': 'Word ▾', ja: 'Word ▾' },
     save: { zh: '保存', en: 'Save', 'zh-tw': '儲存', ja: '保存' },
     saved: { zh: '✓ 已保存', en: '✓ Saved', 'zh-tw': '✓ 已儲存', ja: '✓ 保存済' },
     undo: { zh: '↩ 撤回', en: '↩ Undo', 'zh-tw': '↩ 撤回', ja: '↩ 戻す' },
@@ -990,7 +982,6 @@ function renderEditor() {
     if ($('addDayBtn')) $('addDayBtn').textContent = t('addDay');
     if ($('genLinkBtn')) $('genLinkBtn').textContent = t('genLink');
     if ($('exportPDFBtn')) $('exportPDFBtn').textContent = t('exportPDF');
-    if ($('exportWordBtn')) $('exportWordBtn').textContent = t('exportWord');
     if ($('clientName')) $('clientName').placeholder = t('customerNamePh');
     updateUndoRedoButtons();
 }
@@ -1463,7 +1454,6 @@ function switchLanguage(lang) {
     const sb = document.getElementById('saveBtn'); if (sb) sb.textContent = t('save');
     const gl = document.getElementById('genLinkBtn'); if (gl) gl.textContent = t('genLink');
     const ep = document.getElementById('exportPDFBtn'); if (ep) ep.textContent = t('exportPDF');
-    const ew = document.getElementById('exportWordBtn'); if (ew) ew.textContent = t('exportWord');
     renderEditor();
     updatePreview();
 }
@@ -1477,16 +1467,12 @@ function togglePDFMenu() {
     var menu = document.getElementById('pdfMenu');
     menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
 }
-function toggleWordMenu() {
-    var menu = document.getElementById('wordMenu');
-    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
-}
 
 // Close menus when clicking outside
 document.addEventListener('click', function(e) {
-    ['genLinkWrap','pdfWrap','wordWrap'].forEach(function(id) {
+    ['genLinkWrap','pdfWrap'].forEach(function(id) {
         var wrap = document.getElementById(id);
-        var menuId = id === 'genLinkWrap' ? 'genMenu' : id === 'pdfWrap' ? 'pdfMenu' : 'wordMenu';
+        var menuId = id === 'genLinkWrap' ? 'genMenu' : 'pdfMenu';
         var menu = document.getElementById(menuId);
         if (wrap && menu && !wrap.contains(e.target)) {
             menu.style.display = 'none';
@@ -1581,113 +1567,70 @@ function doExport(mode) {
 function exportPDF(mode) {
     document.getElementById('pdfMenu').style.display = 'none';
 
-    // Build trip data
-    var data = {
-        n: document.getElementById('clientName')?.value || '',
-        i: {
-            brief: tripInfo.brief || '',
-            tourNum: tripInfo.tourNum || '',
-            adult: tripInfo.adult || '',
-            kidsCount: tripInfo.kidsCount || '',
-            kidsAge: tripInfo.kidsAge || ''
-        },
-        d: days.map(function(d) {
-            var wi = typeof getWeekdayInfo === 'function' ? getWeekdayInfo(d.date) : { weekdayText: '', holidayName: '' };
-            return {
-                t: d.date || '',
-                w: wi.weekdayText || '',
-                h: wi.holidayName || '',
-                c: d.city || '',
-                x: d.text || '',
-                o: mode === 'internal' ? (d.notes || '') : ''
-            };
-        })
-    };
+    var clientName = document.getElementById('clientName')?.value || 'itinerary';
+    var isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 
-    // Try local server (Chrome headless PDF)
-    fetch('http://localhost:8765/api/pdf', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    })
-    .then(function(res) {
-        if (!res.ok) throw new Error('local server returned ' + res.status);
-        return res.blob();
-    })
-    .then(function(blob) {
-        var url = URL.createObjectURL(blob);
-        var a = document.createElement('a');
-        a.href = url;
-        a.download = '行程_' + (document.getElementById('clientName').value || 'itinerary') + '.pdf';
-        a.click();
+    if (isLocal) {
+        // Localhost: use Chrome headless via server
+        var data = {
+            n: clientName,
+            i: {
+                brief: tripInfo.brief || '',
+                tourNum: tripInfo.tourNum || '',
+                adult: tripInfo.adult || '',
+                kidsCount: tripInfo.kidsCount || '',
+                kidsAge: tripInfo.kidsAge || ''
+            },
+            d: days.map(function(d) {
+                var wi = typeof getWeekdayInfo === 'function' ? getWeekdayInfo(d.date) : { weekdayText: '', holidayName: '' };
+                return {
+                    t: d.date || '',
+                    w: wi.weekdayText || '',
+                    h: wi.holidayName || '',
+                    c: d.city || '',
+                    x: d.text || '',
+                    o: mode === 'internal' ? (d.notes || '') : ''
+                };
+            })
+        };
+
+        fetch('http://localhost:8765/api/pdf', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(function(res) {
+            if (!res.ok) throw new Error('server error ' + res.status);
+            return res.blob();
+        })
+        .then(function(blob) {
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = '行程_' + clientName + '.pdf';
+            a.click();
+            URL.revokeObjectURL(url);
+        })
+        .catch(function() {
+            alert('本地服务未启动，请确认 kinoko-server 在运行');
+        });
+        return;
+    }
+
+    // GitHub Pages: open in new window for browser print
+    var html = generateExportHTML(mode);
+    var blob = new Blob([html], { type: 'text/html' });
+    var url = URL.createObjectURL(blob);
+    var w = window.open(url, '_blank');
+    // Auto-trigger print after load
+    setTimeout(function() {
+        if (w && !w.closed) {
+            w.print();
+        }
         URL.revokeObjectURL(url);
-    })
-    .catch(function() {
-        // Fallback: print dialog
-        var html = generateExportHTML(mode);
-        var w = window.open('about:blank');
-        w.document.write(html + '<script>window.onload=function(){window.print();}<\/script>');
-    });
+    }, 800);
 }
 
-function exportWord(mode) {
-    document.getElementById('wordMenu').style.display = 'none';
-
-    // Build trip data to send to local server
-    var wi0 = typeof getWeekdayInfo === 'function' ? getWeekdayInfo(days[0]?.date || '') : { weekdayText: '', holidayName: '' };
-    var data = {
-        n: document.getElementById('clientName')?.value || '',
-        i: {
-            brief: tripInfo.brief || '',
-            tourNum: tripInfo.tourNum || '',
-            adult: tripInfo.adult || '',
-            kidsCount: tripInfo.kidsCount || '',
-            kidsAge: tripInfo.kidsAge || ''
-        },
-        d: days.map(function(d) {
-            var wi = typeof getWeekdayInfo === 'function' ? getWeekdayInfo(d.date) : { weekdayText: '', holidayName: '' };
-            return {
-                t: d.date || '',
-                w: wi.weekdayText || '',
-                h: wi.holidayName || '',
-                c: d.city || '',
-                x: d.text || '',
-                o: mode === 'internal' ? (d.notes || '') : ''
-            };
-        })
-    };
-
-    // Try local server first for real .docx
-    var LOCAL_URL = 'http://localhost:8765/api/docx';
-    fetch(LOCAL_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    })
-    .then(function(res) {
-        if (!res.ok) throw new Error('local server returned ' + res.status);
-        return res.blob();
-    })
-    .then(function(blob) {
-        var url = URL.createObjectURL(blob);
-        var a = document.createElement('a');
-        a.href = url;
-        a.download = '行程_' + (document.getElementById('clientName').value || 'itinerary') + '.docx';
-        a.click();
-        URL.revokeObjectURL(url);
-    })
-    .catch(function() {
-        // Fallback: HTML-based .doc
-        var html = generateExportHTML(mode);
-        var blob = new Blob([html], { type: 'application/msword' });
-        var url = URL.createObjectURL(blob);
-        var a = document.createElement('a');
-        a.href = url;
-        a.download = '行程_' + (document.getElementById('clientName').value || 'itinerary') + '.doc';
-        a.click();
-        URL.revokeObjectURL(url);
-    });
-}
 
 function generateExportHTML(mode) {
     const clientName = document.getElementById('clientName').value;
