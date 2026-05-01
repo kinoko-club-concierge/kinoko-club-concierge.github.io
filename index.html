@@ -545,13 +545,6 @@ body::before {
             <div onclick="exportPDF('internal')">内部版</div>
         </div>
         </div>
-        <div class="gen-link-wrap" id="wordWrap">
-        <button class="btn btn-outline" id="exportWordBtn" onclick="toggleWordMenu()">Word <span class="menu-arrow">▾</span></button>
-        <div class="gen-menu" id="wordMenu" style="display:none">
-            <div onclick="exportWord('client')">客户版</div>
-            <div onclick="exportWord('internal')">内部版</div>
-        </div>
-        </div>
         <div class="gen-link-wrap" id="langWrap">
         <button class="btn btn-outline" id="langBtn" onclick="toggleLangMenu()">简体中文 <span class="menu-arrow">▾</span></button>
         <div class="gen-menu" id="langMenu" style="display:none">
@@ -1543,10 +1536,6 @@ function togglePDFMenu() {
     var menu = document.getElementById('pdfMenu');
     menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
 }
-function toggleWordMenu() {
-    var menu = document.getElementById('wordMenu');
-    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
-}
 function toggleLangMenu() {
     var menu = document.getElementById('langMenu');
     menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
@@ -1559,9 +1548,9 @@ function setLang(lang) {
 
 // Close menus when clicking outside
 document.addEventListener('click', function(e) {
-    ['genLinkWrap','pdfWrap','wordWrap','langWrap'].forEach(function(id) {
+    ['genLinkWrap','pdfWrap','langWrap'].forEach(function(id) {
         var wrap = document.getElementById(id);
-        var menuId = id === 'genLinkWrap' ? 'genMenu' : id === 'pdfWrap' ? 'pdfMenu' : id === 'langWrap' ? 'langMenu' : 'wordMenu';
+        var menuId = id === 'genLinkWrap' ? 'genMenu' : id === 'pdfWrap' ? 'pdfMenu' : 'langMenu';
         var menu = document.getElementById(menuId);
         if (wrap && menu && !wrap.contains(e.target)) {
             menu.style.display = 'none';
