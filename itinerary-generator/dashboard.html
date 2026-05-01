@@ -100,9 +100,18 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
     .item .date { display:none; }
     .search-row { flex-wrap:wrap; }
 }
+/* Toast notifications */
+.toast-container { position:fixed; top:70px; left:50%; transform:translateX(-50%); z-index:200; display:flex; flex-direction:column; gap:6px; align-items:center; pointer-events:none; }
+.toast { padding:10px 20px; border-radius:6px; font-size:13px; pointer-events:auto; animation:toastIn 0.3s ease; box-shadow:0 4px 12px rgba(0,0,0,0.1); max-width:90vw; }
+.toast-ok { background:#e8f5e9; color:#2e7d32; border:1px solid #a5d6a7; }
+.toast-err { background:#fce4ec; color:#c62828; border:1px solid #ef9a9a; }
+.toast-out { animation:toastOut 0.3s ease forwards; }
+@keyframes toastIn { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
+@keyframes toastOut { from { opacity:1; transform:translateY(0); } to { opacity:0; transform:translateY(-10px); } }
 </style>
 </head>
 <body>
+<div class="toast-container" id="toastContainer"></div>
 
 <div class="topbar">
     <div class="topbar-left">
@@ -191,8 +200,20 @@ function ghPut(path, content, msg) {
     }).then(function(r) { return r.json(); });
 }
 
+function showToast(msg, type) {
+    var c = document.getElementById('toastContainer');
+    var el = document.createElement('div');
+    el.className = 'toast toast-' + (type || 'ok');
+    el.textContent = msg;
+    c.appendChild(el);
+    var dur = type === 'err' ? 5000 : 2000;
+    setTimeout(function() {
+        el.classList.add('toast-out');
+        setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); }, 300);
+    }, dur);
+}
+
 function ghSyncAll() {
-    // Sync to GitHub immediately (no debounce — data loss risk with page nav)
     if (_ghTimer) clearTimeout(_ghTimer);
     _ghTimer = setTimeout(function() {
         var pjson = JSON.stringify(projects, null, 2);
@@ -201,10 +222,13 @@ function ghSyncAll() {
             ghPut('data/projects.json', pjson),
             ghPut('data/itineraries.json', ijson)
         ]).then(function() {
+            _dataFresh = true;
             renderBreadcrumb();
             render();
+            showToast('已保存', 'ok');
         }).catch(function(e) {
             console.error('Sync failed:', e);
+            showToast('保存失败，请检查网络后刷新重试', 'err');
         });
     }, 0);
 }
