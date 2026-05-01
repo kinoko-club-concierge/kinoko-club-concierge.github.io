@@ -177,7 +177,15 @@ function ghSyncAll() {
         Promise.all([
             ghPut('data/projects.json', pjson),
             ghPut('data/itineraries.json', ijson)
-        ]).then(function() { refresh(); });
+        ]).then(function() {
+            // Read from API directly (bypass CDN cache delay)
+            setTimeout(function() { ghReadAll().then(function(res) {
+                projects = res[0] || [];
+                allData = res[1] || [];
+                renderBreadcrumb();
+                render();
+            }); }, 2000);
+        });
     }, 500);
 }
 
