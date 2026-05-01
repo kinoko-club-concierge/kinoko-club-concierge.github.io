@@ -58,14 +58,14 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 
 <div class="topbar">
     <div class="topbar-left">
-        <span style="font-size:22px;">🍄</span>
+        <img src="logo.png?v=1" alt="KINOKO" style="height:28px;">
         <div>
             <div class="brand">Kinoko Club Concierge</div>
             <div class="sub">行程管理中心</div>
         </div>
     </div>
     <div style="display:flex;gap:8px;">
-        <button class="btn btn-outline" onclick="window.open('index.html','_blank')">📝 编辑器中打开</button>
+        <button class="btn btn-outline" onclick="window.open('index.html','_blank')">编辑器中打开</button>
     </div>
 </div>
 
@@ -76,7 +76,7 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
     </div>
 
     <div class="section-title" style="display:flex;align-items:center;justify-content:space-between;">
-        <span>📁 文件夹</span>
+        <span>文件夹</span>
         <span style="display:flex;gap:4px;">
             <button class="sort-btn" data-sort="newest" onclick="setSort('newest')">最新</button>
             <button class="sort-btn" data-sort="az" onclick="setSort('az')">A→Z</button>
@@ -87,7 +87,7 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
         <div class="empty-state"><div class="e-icon">📂</div><p>还没有任何文件夹</p><button class="btn btn-gold" onclick="newProject()">创建第一个文件夹</button></div>
     </div>
 
-    <div class="section-title" id="recentTitle" style="display:none;">🕐 最近编辑</div>
+    <div class="section-title" id="recentTitle" style="display:none;">最近编辑</div>
     <div class="recent-list" id="recentList"></div>
 </div>
 
