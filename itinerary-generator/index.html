@@ -1502,7 +1502,7 @@ function exportWeb() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         }).then(function(res) { return res.json(); }).then(function(result) {
-            if (result.id) onDone(SHARE_ORIGIN + basePath + '/share/?v=79&id=' + result.id);
+            if (result.id) onDone(SHARE_ORIGIN + basePath + '/share/?v=86&id=' + result.id);
             else onDone(longUrl());
         }).catch(function() { onDone(longUrl()); });
         return;
@@ -1514,7 +1514,7 @@ function exportWeb() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
     }).then(function(res) { return res.json(); }).then(function(result) {
-        if (result.id) onDone(SHARE_ORIGIN + basePath + '/share/?v=79&id=' + result.id);
+        if (result.id) onDone(SHARE_ORIGIN + basePath + '/share/?v=86&id=' + result.id);
         else onDone(longUrl());
     }).catch(function() { onDone(longUrl()); });
 }
