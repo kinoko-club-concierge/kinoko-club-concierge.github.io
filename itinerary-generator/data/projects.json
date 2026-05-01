@@ -189,7 +189,8 @@
     "created_at": 1777658994400,
     "updated_at": 1777658994400,
     "itinerary_count": 0,
-    "child_count": 0
+    "child_count": 0,
+    "pinned": true
   },
   {
     "id": "f0p9bv0",
