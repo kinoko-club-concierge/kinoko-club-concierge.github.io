@@ -118,8 +118,7 @@ h1 { font-size: 1.3rem; color: var(--dark); font-weight: 500; margin-bottom: 0.2
                     if (!res.ok) {
                         if (res.status === 404 && retries < 5) {
                             retries++;
-                            document.getElementById('app').innerHTML = '<div class="loading">数据同步中… 第 ' + retries + ' 次重试…</div>';
-                            setTimeout(loadData, retries * 3000);
+                            setTimeout(loadData, 1500 + retries * 1000);
                             return;
                         }
                         throw new Error('数据不存在 (HTTP ' + res.status + ')');
