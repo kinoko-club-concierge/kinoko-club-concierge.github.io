@@ -63,6 +63,25 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 .empty-state .e-icon { font-size:40px; margin-bottom:12px; }
 .empty-state p { font-size:14px; margin-bottom:6px; }
 .empty-state .sub { font-size:12px; color:#999; }
+/* Trash modal */
+.trash-overlay { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.3); z-index:100; justify-content:center; align-items:flex-start; padding-top:80px; }
+.trash-overlay.open { display:flex; }
+.trash-modal { background:#fff; border-radius:10px; width:520px; max-width:94vw; max-height:70vh; display:flex; flex-direction:column; box-shadow:0 8px 32px rgba(0,0,0,0.12); }
+.trash-modal .tm-head { padding:18px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+.trash-modal .tm-head h3 { font-size:15px; font-weight:500; display:flex; align-items:center; gap:8px; }
+.trash-modal .tm-head .close-btn { background:none; border:none; font-size:20px; cursor:pointer; color:var(--gray); padding:0 4px; }
+.trash-modal .tm-body { padding:16px 20px; overflow-y:auto; flex:1; }
+.trash-modal .tm-item { display:flex; align-items:center; padding:10px 12px; border-radius:6px; gap:10px; font-size:13px; }
+.trash-modal .tm-item:hover { background:var(--cream); }
+.trash-modal .tm-item .tm-icon { font-size:16px; }
+.trash-modal .tm-item .tm-name { flex:1; }
+.trash-modal .tm-item .tm-date { font-size:11px; color:var(--gray); margin-right:8px; }
+.trash-modal .tm-item .tm-actions { display:flex; gap:4px; }
+.trash-modal .tm-actions button { font-size:11px; padding:3px 8px; border:1px solid var(--border); border-radius:3px; background:none; cursor:pointer; font-family:inherit; }
+.trash-modal .tm-actions .restore:hover { border-color:#4a8; color:#4a8; }
+.trash-modal .tm-actions .perm-delete:hover { border-color:#c44; color:#c44; }
+.trash-modal .tm-foot { padding:14px 20px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+.trash-modal .tm-foot .tm-count { font-size:12px; color:var(--gray); }
 @media (max-width:768px) {
     .container { padding:12px; }
     .topbar { padding:10px 14px; }
@@ -102,6 +121,8 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
             <span style="color:var(--border);font-size:11px;">|</span>
             <button class="ctrl-btn active" id="viewList" onclick="setView('list')">☰</button>
             <button class="ctrl-btn" id="viewGrid" onclick="setView('grid')">▦</button>
+            <span style="color:var(--border);font-size:11px;">|</span>
+            <button class="ctrl-btn" id="trashBtn" onclick="showTrash()" title="回收站">🗑️</button>
         </span>
     </div>
     <div class="section-divider"></div>
@@ -447,7 +468,81 @@ function esc(s) { return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'"); 
 function escH(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function escJs(s) { return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"'); }
 
+// === Trash ===
+function showTrash() {
+    fetch('https://kinoko-share.yujian1933.workers.dev/api/trash')
+        .then(function(r) { return r.json(); })
+        .then(function(trash) {
+            var body = document.getElementById('trashBody');
+            var count = document.getElementById('trashCount');
+            if (!trash.length) {
+                body.innerHTML = '<div class="empty-state" style="padding:40px 20px;"><div class="e-icon">📭</div><p>回收站为空</p></div>';
+                count.textContent = '';
+            } else {
+                var html = '';
+                for (var i = 0; i < trash.length; i++) {
+                    var t = trash[i];
+                    html += '<div class="tm-item">';
+                    html += '<span class="tm-icon">' + (t.type === 'folder' ? '📂' : '📄') + '</span>';
+                    html += '<span class="tm-name">' + escH(t.name) + '</span>';
+                    html += '<span class="tm-date">' + timeAgo(t.deleted_at) + '</span>';
+                    html += '<div class="tm-actions">';
+                    html += '<button class="restore" onclick="restoreItem(' + i + ')">恢复</button>';
+                    html += '<button class="perm-delete" onclick="permDeleteItem(' + i + ')">永久删除</button>';
+                    html += '</div></div>';
+                }
+                body.innerHTML = html;
+                count.textContent = trash.length + ' 个项目';
+            }
+            document.getElementById('trashOverlay').classList.add('open');
+        });
+}
+
+function hideTrash(e) {
+    if (e && e.target !== document.getElementById('trashOverlay')) return;
+    document.getElementById('trashOverlay').classList.remove('open');
+}
+
+function restoreItem(index) {
+    fetch('https://kinoko-share.yujian1933.workers.dev/api/trash/restore', {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ index: index })
+    }).then(function(r) { return r.json(); }).then(function(res) {
+        if (res.error) { alert(res.error); return; }
+        showTrash();
+        refresh();
+    });
+}
+
+function permDeleteItem(index) {
+    if (!confirm('永久删除？不可恢复。')) return;
+    fetch('https://kinoko-share.yujian1933.workers.dev/api/trash', {
+        method: 'PATCH', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ index: index })
+    }).then(function() { showTrash(); });
+}
+
+function emptyTrash() {
+    if (!confirm('清空回收站？所有项目将永久删除。')) return;
+    fetch('https://kinoko-share.yujian1933.workers.dev/api/trash/empty', { method: 'POST' })
+        .then(function() { showTrash(); });
+}
+
 loadAll();
 </script>
+
+<div class="trash-overlay" id="trashOverlay" onclick="hideTrash(event)">
+    <div class="trash-modal" onclick="event.stopPropagation()">
+        <div class="tm-head">
+            <h3>🗑️ 回收站 <span style="font-size:12px;color:var(--gray);font-weight:normal;">30天后自动清理</span></h3>
+            <button class="close-btn" onclick="hideTrash()">×</button>
+        </div>
+        <div class="tm-body" id="trashBody"></div>
+        <div class="tm-foot">
+            <span class="tm-count" id="trashCount"></span>
+            <button class="btn btn-outline" onclick="emptyTrash()" style="font-size:12px;padding:6px 14px;border-color:#c44;color:#c44;">清空回收站</button>
+        </div>
+    </div>
+</div>
 </body>
 </html>
