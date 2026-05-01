@@ -494,7 +494,15 @@ body::before {
 <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
         <span>📁 工作区</span>
-        <button onclick="toggleSidebar()">×</button>
+        <div style="display:flex;gap:4px;align-items:center;">
+            <select id="sidebarSort" onchange="onSidebarSort()" style="font-size:11px;border:1px solid var(--border);border-radius:3px;padding:2px 4px;background:#fff;color:var(--gray);font-family:inherit;cursor:pointer;">
+                <option value="newest">最新</option>
+                <option value="oldest">最早</option>
+                <option value="az">A→Z</option>
+                <option value="za">Z→A</option>
+            </select>
+            <button onclick="toggleSidebar()">×</button>
+        </div>
     </div>
     <div style="padding:4px 16px 8px;border-bottom:1px solid var(--border);">
         <a href="dashboard.html" style="font-size:11px;color:var(--gold);text-decoration:none;">← 仪表盘</a>
@@ -1911,6 +1919,19 @@ function loadProjects() {
             renderProjects();
         })
         .catch(function() {});
+}
+
+function onSidebarSort() {
+    var sort = document.getElementById('sidebarSort').value;
+    sortProjects(sort);
+}
+
+function sortProjects(sort) {
+    if (sort === 'newest') projectList.sort(function(a,b) { return (b.created_at||0) - (a.created_at||0); });
+    else if (sort === 'oldest') projectList.sort(function(a,b) { return (a.created_at||0) - (b.created_at||0); });
+    else if (sort === 'az') projectList.sort(function(a,b) { return (a.name||'').localeCompare(b.name||''); });
+    else if (sort === 'za') projectList.sort(function(a,b) { return (b.name||'').localeCompare(a.name||''); });
+    renderProjects();
 }
 
 function renderProjects() {

@@ -40,6 +40,9 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 .recent-item .r-folder { font-size:11px; color:var(--gold); background:var(--cream); padding:2px 8px; border-radius:10px; margin-right:10px; }
 .recent-item .r-time { font-size:11px; color:var(--gray); white-space:nowrap; }
 .recent-item .r-arrow { color:var(--gray); margin-left:10px; font-size:12px; }
+.sort-btn { font-size:11px; padding:2px 8px; border:1px solid var(--border); border-radius:3px; background:#fff; color:var(--gray); cursor:pointer; font-family:inherit; }
+.sort-btn.active { background:var(--gold); color:#fff; border-color:var(--gold); }
+.sort-btn:hover:not(.active) { border-color:var(--gold-light); }
 .empty-state { text-align:center; padding:60px 20px; color:var(--gray); }
 .empty-state .e-icon { font-size:48px; margin-bottom:16px; }
 .empty-state p { margin-bottom:8px; font-size:14px; }
@@ -72,7 +75,14 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
         <button class="btn btn-gold" onclick="newProject()">+ 新建文件夹</button>
     </div>
 
-    <div class="section-title">📁 文件夹</div>
+    <div class="section-title" style="display:flex;align-items:center;justify-content:space-between;">
+        <span>📁 文件夹</span>
+        <span style="display:flex;gap:4px;">
+            <button class="sort-btn" data-sort="newest" onclick="setSort('newest')">最新</button>
+            <button class="sort-btn" data-sort="az" onclick="setSort('az')">A→Z</button>
+            <button class="sort-btn" data-sort="oldest" onclick="setSort('oldest')">最早</button>
+        </span>
+    </div>
     <div class="project-grid" id="projectGrid">
         <div class="empty-state"><div class="e-icon">📂</div><p>还没有任何文件夹</p><button class="btn btn-gold" onclick="newProject()">创建第一个文件夹</button></div>
     </div>
@@ -83,6 +93,14 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 
 <script>
 var projects = [];
+
+function setSort(sort) {
+    document.querySelectorAll('.sort-btn').forEach(function(b) { b.classList.toggle('active', b.dataset.sort === sort); });
+    if (sort === 'newest') projects.sort(function(a,b) { return (b.created_at||0) - (a.created_at||0); });
+    else if (sort === 'oldest') projects.sort(function(a,b) { return (a.created_at||0) - (b.created_at||0); });
+    else if (sort === 'az') projects.sort(function(a,b) { return (a.name||'').localeCompare(b.name||''); });
+    renderGrid();
+}
 
 function loadAll() {
     fetch('http://localhost:8765/api/projects')
