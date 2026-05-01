@@ -553,16 +553,19 @@ function attachDragListeners() {
         items[i].addEventListener('dragover', function(e) {
             e.preventDefault();
             e.dataTransfer.dropEffect = 'move';
-            if (dragItem && this.dataset.type === 'folder' && dragItem.type !== this.dataset.type && this.dataset.id !== dragItem.proj) {
-                // Only highlight folders as drop targets, and not the folder the item is already in
-                if (dragItem.type === 'folder' && this.dataset.id === dragItem.id) return;
-                if (dragItem.type === 'itinerary' && this.dataset.id === dragItem.proj) return;
-            }
-            if (!dragItem || this === e.target.closest('[draggable]')) return;
-            this.classList.add('drag-over');
+            if (!dragItem) return;
+            var targetEl = e.target.closest('[draggable]');
+            if (!targetEl) return;
+            // Don't highlight the dragged element itself
+            if (targetEl.dataset.id === dragItem.id && targetEl.dataset.type === dragItem.type) return;
+            // Don't highlight if dropping into same folder the item is already in
+            if (dragItem.type === 'itinerary' && targetEl.dataset.type === 'folder' && targetEl.dataset.id === dragItem.proj) return;
+            if (dragItem.type === 'folder' && targetEl.dataset.type === 'folder' && targetEl.dataset.id === dragItem.id) return;
+            targetEl.classList.add('drag-over');
         });
         items[i].addEventListener('dragleave', function(e) {
-            this.classList.remove('drag-over');
+            var targetEl = e.target.closest('[draggable]');
+            if (targetEl) targetEl.classList.remove('drag-over');
         });
         items[i].addEventListener('drop', function(e) {
             e.preventDefault();
