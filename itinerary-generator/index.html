@@ -1574,31 +1574,59 @@ function exportWord() {
 
 function generateExportHTML() {
     const clientName = document.getElementById('clientName').value;
-    const tourNum = 'KNO-' + (tripInfo.tourNum || 'ツアー番号');
+    const tourNum = tripInfo.tourNum ? 'KNO-' + tripInfo.tourNum : '';
+    const brief = tripInfo.brief || '';
+    const adult = tripInfo.adult || '';
+    const kidsCount = tripInfo.kidsCount || '';
+    const kidsAge = tripInfo.kidsAge || '';
+    var paxParts = [];
+    if (adult) paxParts.push('成人' + adult + '名');
+    if (kidsCount) { var ks = '儿童' + kidsCount + '名'; if (kidsAge) ks += ' ' + kidsAge; paxParts.push(ks); }
+    const pax = paxParts.join(' · ');
+
     const daysHTML = days.map((d, i) => {
         const wi = getWeekdayInfo(d.date);
+        var imgHTML = '';
+        if (d.images && d.images.length) {
+            imgHTML = '<div style="display:flex;flex-wrap:wrap;gap:0.3rem;margin:0.5rem 0;justify-content:center;align-items:center;">' +
+                d.images.filter(function(im) { return im.url; }).map(function(im) {
+                    var w = im.half ? 'calc(50% - 0.15rem)' : '100%';
+                    return '<div style="flex:0 0 ' + w + ';min-width:0;display:flex;align-items:center;justify-content:center;"><img src="' + escHtml(im.url) + '" style="max-width:100%;height:auto;border-radius:6px;display:block;margin:0 auto;object-fit:' + (d.imageFit || 'cover') + ';"></div>';
+                }).join('') + '</div>';
+        }
         return `
         <div style="margin-bottom:1.5rem; padding-left:1.5rem; border-left:2px solid #C9A96E;">
             <div style="font-size:0.9rem; color:#8B6914; font-weight:600;">Day ${i + 1}${d.date ? ' — ' + formatDateDisplay(d.date) : ''}${wi.weekdayText ? ' (' + wi.weekdayText + ')' : ''}${wi.holidayName ? ' 🎌 ' + wi.holidayName : ''}</div>
             ${d.city ? `<div style="font-size:0.82rem; color:#6a7a8a;">📍 ${d.city}</div>` : ''}
-            ${wi.holidayName ? `<div style="font-size:0.7rem; color:#d35400; margin-top:0.2rem;">⚠️ ${wi.holidayName} — 多くの施設が休業の場合があります</div>` : ''}
+            ${wi.holidayName ? `<div style="font-size:0.68rem;padding:0.15rem 0.45rem;border-radius:3px;background:#fff3e0;color:#d35400;display:inline-block;margin-top:0.2rem;">⚠️ ${wi.holidayName} 是日本公休日，部分景点和商店可能调整营业时间</div>` : ''}
+            ${imgHTML}
             <div style="font-size:0.88rem; line-height:1.8; color:#1a2a3a; margin-top:0.3rem;">${formatText(d.text)}</div>
+            ${d.notes ? `<div style="margin-top:0.5rem;padding:0.6rem 0.8rem;background:#f9f6ec;border-left:3px solid #C9A96E;font-size:0.82rem;color:#5a4a2a;">${formatText(d.notes)}</div>` : ''}
         </div>
         `;
     }).join('');
 
     return `<!DOCTYPE html><html lang="${currentLanguage}"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>行程 — ${escHtml(clientName)}</title>
 <style>
-body{font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Serif JP','Source Han Serif SC','Hiragino Mincho ProN',Georgia,serif;background:#FDF8EE;color:#1a2a3a;max-width:800px;margin:0 auto;padding:2rem;}
+:root { --gold: #8B6914; --gold-light: #C9A96E; --cream: #FDF8EE; --dark: #1a2a3a; --gray: #6a7a8a; --border: #e8e5db; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body{font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Serif JP','Source Han Serif SC','Hiragino Mincho ProN',Georgia,serif;background:var(--cream);color:var(--dark);max-width:800px;margin:0 auto;padding:2rem;min-height:100vh;}
 .client-logo{max-height:60px;margin-bottom:0.5rem;}
-h1{font-size:1.3rem;color:#1a2a3a;font-weight:500;margin-bottom:0.2rem;}
-.subtitle{font-size:0.85rem;color:#6a7a8a;margin-bottom:1.5rem;}
-.footer{text-align:center;font-size:0.7rem;color:#6a7a8a;margin-top:2rem;padding-top:1rem;border-top:1px solid #e8e5db;}
-@media print{body{background:#fff;padding:1rem;}}
+h1{font-size:1.3rem;color:var(--dark);font-weight:500;margin-bottom:0.2rem;text-align:center;}
+.subtitle{font-size:0.85rem;color:var(--gray);margin-bottom:1.5rem;text-align:center;}
+.trip-info{text-align:center;font-size:0.82rem;color:var(--gray);margin-bottom:1rem;}
+.trip-info div{margin-top:0.2rem;}
+.footer{text-align:center;font-size:0.7rem;color:var(--gray);margin-top:2rem;padding-top:1rem;border-top:1px solid var(--border);}
+@media print{
+  body{background:#fff;padding:1cm;min-height:auto;}
+  .footer{border-top-color:#ccc;}
+  @page{margin:1.5cm;}
+}
 </style></head><body>
 ${clientLogoData ? `<div style="text-align:center;margin-bottom:1rem;"><img class="client-logo" src="${clientLogoData}"></div>` : ''}
-<h1 style="text-align:center;">${escHtml(clientName) || '(Untitled)'}</h1>
-<div class="subtitle" style="text-align:center;">${t('subtitle')}</div>
+<h1>${escHtml(clientName) || '(Untitled)'}</h1>
+<div class="subtitle">${t('subtitle')}</div>
+${(brief || tourNum || pax) ? `<div class="trip-info">${brief ? '<div>' + escHtml(brief) + '</div>' : ''}${tourNum ? '<div>' + escHtml(tourNum) + '</div>' : ''}${pax ? '<div style="font-size:0.75rem;">' + pax + '</div>' : ''}</div>` : ''}
 ${daysHTML}
 <div class="footer">${t('footer')}</div>
 </body></html>`;
