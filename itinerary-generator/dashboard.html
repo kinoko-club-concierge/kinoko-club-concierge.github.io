@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v161 refresh -->
+<!DOCTYPE html><!-- v162 cache-bust + timeout-diag -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -157,6 +157,9 @@ var GH_TOKEN = 'ghp_' + 'anBeVHJVVk01qRmo' + 'ekhsVP5ad9MTvX0dflJg';
 var GH_BASE = 'https://api.github.com/repos/' + GH_REPO + '/contents/itinerary-generator';
 var _ghPending = null;
 var _ghTimer = null;
+// Embedded fallback data — used when network fetch fails (e.g. behind firewall)
+var _EMBED_PROJECTS = [{"id":"etc7yj","name":"2023","created_at":1777632865280,"pinned":true,"itinerary_count":1,"child_count":2},{"id":"x7m9nj","name":"2024","created_at":1777632870187,"itinerary_count":0,"child_count":0},{"id":"am78c2","name":"2025","created_at":1777632876576,"itinerary_count":0,"child_count":0},{"id":"8kdshy","name":"已完成","parent":"etc7yj","created_at":1777633888654,"itinerary_count":0,"child_count":0},{"id":"j77w98","name":"删除","parent":"etc7yj","created_at":1777633893177,"itinerary_count":0,"child_count":0}];
+var _EMBED_ITINERARIES = [{"id":"b27zpw","name":"KNO1","created_at":1777633907157,"updated_at":1777633907157,"pinned":true,"project_id":"etc7yj","project_name":"2023"}];
 
 function ghGet(path) {
     return fetch(GH_BASE + '/' + path, {
@@ -224,25 +227,37 @@ function loadAll() {
 }
 
 function refresh() {
-    // Read from GitHub Pages static JSON (always accessible in China)
     var gh = 'https://kinoko-club-concierge.github.io/itinerary-generator/data/';
+    var ctrl = new AbortController();
+    var timer = setTimeout(function() { ctrl.abort(); }, 8000);
     Promise.all([
-        fetch(gh + 'projects.json?v=' + Date.now()).then(function(r) { return r.json(); }),
-        fetch(gh + 'itineraries.json?v=' + Date.now()).then(function(r) { return r.json(); })
+        fetch(gh + 'projects.json?v=' + Date.now(), {signal: ctrl.signal}).then(function(r) { return r.json(); }),
+        fetch(gh + 'itineraries.json?v=' + Date.now(), {signal: ctrl.signal}).then(function(r) { return r.json(); })
     ]).then(function(results) {
+        clearTimeout(timer);
         projects = results[0] || [];
         allData = results[1] || [];
         renderBreadcrumb();
         render();
     }).catch(function() {
-        // Fallback: GitHub API
+        clearTimeout(timer);
+        // Stage 2: GitHub API
         ghReadAll().then(function(results) {
             projects = results[0] || [];
             allData = results[1] || [];
             renderBreadcrumb();
             render();
         }).catch(function(e) {
-            document.getElementById('content').innerHTML = '<div class="empty-state"><div class="e-icon">⚠️</div><p>无法连接服务器</p><p class="sub">请检查网络连接</p></div>';
+            // Stage 3: Embedded fallback
+            if (_EMBED_PROJECTS.length || _EMBED_ITINERARIES.length) {
+                projects = _EMBED_PROJECTS;
+                allData = _EMBED_ITINERARIES;
+                renderBreadcrumb();
+                render();
+                document.getElementById('content').insertAdjacentHTML('beforeend', '<div style="text-align:center;margin-top:12px;font-size:11px;color:#aaa;">⚠️ 使用离线数据，部分操作需要网络</div>');
+            } else {
+                document.getElementById('content').innerHTML = '<div class="empty-state"><div class="e-icon">⚠️</div><p>无法连接服务器</p><p class="sub">请检查网络连接</p></div>';
+            }
             console.error(e);
         });
     });
@@ -658,6 +673,13 @@ function emptyTrash() {
 }
 
 loadAll();
+// Timeout diagnostic: if data never loads, show what went wrong
+setTimeout(function() {
+    var c = document.getElementById('content');
+    if (c && c.textContent.indexOf('加载中') >= 0) {
+        c.innerHTML = '<div class="empty-state"><div class="e-icon">⏳</div><p>加载超时</p><p class="sub">数据请求未响应，请检查网络或刷新页面</p><p class="sub" style="margin-top:8px;"><button class="btn btn-outline" onclick="location.reload(true)">强制刷新</button></p></div>';
+    }
+}, 10000);
 </script>
 
 <div class="trash-overlay" id="trashOverlay" onclick="hideTrash(event)">
