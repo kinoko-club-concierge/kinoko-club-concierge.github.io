@@ -311,7 +311,13 @@ function loadAll() {
     } else {
         renderBreadcrumb();
         render();
-        updateSyncBadge(localStorage.getItem('kinoko_last_sync_ok') === '1' ? 'ok' : 'err');
+        var lastSyncOk = localStorage.getItem('kinoko_last_sync_ok');
+        if (lastSyncOk === null) {
+            // First load with localStorage data: assume synced
+            localStorage.setItem('kinoko_last_sync_ok', '1');
+            lastSyncOk = '1';
+        }
+        updateSyncBadge(lastSyncOk === '1' ? 'ok' : 'err');
     }
 }
 
