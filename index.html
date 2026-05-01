@@ -1575,34 +1575,44 @@ function exportPDF(mode) {
         return;
     }
 
-    // Create visible overlay — needed for html2canvas to capture properly
-    var overlay = document.createElement('div');
-    overlay.innerHTML = html;
-    overlay.style.cssText = [
-        'position:fixed', 'top:0', 'left:0', 'right:0', 'bottom:0',
-        'z-index:99999', 'background:#fff', 'overflow-y:auto',
-        'padding:20px'
-    ].join(';');
-    document.body.appendChild(overlay);
+    var iframe = document.createElement('iframe');
+    iframe.style.cssText = 'position:fixed;top:0;left:0;width:794px;height:100vh;z-index:99998;border:0;background:#fff';
+    document.body.appendChild(iframe);
 
-    // Wait for images/fonts to settle
-    setTimeout(function() {
-        var opt = {
-            margin: [10, 10, 10, 10],
-            filename: '行程_' + clientName + '.pdf',
-            image: { type: 'jpeg', quality: 0.95 },
-            html2canvas: { scale: 2, useCORS: true, logging: false },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-            pagebreak: { mode: ['css', 'legacy'] }
-        };
-        html2pdf().set(opt).from(overlay).save().then(function() {
-            document.body.removeChild(overlay);
-        }).catch(function(e) {
-            document.body.removeChild(overlay);
-            console.error('PDF error:', e);
-            alert('PDF 生成失败，请重试');
-        });
-    }, 600);
+    iframe.onload = function() {
+        var doc = iframe.contentDocument || iframe.contentWindow.document;
+        doc.open();
+        doc.write(html);
+        doc.close();
+
+        setTimeout(function() {
+            var body = doc.body;
+            var contentHeight = Math.max(body.scrollHeight, body.offsetHeight, doc.documentElement.scrollHeight, 1123);
+            iframe.style.height = contentHeight + 'px';
+
+            if (typeof html2pdf === 'undefined') {
+                alert('PDF 组件加载中，请刷新后重试');
+                document.body.removeChild(iframe);
+                return;
+            }
+            var opt = {
+                margin: [10, 10, 10, 10],
+                filename: '行程_' + clientName + '.pdf',
+                image: { type: 'jpeg', quality: 0.95 },
+                html2canvas: { scale: 2, useCORS: true, logging: false, windowWidth: 794, windowHeight: contentHeight },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak: { mode: ['css', 'legacy'] }
+            };
+            html2pdf().set(opt).from(body).save().then(function() {
+                document.body.removeChild(iframe);
+            }).catch(function(e) {
+                document.body.removeChild(iframe);
+                console.error('PDF error:', e);
+                alert('PDF 生成失败，请重试');
+            });
+        }, 600);
+    };
+    iframe.src = 'about:blank';
 }
 
 
@@ -1643,7 +1653,8 @@ function generateExportHTML(mode) {
 <style>
 :root { --gold: #8B6914; --gold-light: #C9A96E; --cream: #FDF8EE; --dark: #1a2a3a; --gray: #6a7a8a; --border: #e8e5db; }
 * { margin:0; padding:0; box-sizing:border-box; }
-body{font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Serif JP','Source Han Serif SC',Georgia,serif;background:var(--cream);color:var(--dark);max-width:800px;margin:0 auto;padding:2rem;min-height:100vh;}
+body{font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Serif JP','Source Han Serif SC',Georgia,serif;background:#fff;color:var(--dark);width:794px;padding:2rem;}
+h1{font-size:1.3rem;color:var(--dark);font-weight:500;margin-bottom:0.2rem;text-align:center;}
 h1{font-size:1.3rem;color:var(--dark);font-weight:500;margin-bottom:0.2rem;text-align:center;}
 .subtitle{font-size:0.85rem;color:var(--gray);margin-bottom:1.5rem;text-align:center;}
 .trip-info{text-align:center;font-size:0.82rem;color:var(--gray);margin-bottom:1rem;}
