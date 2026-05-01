@@ -131,13 +131,14 @@ h1 { font-size: 1.3rem; color: var(--dark); font-weight: 500; margin-bottom: 0.2
         var retries = 0;
         var DATA_URL = 'https://kinoko-share.yujian1933.workers.dev/data/' + id + '.json';
         var loaded = false;
+        var maxRetries = 3;
         function loadData() {
             fetch(DATA_URL)
                 .then(function(res) {
                     if (!res.ok) {
-                        if (res.status === 404 && retries < 5) {
+                        if (res.status === 404 && retries < maxRetries) {
                             retries++;
-                            document.getElementById('app').innerHTML = '<div class="loading">加载中…</div>';
+                            document.getElementById('app').innerHTML = '<div class="loading">加载中…（' + retries + '/' + maxRetries + '）</div>';
                             setTimeout(loadData, 1500 + retries * 1000);
                             return;
                         }
