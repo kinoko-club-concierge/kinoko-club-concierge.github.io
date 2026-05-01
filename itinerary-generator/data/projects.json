@@ -53,7 +53,8 @@
     "created_at": 1777658419010,
     "updated_at": 1777658419010,
     "itinerary_count": 0,
-    "child_count": 0
+    "child_count": 0,
+    "pinned": true
   },
   {
     "id": "fyveubz",
