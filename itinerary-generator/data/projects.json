@@ -1,12 +1,5 @@
 [
   {
-    "id": "etc7yj",
-    "name": "2023",
-    "created_at": 1777632865280,
-    "itinerary_count": 1,
-    "child_count": 2
-  },
-  {
     "id": "x7m9nj",
     "name": "2024",
     "created_at": 1777632870187,
@@ -17,22 +10,6 @@
     "id": "am78c2",
     "name": "2025",
     "created_at": 1777632876576,
-    "itinerary_count": 0,
-    "child_count": 0
-  },
-  {
-    "id": "8kdshy",
-    "name": "已完成",
-    "parent": "etc7yj",
-    "created_at": 1777633888654,
-    "itinerary_count": 0,
-    "child_count": 0
-  },
-  {
-    "id": "j77w98",
-    "name": "删除",
-    "parent": "etc7yj",
-    "created_at": 1777633893177,
     "itinerary_count": 0,
     "child_count": 0
   }
