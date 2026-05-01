@@ -1457,25 +1457,19 @@ function exportWeb() {
     };
 
     function onDone(url) {
-        navigator.clipboard.writeText(url).then(() => {
-            if (btn) { btn.textContent = '✓ 已复制链接'; setTimeout(() => { btn.textContent = orig || '🔗 生成链接'; }, 2000); }
-        }).catch(() => {});
+        navigator.clipboard.writeText(url).then(function() {
+            if (btn) { btn.textContent = '✓ 已复制链接'; setTimeout(function() { btn.textContent = orig || '🔗 生成链接'; }, 2000); }
+        }).catch(function() {});
         window.open(url, '_blank');
     }
 
-    function fallbackLong() {
-        try {
-            const json = JSON.stringify(data);
-            const compressed = LZString.compressToEncodedURIComponent(json);
-            const url = location.origin + basePath + '/share/?v=69&d=' + compressed;
-            onDone(url);
-        } catch (e) {
-            if (btn) btn.textContent = orig || '🔗 生成链接';
-            alert('生成失败: ' + e.message);
-        }
+    function longUrl() {
+        var json = JSON.stringify(data);
+        var compressed = LZString.compressToEncodedURIComponent(json);
+        return location.origin + basePath + '/share/?v=71&d=' + compressed;
     }
 
-    // If on localhost, try short link via local server
+    // localhost → short link via local server
     if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
         fetch('/api/save', {
             method: 'POST',
@@ -1484,20 +1478,16 @@ function exportWeb() {
         })
         .then(function(res) { return res.json(); })
         .then(function(result) {
-            if (result.id) {
-                onDone(location.origin + basePath + '/share/?id=' + result.id);
-            } else {
-                fallbackLong();
-            }
+            if (result.id) onDone(location.origin + basePath + '/share/?id=' + result.id);
+            else onDone(longUrl());
         })
-        .catch(function() {
-            // Server not running, fallback
-            fallbackLong();
-        });
+        .catch(function() { onDone(longUrl()); });
         return;
     }
 
-    fallbackLong();
+    // deployed → compressed link
+    try { onDone(longUrl()); }
+    catch(e) { if (btn) btn.textContent = orig || '🔗 生成链接'; }
 }
 
 function exportPDF() {
