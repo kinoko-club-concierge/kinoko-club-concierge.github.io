@@ -27,12 +27,6 @@ h1 { font-size: 1.3rem; color: var(--dark); font-weight: 500; margin-bottom: 0.2
 .subtitle { font-size: 0.85rem; color: var(--gray); margin-bottom: 1.5rem; text-align: center; }
 .trip-info { text-align: center; font-size: 0.82rem; color: var(--gray); margin-bottom: 1rem; }
 .trip-info div { margin-top: 0.2rem; }
-/* Toggle */
-.preview-toggle { display: flex; justify-content: center; gap: 0; margin-bottom: 1.5rem; }
-.toggle-btn { font-size: 0.8rem; padding: 0.3rem 1.2rem; border: 1px solid var(--border); background: #fff; color: var(--gray); cursor: pointer; font-family: inherit; }
-.toggle-btn:first-child { border-radius: 4px 0 0 4px; }
-.toggle-btn:last-child { border-radius: 0 4px 4px 0; }
-.toggle-btn.active { background: var(--gold); color: #fff; border-color: var(--gold); }
 .day { margin-bottom: 1.5rem; padding-left: 1.5rem; border-left: 2px solid var(--gold-light); }
 .day-label { font-size: 0.9rem; color: var(--gold); font-weight: 600; }
 .day-location { font-size: 0.82rem; color: var(--gray); margin-top: 0.1rem; }
@@ -49,7 +43,6 @@ h1 { font-size: 1.3rem; color: var(--dark); font-weight: 500; margin-bottom: 0.2
 @media print {
     body { background: #fff; padding: 1rem; }
     .footer { border-top-color: #ccc; }
-    .preview-toggle { display: none; }
 }
 </style>
 </head>
@@ -67,19 +60,9 @@ h1 { font-size: 1.3rem; color: var(--dark); font-weight: 500; margin-bottom: 0.2
     var id = params.get('id');
     var d = params.get('d');
     var tripData = null;
-    var viewMode = 'client';
 
     function showError(msg) {
         document.getElementById('app').innerHTML = '<div class="error">' + msg + '</div>';
-    }
-
-    function setMode(mode) {
-        viewMode = mode;
-        var bc = document.getElementById('btnClient');
-        var bi = document.getElementById('btnInternal');
-        if (bc) { bc.classList.toggle('active', mode === 'client'); }
-        if (bi) { bi.classList.toggle('active', mode === 'internal'); }
-        if (tripData) renderTrip(tripData);
     }
 
     function renderTrip(data) {
@@ -88,12 +71,6 @@ h1 { font-size: 1.3rem; color: var(--dark); font-weight: 500; margin-bottom: 0.2
         var html = '';
         html += '<h1>' + esc(data.n || '(Untitled)') + '</h1>';
         html += '<div class="subtitle">Arranged by Kinoko Club Concierge</div>';
-
-        // Toggle
-        html += '<div class="preview-toggle">';
-        html += '<button class="toggle-btn' + (viewMode === 'client' ? ' active' : '') + '" id="btnClient" onclick="window._setMode(\'client\')">客户版</button>';
-        html += '<button class="toggle-btn' + (viewMode === 'internal' ? ' active' : '') + '" id="btnInternal" onclick="window._setMode(\'internal\')">内部版</button>';
-        html += '</div>';
 
         var info = data.i || {};
         var paxParts = [];
@@ -121,15 +98,13 @@ h1 { font-size: 1.3rem; color: var(--dark); font-weight: 500; margin-bottom: 0.2
                 html += '</div>';
             }
             if (day.x) html += '<div class="day-text">' + formatText(day.x) + '</div>';
-            if (viewMode === 'internal' && day.o) html += '<div class="day-notes">' + formatText(day.o) + '</div>';
+            if (day.o) html += '<div class="day-notes">' + formatText(day.o) + '</div>';
             html += '</div>';
         });
 
         html += '<div class="footer">Arranged by Kinoko Club Concierge</div>';
         document.getElementById('app').innerHTML = html;
     }
-
-    window._setMode = function(m) { setMode(m); };
 
     function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
     function formatText(text) {
