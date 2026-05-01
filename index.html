@@ -1567,52 +1567,37 @@ function doExport(mode) {
 
 function exportPDF(mode) {
     document.getElementById('pdfMenu').style.display = 'none';
-    var html = generateExportHTML(mode);
     var clientName = document.getElementById('clientName')?.value || 'itinerary';
 
-    if (typeof html2pdf === 'undefined') {
-        alert('PDF 组件加载中，请刷新后重试');
-        return;
-    }
-
-    var iframe = document.createElement('iframe');
-    iframe.style.cssText = 'position:fixed;top:0;left:0;width:794px;height:100vh;z-index:99998;border:0;background:#fff';
-    document.body.appendChild(iframe);
-
-    iframe.onload = function() {
-        var doc = iframe.contentDocument || iframe.contentWindow.document;
-        doc.open();
-        doc.write(html);
-        doc.close();
-
-        setTimeout(function() {
-            var body = doc.body;
-            var contentHeight = Math.max(body.scrollHeight, body.offsetHeight, doc.documentElement.scrollHeight, 1123);
-            iframe.style.height = contentHeight + 'px';
-
-            if (typeof html2pdf === 'undefined') {
-                alert('PDF 组件加载中，请刷新后重试');
-                document.body.removeChild(iframe);
-                return;
-            }
-            var opt = {
-                margin: [10, 10, 10, 10],
-                filename: '行程_' + clientName + '.pdf',
-                image: { type: 'jpeg', quality: 0.95 },
-                html2canvas: { scale: 2, useCORS: true, logging: false, windowWidth: 794, windowHeight: contentHeight },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                pagebreak: { mode: ['css', 'legacy'] }
-            };
-            html2pdf().set(opt).from(body).save().then(function() {
-                document.body.removeChild(iframe);
-            }).catch(function(e) {
-                document.body.removeChild(iframe);
-                console.error('PDF error:', e);
-                alert('PDF 生成失败，请重试');
-            });
-        }, 600);
+    // Build trip data for server-side PDF
+    var data = {
+        n: clientName,
+        i: { brief: tripInfo.brief || '', tourNum: tripInfo.tourNum || '', adult: tripInfo.adult || '', kidsCount: tripInfo.kidsCount || '', kidsAge: tripInfo.kidsAge || '' },
+        d: days.map(function(d) {
+            var wi = typeof getWeekdayInfo === 'function' ? getWeekdayInfo(d.date) : { weekdayText: '', holidayName: '' };
+            return { t: d.date || '', w: wi.weekdayText || '', h: wi.holidayName || '', c: d.city || '', x: d.text || '', o: mode === 'internal' ? (d.notes || '') : '' };
+        })
     };
-    iframe.src = 'about:blank';
+
+    // Try local server (Chrome headless — perfect PDF, no browser quirks)
+    fetch('http://localhost:8765/api/pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(function(res) {
+        if (!res.ok) throw new Error('server error');
+        return res.blob();
+    })
+    .then(function(blob) {
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = '行程_' + clientName + '.pdf';
+        a.click();
+    })
+    .catch(function() {
+        alert('请用 HTTP 打开编辑器：\nhttp://kinoko-club-concierge.github.io/itinerary-generator/\n\n（当前 HTTPS 无法连接本地 PDF 服务）');
+    });
 }
 
 
