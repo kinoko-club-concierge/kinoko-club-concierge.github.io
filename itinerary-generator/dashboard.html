@@ -40,9 +40,19 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 .recent-item .r-folder { font-size:11px; color:var(--gold); background:var(--cream); padding:2px 8px; border-radius:10px; margin-right:10px; }
 .recent-item .r-time { font-size:11px; color:var(--gray); white-space:nowrap; }
 .recent-item .r-arrow { color:var(--gray); margin-left:10px; font-size:12px; }
+.view-btn { font-size:12px; padding:4px 12px; border:1px solid var(--border); border-radius:4px; background:#fff; color:var(--gray); cursor:pointer; font-family:inherit; }
+.view-btn.active { background:var(--gold); color:#fff; border-color:var(--gold); }
+.view-btn:hover:not(.active) { border-color:var(--gold-light); }
 .sort-btn { font-size:11px; padding:2px 8px; border:1px solid var(--border); border-radius:3px; background:#fff; color:var(--gray); cursor:pointer; font-family:inherit; }
 .sort-btn.active { background:var(--gold); color:#fff; border-color:var(--gold); }
 .sort-btn:hover:not(.active) { border-color:var(--gold-light); }
+.flat-list { display:flex; flex-direction:column; gap:4px; }
+.flat-item { display:flex; align-items:center; padding:10px 14px; background:#fff; border-radius:6px; cursor:pointer; border:1px solid var(--border); transition:all 0.15s; }
+.flat-item:hover { border-color:var(--gold-light); background:var(--cream); }
+.flat-item .f-folder { font-size:11px; color:var(--gold); background:var(--cream); padding:2px 8px; border-radius:10px; margin-right:10px; white-space:nowrap; }
+.flat-item .f-name { flex:1; font-size:14px; color:var(--dark); }
+.flat-item .f-time { font-size:11px; color:var(--gray); white-space:nowrap; }
+.flat-item .f-arrow { color:var(--gray); margin-left:10px; font-size:12px; }
 .empty-state { text-align:center; padding:60px 20px; color:var(--gray); }
 .empty-state .e-icon { font-size:48px; margin-bottom:16px; }
 .empty-state p { margin-bottom:8px; font-size:14px; }
@@ -73,19 +83,25 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
     <div class="search-bar">
         <input type="text" id="searchInput" placeholder="搜索文件夹或行程…" oninput="doSearch()">
         <button class="btn btn-gold" onclick="newProject()">+ 新建文件夹</button>
+        <button class="btn btn-outline" onclick="newItinerary()">+ 新建行程</button>
     </div>
 
-    <div class="section-title" style="display:flex;align-items:center;justify-content:space-between;">
-        <span>文件夹</span>
-        <span style="display:flex;gap:4px;">
-            <button class="sort-btn" data-sort="newest" onclick="setSort('newest')">最新</button>
+    <div style="display:flex;align-items:center;gap:20px;margin-bottom:16px;">
+        <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font-size:13px;color:var(--gray);">显示：</span>
+            <button class="view-btn active" data-view="folder" onclick="setView('folder')">按文件夹</button>
+            <button class="view-btn" data-view="flat" onclick="setView('flat')">按行程</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;margin-left:auto;">
+            <span style="font-size:13px;color:var(--gray);">排序：</span>
+            <button class="sort-btn active" data-sort="newest" onclick="setSort('newest')">最新</button>
             <button class="sort-btn" data-sort="az" onclick="setSort('az')">A→Z</button>
-            <button class="sort-btn" data-sort="oldest" onclick="setSort('oldest')">最早</button>
-        </span>
+        </div>
     </div>
-    <div class="project-grid" id="projectGrid">
-        <div class="empty-state"><div class="e-icon">📂</div><p>还没有任何文件夹</p><button class="btn btn-gold" onclick="newProject()">创建第一个文件夹</button></div>
-    </div>
+
+    <div class="section-title" id="sectionTitle">文件夹</div>
+    <div class="project-grid" id="projectGrid"></div>
+    <div class="flat-list" id="flatList" style="display:none;"></div>
 
     <div class="section-title" id="recentTitle" style="display:none;">最近编辑</div>
     <div class="recent-list" id="recentList"></div>
@@ -93,13 +109,26 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 
 <script>
 var projects = [];
+var currentView = 'folder';
+var currentSort = 'newest';
+var allItineraries = [];
+
+function setView(view) {
+    currentView = view;
+    document.querySelectorAll('.view-btn').forEach(function(b) { b.classList.toggle('active', b.dataset.view === view); });
+    document.getElementById('sectionTitle').textContent = view === 'folder' ? '文件夹' : '全部行程';
+    document.getElementById('projectGrid').style.display = view === 'folder' ? '' : 'none';
+    document.getElementById('flatList').style.display = view === 'flat' ? '' : 'none';
+    if (view === 'flat') renderFlat();
+}
 
 function setSort(sort) {
+    currentSort = sort;
     document.querySelectorAll('.sort-btn').forEach(function(b) { b.classList.toggle('active', b.dataset.sort === sort); });
     if (sort === 'newest') projects.sort(function(a,b) { return (b.created_at||0) - (a.created_at||0); });
-    else if (sort === 'oldest') projects.sort(function(a,b) { return (a.created_at||0) - (b.created_at||0); });
     else if (sort === 'az') projects.sort(function(a,b) { return (a.name||'').localeCompare(b.name||''); });
     renderGrid();
+    if (currentView === 'flat') renderFlat();
 }
 
 function loadAll() {
@@ -108,6 +137,7 @@ function loadAll() {
         .then(function(data) {
             projects = data || [];
             renderGrid();
+            loadAllItineraries();
             renderRecent();
         })
         .catch(function() {
@@ -261,6 +291,67 @@ function timeAgo(ts) {
 function esc(s) { return s.replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
 function escH(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function escJs(s) { return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"'); }
+
+function loadAllItineraries() {
+    allItineraries = [];
+    var pending = projects.length;
+    if (!pending) { if (currentView === 'flat') renderFlat(); return; }
+    projects.forEach(function(p) {
+        fetch('http://localhost:8765/api/projects/' + p.id)
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                var its = data.itineraries || [];
+                for (var j = 0; j < its.length; j++) {
+                    allItineraries.push({
+                        projectId: p.id, projectName: p.name,
+                        id: its[j].id, name: its[j].name,
+                        updated: its[j].updated_at || its[j].created_at,
+                        created: its[j].created_at
+                    });
+                }
+                pending--;
+                if (!pending && currentView === 'flat') renderFlat();
+            })
+            .catch(function() { pending--; });
+    });
+}
+
+function renderFlat() {
+    var list = document.getElementById('flatList');
+    var arr = allItineraries.slice();
+    if (currentSort === 'newest') arr.sort(function(a,b) { return (b.updated||0) - (a.updated||0); });
+    else if (currentSort === 'az') arr.sort(function(a,b) { return (a.name||'').localeCompare(b.name||''); });
+    if (!arr.length) {
+        list.innerHTML = '<div class="empty-state"><p>暂无可显示的行程</p><button class="btn btn-gold" onclick="newItinerary()">创建第一个行程</button></div>';
+        return;
+    }
+    var html = '';
+    for (var k = 0; k < arr.length; k++) {
+        var item = arr[k];
+        html += '<div class="flat-item" onclick="openItinerary(\'' + esc(item.projectId) + '\', \'' + esc(item.id) + '\')">';
+        html += '<span class="f-folder">' + escH(item.projectName) + '</span>';
+        html += '<span class="f-name">' + escH(item.name) + '</span>';
+        html += '<span class="f-time">' + timeAgo(item.updated) + '</span>';
+        html += '<span class="f-arrow">→</span>';
+        html += '</div>';
+    }
+    list.innerHTML = html;
+}
+
+function newItinerary() {
+    if (!projects.length) { alert('请先创建一个文件夹'); return; }
+    var opts = projects.map(function(p) { return p.name; }).join('\n');
+    var folderName = prompt('选择文件夹（输入名称）：\n' + opts);
+    if (!folderName) return;
+    var proj = null;
+    for (var i = 0; i < projects.length; i++) {
+        if (projects[i].name === folderName.trim()) { proj = projects[i]; break; }
+    }
+    if (!proj) { alert('未找到该文件夹'); return; }
+    var name = prompt('行程名称（如：5月1号行程）');
+    if (!name) return;
+    saveQuickItinerary(proj.id, name);
+}
 
 loadAll();
 </script>
