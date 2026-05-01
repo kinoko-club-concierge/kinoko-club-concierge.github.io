@@ -38,110 +38,11 @@
     "child_count": 0
   },
   {
-    "id": "fenxkav",
+    "id": "ffkocy3",
     "name": "1",
     "parent": null,
-    "created_at": 1777658183463,
-    "updated_at": 1777658183463,
-    "itinerary_count": 0,
-    "child_count": 0
-  },
-  {
-    "id": "f9080zq",
-    "name": "2",
-    "parent": null,
-    "created_at": 1777658187175,
-    "updated_at": 1777658187175,
-    "itinerary_count": 0,
-    "child_count": 0
-  },
-  {
-    "id": "fleqaci",
-    "name": "3",
-    "parent": null,
-    "created_at": 1777658189890,
-    "updated_at": 1777658189890,
-    "itinerary_count": 0,
-    "child_count": 0
-  },
-  {
-    "id": "fltv4yv",
-    "name": "4",
-    "parent": null,
-    "created_at": 1777658194011,
-    "updated_at": 1777658194011,
-    "itinerary_count": 0,
-    "child_count": 0
-  },
-  {
-    "id": "fc25p37",
-    "name": "5",
-    "parent": null,
-    "created_at": 1777658196778,
-    "updated_at": 1777658196778,
-    "itinerary_count": 0,
-    "child_count": 0
-  },
-  {
-    "id": "fc1dwpj",
-    "name": "6",
-    "parent": null,
-    "created_at": 1777658198642,
-    "updated_at": 1777658198642,
-    "itinerary_count": 0,
-    "child_count": 0
-  },
-  {
-    "id": "frcwgb0",
-    "name": "7",
-    "parent": null,
-    "created_at": 1777658200592,
-    "updated_at": 1777658200592,
-    "itinerary_count": 0,
-    "child_count": 0
-  },
-  {
-    "id": "frw79sk",
-    "name": "8",
-    "parent": null,
-    "created_at": 1777658202544,
-    "updated_at": 1777658202544,
-    "itinerary_count": 0,
-    "child_count": 0
-  },
-  {
-    "id": "f2yeczi",
-    "name": "9",
-    "parent": null,
-    "created_at": 1777658204324,
-    "updated_at": 1777658204324,
-    "itinerary_count": 0,
-    "child_count": 0
-  },
-  {
-    "id": "fttqg09",
-    "name": "10",
-    "parent": null,
-    "created_at": 1777658207174,
-    "updated_at": 1777658207174,
-    "itinerary_count": 0,
-    "child_count": 0
-  },
-  {
-    "id": "f2bwj4h",
-    "name": "11",
-    "parent": null,
-    "created_at": 1777658209139,
-    "updated_at": 1777658209139,
-    "itinerary_count": 0,
-    "child_count": 0
-  },
-  {
-    "id": "fhn0fnv",
-    "name": "12",
-    "parent": null,
-    "created_at": 1777658210691,
-    "updated_at": 1777658210691,
+    "created_at": 1777658417142,
+    "updated_at": 1777658417142,
     "itinerary_count": 0,
     "child_count": 0
   }
