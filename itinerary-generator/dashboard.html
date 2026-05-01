@@ -136,6 +136,7 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 
     <div class="controls-bar" id="controlsBar">
         <span class="breadcrumb" id="breadcrumb"></span>
+        <span id="syncBadge" style="font-size:10px;padding:2px 6px;border:1px solid var(--border);border-radius:3px;color:#aaa;margin-left:8px;flex-shrink:0;"></span>
         <span style="display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0;">
             <button class="ctrl-btn" id="sortAZ" onclick="setSort('az')">A→Z</button>
             <button class="ctrl-btn" id="sortZA" onclick="setSort('za')">Z→A</button>
@@ -213,9 +214,50 @@ function showToast(msg, type) {
     }, dur);
 }
 
+function localSave() {
+    try {
+        localStorage.setItem('kinoko_projects', JSON.stringify(projects));
+        localStorage.setItem('kinoko_itineraries', JSON.stringify(allData));
+        localStorage.setItem('kinoko_sync_ts', Date.now());
+    } catch(e) {}
+}
+
+function localLoad() {
+    try {
+        var p = localStorage.getItem('kinoko_projects');
+        var i = localStorage.getItem('kinoko_itineraries');
+        if (p && i) {
+            projects = JSON.parse(p);
+            allData = JSON.parse(i);
+            return true;
+        }
+    } catch(e) {}
+    return false;
+}
+
+function updateSyncBadge(status) {
+    var badge = document.getElementById('syncBadge');
+    if (!badge) return;
+    if (status === 'ok') {
+        badge.textContent = '已同步';
+        badge.style.color = '#4caf50';
+        badge.style.borderColor = '#a5d6a7';
+    } else if (status === 'pending') {
+        badge.textContent = '同步中…';
+        badge.style.color = '#ff9800';
+        badge.style.borderColor = '#ffcc80';
+    } else {
+        badge.textContent = '未同步';
+        badge.style.color = '#f44336';
+        badge.style.borderColor = '#ef9a9a';
+    }
+}
+
 function ghSyncAll() {
     if (_ghTimer) clearTimeout(_ghTimer);
     _ghTimer = setTimeout(function() {
+        localSave();
+        updateSyncBadge('pending');
         var pjson = JSON.stringify(projects, null, 2);
         var ijson = JSON.stringify(allData, null, 2);
         Promise.all([
@@ -225,10 +267,12 @@ function ghSyncAll() {
             _dataFresh = true;
             renderBreadcrumb();
             render();
+            updateSyncBadge('ok');
             showToast('已保存', 'ok');
         }).catch(function(e) {
             console.error('Sync failed:', e);
-            showToast('保存失败，请检查网络后刷新重试', 'err');
+            updateSyncBadge('err');
+            showToast('云端保存失败，但数据已存本地，刷新不丢', 'err');
         });
     }, 0);
 }
@@ -252,6 +296,12 @@ function ghReadAll() {
 
 
 function loadAll() {
+    // Load from localStorage first (survives refresh)
+    if (!localLoad()) {
+        // Fallback to embedded data
+        projects = _EMBED_PROJECTS || [];
+        allData = _EMBED_ITINERARIES || [];
+    }
     var savedView = localStorage.getItem('kinoko_dash_view') || 'list';
     setView(savedView);
     var savedSort = localStorage.getItem('kinoko_dash_sort') || 'az';
