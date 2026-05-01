@@ -1486,9 +1486,15 @@ function exportWeb() {
         return;
     }
 
-    // deployed → compressed link
-    try { onDone(longUrl()); }
-    catch(e) { if (btn) btn.textContent = orig || '🔗 生成链接'; }
+    // deployed → try tunnel for short link, fallback to base64
+    fetch('https://large-cooks-jump.loca.lt/api/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Bypass-Tunnel-Reminder': 'true' },
+        body: JSON.stringify(data)
+    }).then(function(res) { return res.json(); }).then(function(result) {
+        if (result.id) onDone(location.origin + basePath + '/share/?id=' + result.id);
+        else onDone(longUrl());
+    }).catch(function() { onDone(longUrl()); });
 }
 
 function exportPDF() {
