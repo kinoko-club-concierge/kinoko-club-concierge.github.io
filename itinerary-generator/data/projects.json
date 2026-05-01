@@ -22,5 +22,23 @@
     "updated_at": 1777648358694,
     "itinerary_count": 0,
     "child_count": 0
+  },
+  {
+    "id": "fywn8o7",
+    "name": "2026",
+    "parent": null,
+    "created_at": 1777648382504,
+    "updated_at": 1777648382504,
+    "itinerary_count": 0,
+    "child_count": 0
+  },
+  {
+    "id": "f9hynyq",
+    "name": "2027",
+    "parent": null,
+    "created_at": 1777648386784,
+    "updated_at": 1777648386784,
+    "itinerary_count": 0,
+    "child_count": 0
   }
 ]
