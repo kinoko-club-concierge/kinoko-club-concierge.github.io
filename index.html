@@ -1575,23 +1575,23 @@ function exportPDF(mode) {
         return;
     }
 
-    // Create overlay div at full content width
+    // Create visible overlay — needed for html2canvas to capture properly
     var overlay = document.createElement('div');
     overlay.innerHTML = html;
     overlay.style.cssText = [
-        'position:absolute', 'top:0', 'left:0',
-        'width:794px', 'z-index:99999',
-        'background:#fff', 'opacity:0'
+        'position:fixed', 'top:0', 'left:0', 'right:0', 'bottom:0',
+        'z-index:99999', 'background:#fff', 'overflow-y:auto',
+        'padding:20px'
     ].join(';');
     document.body.appendChild(overlay);
 
     // Wait for images/fonts to settle
     setTimeout(function() {
         var opt = {
-            margin: [0, 0, 0, 0],
+            margin: [10, 10, 10, 10],
             filename: '行程_' + clientName + '.pdf',
             image: { type: 'jpeg', quality: 0.95 },
-            html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0, windowWidth: 794 },
+            html2canvas: { scale: 2, useCORS: true, logging: false },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
             pagebreak: { mode: ['css', 'legacy'] }
         };
@@ -1602,7 +1602,7 @@ function exportPDF(mode) {
             console.error('PDF error:', e);
             alert('PDF 生成失败，请重试');
         });
-    }, 500);
+    }, 600);
 }
 
 
