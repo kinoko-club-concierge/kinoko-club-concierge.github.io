@@ -15,10 +15,18 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 .topbar-left .header-sub { font-size:0.6rem; color:var(--gray); letter-spacing:0.18em; text-transform:uppercase; display:block; line-height:1; }
 .container { max-width:900px; margin:0 auto; padding:24px; }
 /* Search row */
-.search-row { display:flex; gap:10px; margin-bottom:14px; align-items:center; }
+.search-row { display:flex; gap:10px; align-items:center; }
+.header-area { position:sticky; top:56px; z-index:9; background:#fff; padding-bottom:4px; }
+.header-area .search-row { margin-bottom:10px; }
 .search-row input { flex:1; padding:10px 16px; border:1px solid var(--border); border-radius:6px; font-size:14px; background:#fff; font-family:inherit; outline:none; }
 .search-row input:focus { border-color:var(--gold-light); box-shadow:0 0 0 3px rgba(139,105,20,0.08); }
-.section-divider { border-bottom:1px solid var(--border); margin-bottom:12px; }
+.section-divider { border-bottom:1px solid var(--border); margin-bottom:8px; }
+.list-header { display:none; align-items:center; padding:6px 14px; font-size:11px; color:#999; font-weight:500; }
+.list-header.visible { display:flex; }
+.list-header .lh-name { flex:1; min-width:120px; padding-right:20px; }
+.list-header .lh-meta { flex:1; text-align:center; padding:0 12px; }
+.list-header .lh-date { flex:1; text-align:right; padding-left:20px; }
+.list-header .lh-actions { flex:0 0 auto; margin-left:auto; min-width:155px; text-align:center; }
 .btn { padding:10px 20px; border:none; border-radius:6px; font-size:13px; cursor:pointer; font-family:inherit; white-space:nowrap; }
 .btn-gold { background:#8a6d3b; color:#fff; }
 .btn-gold:hover { background:#7a5d2b; }
@@ -274,6 +282,7 @@ function setView(v) {
     currentView = v;
     document.getElementById('viewList').classList.toggle('active', v === 'list');
     document.getElementById('viewGrid').classList.toggle('active', v === 'grid');
+    document.getElementById('listHeader').classList.toggle('visible', v === 'list');
     localStorage.setItem('kinoko_dash_view', v);
     render();
 }
