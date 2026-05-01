@@ -42,5 +42,23 @@
     "updated_at": 1777648386784,
     "itinerary_count": 0,
     "child_count": 0
+  },
+  {
+    "id": "f60mze9",
+    "name": "1",
+    "parent": null,
+    "created_at": 1777650407273,
+    "updated_at": 1777650407273,
+    "itinerary_count": 0,
+    "child_count": 0
+  },
+  {
+    "id": "f7ke831",
+    "name": "2",
+    "parent": null,
+    "created_at": 1777650410151,
+    "updated_at": 1777650410151,
+    "itinerary_count": 0,
+    "child_count": 0
   }
 ]
