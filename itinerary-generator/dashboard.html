@@ -265,9 +265,8 @@ function ghSyncAll() {
             ghPut('data/itineraries.json', ijson)
         ]).then(function() {
             _dataFresh = true;
-            renderBreadcrumb();
-            render();
             updateSyncBadge('ok');
+            refresh();
             showToast('已保存', 'ok');
         }).catch(function(e) {
             console.error('Sync failed:', e);
@@ -296,9 +295,8 @@ function ghReadAll() {
 
 
 function loadAll() {
-    // Load from localStorage first (survives refresh)
-    if (!localLoad()) {
-        // Fallback to embedded data
+    var hasLocal = localLoad();
+    if (!hasLocal) {
         projects = _EMBED_PROJECTS || [];
         allData = _EMBED_ITINERARIES || [];
     }
@@ -306,10 +304,21 @@ function loadAll() {
     setView(savedView);
     var savedSort = localStorage.getItem('kinoko_dash_sort') || 'az';
     setSort(savedSort);
-    refresh();
+    if (!hasLocal) {
+        bootFetch();
+    } else {
+        renderBreadcrumb();
+        render();
+        updateSyncBadge(_dataFresh ? 'ok' : 'err');
+    }
 }
 
 function refresh() {
+    renderBreadcrumb();
+    render();
+}
+
+function bootFetch() {
     var gh = 'https://kinoko-club-concierge.github.io/itinerary-generator/data/';
     var ctrl = new AbortController();
     var timer = setTimeout(function() { ctrl.abort(); }, 8000);
@@ -321,20 +330,23 @@ function refresh() {
         projects = results[0] || [];
         allData = results[1] || [];
         _dataFresh = true;
+        localSave();
+        updateSyncBadge('ok');
         renderBreadcrumb();
         render();
     }).catch(function() {
         clearTimeout(timer);
-        // Stage 2: GitHub API
         ghReadAll().then(function(results) {
             projects = results[0] || [];
             allData = results[1] || [];
             _dataFresh = true;
+            localSave();
+            updateSyncBadge('ok');
             renderBreadcrumb();
             render();
         }).catch(function(e) {
-            // Stage 3: already rendered from embedded data, keep it
             console.error(e);
+            updateSyncBadge('err');
         });
     });
 }
