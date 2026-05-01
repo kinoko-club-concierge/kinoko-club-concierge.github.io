@@ -1595,10 +1595,14 @@ function exportPDF(mode) {
 
     var container = document.createElement('div');
     container.innerHTML = html;
-    container.style.position = 'absolute';
-    container.style.left = '-9999px';
+    container.style.position = 'fixed';
     container.style.top = '0';
-    container.style.width = '794px'; // A4 width at 96dpi
+    container.style.left = '0';
+    container.style.width = '794px';
+    container.style.background = '#fff';
+    container.style.zIndex = '99999';
+    container.style.maxHeight = '100vh';
+    container.style.overflow = 'hidden';
     document.body.appendChild(container);
 
     var opt = {
