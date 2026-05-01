@@ -42,6 +42,7 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 .item .icon { font-size:18px; min-width:24px; text-align:center; }
 .item .name { flex:1; font-size:14px; color:var(--dark); font-weight:500; word-break:break-all; }
 .item .meta { font-size:11px; color:var(--gray); white-space:nowrap; }
+.item.pinned { background: rgba(139,105,20,0.06); border-left: 3px solid var(--gold); padding-left: 13px; border-radius: 0 6px 6px 0; }
 .item .date { font-size:11px; color:var(--gray); white-space:nowrap; min-width:80px; text-align:right; }
 .item .actions { display:flex; gap:4px; opacity:0; transition:opacity 0.15s; }
 .item:hover .actions { opacity:1; }
@@ -169,7 +170,7 @@ function ghPut(path, content, msg) {
 }
 
 function ghSyncAll() {
-    // Debounce: collect multiple writes into one commit
+    // Sync immediately — no debounce risk
     if (_ghTimer) clearTimeout(_ghTimer);
     _ghTimer = setTimeout(function() {
         var pjson = JSON.stringify(projects, null, 2);
@@ -178,15 +179,13 @@ function ghSyncAll() {
             ghPut('data/projects.json', pjson),
             ghPut('data/itineraries.json', ijson)
         ]).then(function() {
-            // Read from API directly (bypass CDN cache delay)
-            setTimeout(function() { ghReadAll().then(function(res) {
-                projects = res[0] || [];
-                allData = res[1] || [];
-                renderBreadcrumb();
-                render();
-            }); }, 2000);
+            renderBreadcrumb();
+            render();
+        }).catch(function(e) {
+            console.error('Sync failed:', e);
+            alert('保存失败，请检查网络后刷新重试');
         });
-    }, 500);
+    }, 100);
 }
 
 function ghReadAll() {
@@ -371,9 +370,10 @@ function renderGridCard(item) {
 
 function renderListItem(item) {
     var d = item.data;
+    var pinnedClass = d.pinned ? ' pinned' : '';
     var dd = item.type === 'folder'
-        ? '<div class="item" draggable="true" data-type="folder" data-id="' + esc(d.id) + '" onclick="navTo(\'' + esc(d.id) + '\')">'
-        : '<div class="item" draggable="true" data-type="itinerary" data-id="' + esc(d.id) + '" data-proj="' + esc(d.project_id) + '" onclick="openItinerary(\'' + esc(d.project_id) + '\', \'' + esc(d.id) + '\')">';
+        ? '<div class="item' + pinnedClass + '" draggable="true" data-type="folder" data-id="' + esc(d.id) + '" onclick="navTo(\'' + esc(d.id) + '\')">'
+        : '<div class="item' + pinnedClass + '" draggable="true" data-type="itinerary" data-id="' + esc(d.id) + '" data-proj="' + esc(d.project_id) + '" onclick="openItinerary(\'' + esc(d.project_id) + '\', \'' + esc(d.id) + '\')">';
     dd += '<span class="icon">' + (d.pinned ? '' : '') + (item.type === 'folder' ? '📂' : '📄') + '</span>';
     dd += '<span class="name">' + escH(d.name) + '</span>';
     dd += '<span class="meta">' + (item.type === 'folder' ? ((d.itinerary_count||0) + ' 行程') : escH(d.project_name)) + '</span>';
@@ -467,7 +467,9 @@ function createItem(type) {
         if (!name) return;
         var newId = 'f' + Math.random().toString(36).substring(2, 8);
         var now = Date.now();
-        projects.push({id: newId, name: name, parent: currentFolder || null, created_at: now, itinerary_count: 0, child_count: 0});
+        projects.push({id: newId, name: name, parent: currentFolder || null, created_at: now, updated_at: now, itinerary_count: 0, child_count: 0});
+        renderBreadcrumb();
+        render();
         ghSyncAll();
     } else {
         var targets = currentFolder ? [findProject(currentFolder)] : projects.filter(function(p) { return !p.parent; });
