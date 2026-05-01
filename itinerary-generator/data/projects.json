@@ -22,7 +22,8 @@
     "created_at": 1777648358694,
     "updated_at": 1777648358694,
     "itinerary_count": 0,
-    "child_count": 0
+    "child_count": 0,
+    "pinned": true
   },
   {
     "id": "fywn8o7",
