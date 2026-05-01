@@ -27,9 +27,9 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 .list-header { display:none; align-items:center; padding:6px 14px; font-size:11px; color:#999; font-weight:500; }
 .list-header.visible { display:flex; }
 .list-header .lh-name { flex:1; min-width:120px; padding-right:20px; }
-.list-header .lh-meta { flex:1; text-align:center; padding:0 12px; }
-.list-header .lh-date { flex:1; text-align:right; padding-left:20px; }
-.list-header .lh-actions { flex:0 0 auto; margin-left:auto; min-width:155px; text-align:center; }
+.list-header .lh-meta { width:100px; text-align:center; padding:0 12px; flex:0 0 auto; }
+.list-header .lh-date { width:140px; text-align:right; padding-left:20px; flex:0 0 auto; }
+.list-header .lh-actions { width:90px; flex:0 0 auto; text-align:right; }
 .btn { padding:10px 20px; border:none; border-radius:6px; font-size:13px; cursor:pointer; font-family:inherit; white-space:nowrap; }
 .btn-gold { background:#8a6d3b; color:#fff; }
 .btn-gold:hover { background:#7a5d2b; }
@@ -156,7 +156,7 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
     </div>
     <div class="list-header" id="listHeader">
         <span class="lh-name">文件名</span>
-        <span class="lh-meta">数量</span>
+        <span class="lh-meta">类别</span>
         <span class="lh-date">修改时间</span>
         <span class="lh-actions">编辑</span>
     </div>
@@ -489,14 +489,14 @@ function renderGridCard(item) {
         return '<div class="grid-card" draggable="true" data-type="folder" data-id="' + esc(d.id) + '" onclick="navTo(\'' + esc(d.id) + '\')">' +
             '<div class="gc-icon"></div>' +
             '<div class="gc-name">' + escH(d.name) + '</div>' +
-            '<div class="gc-meta">' + (d.itinerary_count || 0) + ' 行程</div>' +
+            '<div class="gc-meta">文件夹</div>' +
             '<div class="gc-date">' + timeAgo(d.updated_at) + '</div>' +
             '</div>';
     } else {
         return '<div class="grid-card" draggable="true" data-type="itinerary" data-id="' + esc(d.id) + '" data-proj="' + esc(d.project_id||'') + '" onclick="openItinerary(\'' + esc(d.project_id||'') + '\', \'' + esc(d.id) + '\')">' +
             '<div class="gc-icon"></div>' +
             '<div class="gc-name">' + escH(d.name) + '</div>' +
-            '<div class="gc-meta">' + (d.project_name ? escH(d.project_name) : '<em style="color:#aaa;">未归档</em>') + '</div>' +
+            '<div class="gc-meta">行程</div>' +
             '<div class="gc-date">' + dateStr(d) + '</div>' +
             '</div>';
     }
@@ -511,10 +511,10 @@ function renderListItem(item) {
     dd += '<span class="type-icon">' + (item.type === 'folder' ? '📁' : '🗒️') + '</span>';
     dd += '<span class="name">' + escH(d.name) + '</span>';
     if (item.type === 'folder') {
-        dd += '<span class="meta">' + (d.itinerary_count||0) + ' 项目</span>';
+        dd += '<span class="meta">文件夹</span>';
         dd += '<span class="date">' + formatDate(d.updated_at) + '</span>';
     } else {
-        dd += '<span class="meta">' + (d.project_name ? escH(d.project_name) : '<em style="color:#aaa;">未归档</em>') + '</span>';
+        dd += '<span class="meta">行程</span>';
         dd += '<span class="date">' + dateStr(d) + '</span>';
     }
     dd += '<span class="actions-wrap"><span class="actions-dots">⋯</span><span class="actions">';
