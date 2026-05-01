@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>行程 — Kinoko Club Concierge</title>
+<link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
 <style>
 :root {
     --gold: #8B6914;
@@ -11,6 +14,7 @@
     --cream: #FDF8EE;
     --dark: #1a2a3a;
     --gray: #6a7a8a;
+    --border: #e8e5db;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
@@ -32,8 +36,11 @@ h1 { font-size: 1.3rem; color: var(--dark); font-weight: 500; margin-bottom: 0.2
 .day-text { font-size: 0.88rem; line-height: 1.8; color: var(--dark); margin-top: 0.3rem; }
 .day-text p { margin-bottom: 0.3rem; }
 .day-text a { color: var(--gold); }
-.day-images { display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0.5rem 0; }
-.day-images img { border-radius: 6px; display: block; }
+.day-holiday { font-size: 0.68rem; padding: 0.15rem 0.45rem; border-radius: 3px; background: #fff3e0; color: #d35400; display: inline-block; margin-top: 0.2rem; }
+.day-notes { margin-top: 0.5rem; padding: 0.6rem 0.8rem; background: #f9f6ec; border-left: 3px solid var(--gold-light); font-size: 0.82rem; color: #5a4a2a; }
+.day-notes p { margin-bottom: 0.2rem; }
+.day-images { display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0.5rem 0; justify-content: center; align-items: center; }
+.day-images img { border-radius: 6px; display: block; max-width: 100%; height: auto; }
 .footer { text-align: center; font-size: 0.7rem; color: var(--gray); margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e8e5db; }
 .error { text-align: center; color: #d35400; padding: 3rem; font-size: 0.9rem; }
 .loading { text-align: center; color: var(--gray); padding: 5rem; }
@@ -56,12 +63,14 @@ h1 { font-size: 1.3rem; color: var(--dark); font-weight: 500; margin-bottom: 0.2
     var params = new URLSearchParams(location.search);
     var id = params.get('id');
     var d = params.get('d');
+    var tripData = null;
 
     function showError(msg) {
         document.getElementById('app').innerHTML = '<div class="error">' + msg + '</div>';
     }
 
     function renderTrip(data) {
+        tripData = data;
 
         var html = '';
         html += '<h1>' + esc(data.n || '(Untitled)') + '</h1>';
@@ -80,19 +89,20 @@ h1 { font-size: 1.3rem; color: var(--dark); font-weight: 500; margin-bottom: 0.2
 
         (data.d || []).forEach(function(day, i) {
             html += '<div class="day">';
-            html += '<div class="day-label">Day ' + (i + 1) + (day.t ? ' — ' + day.t : '') + '</div>';
+            html += '<div class="day-label">Day ' + (i + 1) + (day.t ? ' — ' + formatDate(day.t) : '') + (day.w ? ' (' + day.w + ')' : '') + (day.h ? ' 🎌 ' + day.h : '') + '</div>';
             if (day.c) html += '<div class="day-location">📍 ' + day.c + '</div>';
+            if (day.h) html += '<div class="day-holiday">⚠️ ' + day.h + ' 是日本公休日，部分景点和商店可能调整营业时间</div>';
+            if (day.x) html += '<div class="day-text">' + formatText(day.x) + '</div>';
             if (day.imgs && day.imgs.length) {
                 var fit = day.fit || 'cover';
                 html += '<div class="day-images">';
                 day.imgs.forEach(function(img) {
                     var w = img.h ? 'calc(50% - 0.15rem)' : '100%';
-                    var pw = img.p ? '50%' : '100%';
-                    html += '<div style="flex:0 0 ' + w + ';min-width:0;border-radius:6px;overflow:hidden;' + (img.p ? 'text-align:center;' : '') + '"><img src="' + esc(img.u) + '" alt="" style="object-fit:' + fit + ';width:' + pw + ';height:auto;border-radius:6px;"></div>';
+                    html += '<div style="flex:0 0 ' + w + ';min-width:0;display:flex;align-items:center;justify-content:center;"><img src="' + esc(img.u) + '" alt="" style="object-fit:' + fit + ';max-width:100%;height:auto;border-radius:6px;display:block;margin:0 auto;"></div>';
                 });
                 html += '</div>';
             }
-            if (day.x) html += '<div class="day-text">' + formatText(day.x) + '</div>';
+            if (day.o) html += '<div class="day-notes">' + formatText(day.o) + '</div>';
             html += '</div>';
         });
 
@@ -100,6 +110,12 @@ h1 { font-size: 1.3rem; color: var(--dark); font-weight: 500; margin-bottom: 0.2
         document.getElementById('app').innerHTML = html;
     }
 
+    function formatDate(dateStr) {
+        if (!dateStr) return '';
+        var parts = dateStr.split(/[\/\-\.]/);
+        if (parts.length === 3) return parseInt(parts[0]) + '/' + parseInt(parts[1]) + '/' + parseInt(parts[2]);
+        return dateStr;
+    }
     function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
     function formatText(text) {
         if (!text) return '';
@@ -111,13 +127,34 @@ h1 { font-size: 1.3rem; color: var(--dark); font-weight: 500; margin-bottom: 0.2
 
     // --- Main: determine data source ---
     if (id) {
-        fetch(location.pathname.replace(/\/[^/]*$/, '') + '/../data/' + id + '.json')
-            .then(function(res) {
-                if (!res.ok) throw new Error('数据不存在 (HTTP ' + res.status + ')');
-                return res.json();
-            })
-            .then(renderTrip)
-            .catch(function(e) { showError('加载失败：' + e.message); });
+        var retries = 0;
+        var DATA_URL = 'https://kinoko-share.yujian1933.workers.dev/data/' + id + '.json';
+        var loaded = false;
+        var maxRetries = 3;
+        function loadData() {
+            fetch(DATA_URL)
+                .then(function(res) {
+                    if (!res.ok) {
+                        if (res.status === 404 && retries < maxRetries) {
+                            retries++;
+                            document.getElementById('app').innerHTML = '<div class="loading">加载中…（' + retries + '/' + maxRetries + '）</div>';
+                            setTimeout(loadData, 1500 + retries * 1000);
+                            return;
+                        }
+                        throw new Error('数据不存在 (HTTP ' + res.status + ')');
+                    }
+                    return res.json();
+                })
+                .then(function(data) { if (data && !loaded) { loaded = true; renderTrip(data); } })
+                .catch(function(e) { if (!loaded) showError('加载失败：' + e.message); });
+        }
+        window.addEventListener('message', function(e) {
+            if (e.data && e.data.type === 'kinoko_trip' && e.data.data && !loaded) {
+                loaded = true;
+                renderTrip(e.data.data);
+            }
+        });
+        loadData();
         return;
     }
 
@@ -127,7 +164,12 @@ h1 { font-size: 1.3rem; color: var(--dark); font-weight: 500; margin-bottom: 0.2
     }
 
     try {
-        var json = LZString.decompressFromEncodedURIComponent(d);
+        var json;
+        try {
+            json = decodeURIComponent(escape(atob(decodeURIComponent(d))));
+        } catch (_) {
+            json = LZString.decompressFromEncodedURIComponent(d);
+        }
         if (!json) throw new Error('解压失败——数据可能被截断，请重新生成链接');
         renderTrip(JSON.parse(json));
     } catch (e) {
