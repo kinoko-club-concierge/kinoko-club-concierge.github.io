@@ -23,6 +23,11 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 .btn-gold:hover { background:#7a5d2b; }
 .btn-outline { background:#fff; border:1px solid var(--border); color:var(--dark); }
 .btn-outline:hover { background:var(--cream); }
+/* View toggle */
+.view-tabs { display:flex; gap:4px; margin-left:auto; }
+.view-tab { padding:6px 10px; border:1px solid var(--border); border-radius:4px; font-size:12px; cursor:pointer; background:#fff; color:var(--gray); font-family:inherit; display:flex; align-items:center; gap:4px; }
+.view-tab:hover { border-color:var(--gold-light); }
+.view-tab.active { background:var(--gold); color:#fff; border-color:var(--gold); }
 /* Month tabs */
 .month-tabs { display:flex; gap:6px; margin-bottom:24px; flex-wrap:wrap; }
 .month-tab { padding:6px 16px; border:1px solid var(--border); border-radius:16px; font-size:13px; cursor:pointer; background:#fff; color:var(--gray); font-family:inherit; transition:all 0.15s; }
@@ -40,6 +45,14 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 .ti-folder { font-size:11px; color:var(--gray); background:var(--cream); padding:2px 8px; border-radius:10px; white-space:nowrap; }
 .ti-meta { font-size:11px; color:var(--gray); white-space:nowrap; min-width:60px; text-align:right; }
 .ti-arrow { color:var(--gray); font-size:12px; }
+/* Grid view */
+.grid-view { display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:12px; }
+.grid-card { background:#fff; border-radius:8px; padding:16px; cursor:pointer; border:1px solid var(--border); transition:all 0.15s; }
+.grid-card:hover { border-color:var(--gold-light); box-shadow:0 4px 12px rgba(139,105,20,0.08); transform:translateY(-1px); }
+.grid-card .gc-icon { font-size:24px; margin-bottom:8px; }
+.grid-card .gc-name { font-size:14px; font-weight:500; color:var(--dark); margin-bottom:4px; word-break:break-all; }
+.grid-card .gc-meta { font-size:11px; color:var(--gray); }
+.grid-card .gc-date { font-size:11px; color:var(--gray); margin-top:2px; }
 /* Empty */
 .empty-state { text-align:center; padding:80px 20px; color:var(--gray); }
 .empty-state .e-icon { font-size:40px; margin-bottom:12px; }
@@ -73,6 +86,10 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
         <input type="text" id="searchInput" placeholder="搜索文件夹或行程…" oninput="doSearch()">
         <button class="btn btn-gold" onclick="newProject()">+ 新建文件夹</button>
         <button class="btn btn-outline" onclick="newItinerary()">+ 新建行程</button>
+        <div class="view-tabs">
+            <button class="view-tab active" id="viewList" onclick="setView('list')">☰ 列表</button>
+            <button class="view-tab" id="viewGrid" onclick="setView('grid')">▦ 宫格</button>
+        </div>
     </div>
 
     <div class="month-tabs" id="monthTabs"></div>
@@ -86,8 +103,21 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 var allData = [];
 var projects = [];
 var activeMonth = 'all';
+var currentView = 'list';
+
+function setView(v) {
+    currentView = v;
+    document.getElementById('viewList').classList.toggle('active', v === 'list');
+    document.getElementById('viewGrid').classList.toggle('active', v === 'grid');
+    localStorage.setItem('kinoko_dash_view', v);
+    render();
+}
 
 function loadAll() {
+    // Restore view preference
+    var saved = localStorage.getItem('kinoko_dash_view');
+    if (saved) { currentView = saved; setView(currentView); }
+    
     // Load both projects and itineraries
     Promise.all([
         fetch('http://localhost:8765/api/projects').then(function(r) { return r.json(); }),
@@ -163,6 +193,33 @@ function render() {
     
     var html = '';
     
+    if (currentView === 'grid') {
+        // Grid view — cards
+        html += '<div class="grid-view">';
+        // Folders
+        for (var fi = 0; fi < filteredProjects.length; fi++) {
+            var p = filteredProjects[fi];
+            html += '<div class="grid-card" onclick="openProject(\'' + esc(p.id) + '\')">';
+            html += '<div class="gc-icon">📂</div>';
+            html += '<div class="gc-name">' + escH(p.name) + '</div>';
+            html += '<div class="gc-meta">' + (p.itinerary_count || 0) + ' 个行程</div>';
+            html += '<div class="gc-date">' + timeAgo(p.updated_at) + '</div>';
+            html += '</div>';
+        }
+        // Itineraries
+        for (var gi = 0; gi < filtered.length; gi++) {
+            var it = filtered[gi];
+            html += '<div class="grid-card" onclick="openItinerary(\'' + esc(it.project_id) + '\', \'' + esc(it.id) + '\')">';
+            html += '<div class="gc-icon">📄</div>';
+            html += '<div class="gc-name">' + escH(it.name) + '</div>';
+            html += '<div class="gc-meta">' + escH(it.project_name) + '</div>';
+            html += '<div class="gc-date">' + dateRange(it) + '</div>';
+            html += '</div>';
+        }
+        html += '</div>';
+    } else {
+        // List view — timeline
+    
     // Show folders section
     if (hasFolders) {
         html += '<div class="month-group">';
@@ -208,6 +265,7 @@ function render() {
             html += '</div></div>';
         }
     }
+    } // end list view
     
     container.innerHTML = html;
 }
