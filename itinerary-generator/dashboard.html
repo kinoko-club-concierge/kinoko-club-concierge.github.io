@@ -148,21 +148,36 @@ function loadAll() {
 function renderGrid() {
     var grid = document.getElementById('projectGrid');
     if (!projects.length) {
-        grid.innerHTML = '<div class="empty-state"><div class="e-icon">📂</div><p>还没有任何文件夹</p><button class="btn btn-gold" onclick="newProject()">创建第一个文件夹</button></div>';
+        grid.innerHTML = '<div class="empty-state"><p>还没有任何文件夹</p><button class="btn btn-gold" onclick="newProject()">创建第一个文件夹</button></div>';
+        return;
+    }
+    // Filter top-level (no parent)
+    var topLevel = projects.filter(function(p) { return !p.parent; });
+    if (!topLevel.length) {
+        grid.innerHTML = '<div class="empty-state"><p>还没有任何文件夹</p><button class="btn btn-gold" onclick="newProject()">创建第一个文件夹</button></div>';
         return;
     }
     var html = '';
-    for (var i = 0; i < projects.length; i++) {
-        var p = projects[i];
+    for (var i = 0; i < topLevel.length; i++) {
+        var p = topLevel[i];
         var count = p.itinerary_count || 0;
+        var childCount = p.child_count || 0;
+        var children = projects.filter(function(c) { return c.parent === p.id; });
         var updated = p.updated_at ? timeAgo(p.updated_at) : '';
         html += '<div class="project-card" onclick="openProject(\'' + esc(p.id) + '\')">';
-        html += '<div class="p-icon">📁</div>';
+        html += '<div class="p-icon">' + (childCount ? '▾' : '▸') + '</div>';
         html += '<div class="p-name">' + escH(p.name) + '</div>';
-        html += '<div class="p-meta">' + count + ' 个行程' + (updated ? ' · ' + updated : '') + '</div>';
+        html += '<div class="p-meta">' + count + ' 行程' + (childCount ? ' · ' + childCount + ' 子文件夹' : '') + (updated ? ' · ' + updated : '') + '</div>';
+        if (children.length) {
+            for (var j = 0; j < children.length; j++) {
+                var child = children[j];
+                html += '<div class="sub-folder" onclick="event.stopPropagation();openProject(\'' + esc(child.id) + '\')" style="margin-left:6px;padding:3px 0;font-size:12px;color:var(--gray);border-top:1px solid ' + (j===0 ? 'var(--border)' : 'transparent') + ';cursor:pointer;">▸ ' + escH(child.name) + ' <span style="font-size:10px;color:#aaa;">' + (child.itinerary_count || 0) + ' 行程</span></div>';
+            }
+        }
         html += '<div class="p-actions" onclick="event.stopPropagation()">';
-        html += '<button onclick="renameProject(\'' + esc(p.id) + '\', \'' + escJs(p.name) + '\')">✏️ 重命名</button>';
-        html += '<button class="del" onclick="deleteProject(\'' + esc(p.id) + '\')">🗑 删除</button>';
+        html += '<button onclick="newSubProject(\'' + esc(p.id) + '\')">+ 子文件夹</button>';
+        html += '<button onclick="renameProject(\'' + esc(p.id) + '\', \'' + escJs(p.name) + '\')">重命名</button>';
+        html += '<button class="del" onclick="deleteProject(\'' + esc(p.id) + '\')">删除</button>';
         html += '</div></div>';
     }
     grid.innerHTML = html;
@@ -229,6 +244,18 @@ function openItinerary(pid, iid) {
 function newProject() {
     var name = prompt('文件夹名称：', '');
     if (!name) return;
+    if (projects.length) {
+        var opts = '（留空则创建顶层文件夹，或输入父文件夹名称）：\n' + projects.filter(function(p) { return !p.parent; }).map(function(p) { return p.name; }).join('\n');
+        var parentName = prompt('父文件夹' + opts);
+        if (parentName) {
+            var parent = projects.find(function(p) { return p.name === parentName.trim(); });
+            fetch('http://localhost:8765/api/projects/create', {
+                method: 'POST', headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({name: name, parent: parent ? parent.id : null})
+            }).then(function(r) { return r.json(); }).then(function() { loadAll(); });
+            return;
+        }
+    }
     fetch('http://localhost:8765/api/projects/create', {
         method: 'POST', headers: {'Content-Type':'application/json'},
         body: JSON.stringify({name: name})
@@ -245,7 +272,7 @@ function renameProject(pid, oldName) {
 }
 
 function deleteProject(pid) {
-    if (!confirm('删除此文件夹及其中所有行程？此操作不可恢复。')) return;
+    if (!confirm('删除此文件夹及其中所有行程？子文件夹将被保留。')) return;
     fetch('http://localhost:8765/api/projects/delete', {
         method: 'POST', headers: {'Content-Type':'application/json'},
         body: JSON.stringify({id: pid})
@@ -338,9 +365,21 @@ function renderFlat() {
     list.innerHTML = html;
 }
 
+function newSubProject(parentId) {
+    var name = prompt('子文件夹名称：', '');
+    if (!name) return;
+    fetch('http://localhost:8765/api/projects/create', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({name: name, parent: parentId})
+    }).then(function(r) { return r.json(); }).then(function() { loadAll(); });
+}
+
 function newItinerary() {
     if (!projects.length) { alert('请先创建一个文件夹'); return; }
-    var opts = projects.map(function(p) { return p.name; }).join('\n');
+    var opts = projects.map(function(p) { 
+        var prefix = p.parent ? '  └ ' : '';
+        return prefix + p.name; 
+    }).join('\n');
     var folderName = prompt('选择文件夹（输入名称）：\n' + opts);
     if (!folderName) return;
     var proj = null;
