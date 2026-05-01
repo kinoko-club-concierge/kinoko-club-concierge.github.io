@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>行程 — Kinoko Club Concierge</title>
+<style>
+:root {
+    --gold: #8B6914;
+    --gold-light: #C9A96E;
+    --cream: #FDF8EE;
+    --dark: #1a2a3a;
+    --gray: #6a7a8a;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', 'Noto Serif JP', 'Source Han Serif SC', Georgia, serif;
+    background: var(--cream);
+    color: var(--dark);
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+    min-height: 100vh;
+}
+.client-logo { max-height: 60px; margin-bottom: 0.5rem; }
+h1 { font-size: 1.3rem; color: var(--dark); font-weight: 500; margin-bottom: 0.2rem; text-align: center; }
+.subtitle { font-size: 0.85rem; color: var(--gray); margin-bottom: 1.5rem; text-align: center; }
+.trip-info { text-align: center; font-size: 0.82rem; color: var(--gray); margin-bottom: 1rem; }
+.trip-info div { margin-top: 0.2rem; }
+.day { margin-bottom: 1.5rem; padding-left: 1.5rem; border-left: 2px solid var(--gold-light); }
+.day-label { font-size: 0.9rem; color: var(--gold); font-weight: 600; }
+.day-location { font-size: 0.82rem; color: var(--gray); margin-top: 0.1rem; }
+.day-text { font-size: 0.88rem; line-height: 1.8; color: var(--dark); margin-top: 0.3rem; }
+.day-text p { margin-bottom: 0.3rem; }
+.day-text a { color: var(--gold); }
+.day-holiday { font-size: 0.7rem; color: #d35400; margin-top: 0.2rem; }
+.footer { text-align: center; font-size: 0.7rem; color: var(--gray); margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e8e5db; }
+.error { text-align: center; color: #d35400; padding: 3rem; font-size: 0.9rem; }
+.loading { text-align: center; color: var(--gray); padding: 5rem; }
+@media print {
+    body { background: #fff; padding: 1rem; }
+    .footer { border-top-color: #ccc; }
+}
+</style>
+</head>
+<body>
+<div id="app"><div class="loading">加载中…</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+<script>
+(function() {
+    const params = new URLSearchParams(location.search);
+    const d = params.get('d');
+    if (!d) {
+        document.getElementById('app').innerHTML = '<div class="error">缺少行程数据</div>';
+        return;
+    }
+    try {
+        // URL-safe → base64 → decompress → JSON
+        const b64 = d.replace(/-/g, '+').replace(/_/g, '/') + '=='.slice(0, (4 - d.length % 4) % 4);
+        const binary = atob(b64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        const json = pako.inflate(bytes, { to: 'string' });
+        const data = JSON.parse(json);
+
+        // Render
+        let html = '<div style="text-align:center;margin-bottom:1rem;">';
+        if (data.logo) html += `<img class="client-logo" src="${data.logo}" alt="">`;
+        html += '</div>';
+        html += `<h1>${esc(data.name) || '(Untitled)'}</h1>`;
+        html += '<div class="subtitle">Arranged by Kinoko Club Concierge</div>';
+
+        // Trip info
+        const info = data.info || {};
+        const paxParts = [];
+        if (info.adult) paxParts.push('成人' + info.adult + '名');
+        if (info.kidsCount) paxParts.push('儿童' + info.kidsCount + '名');
+        if (info.kidsAge) paxParts[paxParts.length-1] += ' ' + info.kidsAge;
+        html += '<div class="trip-info">';
+        html += `<div>${info.brief || ''}</div>`;
+        if (info.tourNum) html += `<div>KNO-${info.tourNum}</div>`;
+        html += `<div style="font-size:0.75rem;">${paxParts.length ? paxParts.join(' · ') : ''}</div>`;
+        html += '</div>';
+
+        // Days
+        (data.days || []).forEach((d, i) => {
+            html += `<div class="day">`;
+            html += `<div class="day-label">Day ${i + 1}${d.date ? ' — ' + d.date : ''}</div>`;
+            if (d.city) html += `<div class="day-location">📍 ${d.city}</div>`;
+            if (d.text) html += `<div class="day-text">${formatText(d.text)}</div>`;
+            html += `</div>`;
+        });
+
+        html += '<div class="footer">Arranged by Kinoko Club Concierge</div>';
+        document.getElementById('app').innerHTML = html;
+    } catch (e) {
+        document.getElementById('app').innerHTML = '<div class="error">行程数据解析失败：' + e.message + '</div>';
+    }
+
+    function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    function formatText(text) {
+        if (!text) return '';
+        return text.split('\n').filter(l => l.trim()).map(l => {
+            const linked = l.replace(/(https?:\/\/[^\s<>]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+            return '<p>' + linked + '</p>';
+        }).join('');
+    }
+})();
+</script>
+</body>
+</html>
