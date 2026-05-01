@@ -1441,30 +1441,63 @@ function exportWeb() {
     const btn = document.getElementById('genLinkBtn');
     const orig = btn?.textContent;
     if (btn) btn.textContent = '生成中…';
-    try {
-        const data = {
-            n: document.getElementById('clientName')?.value || '',
-            i: tripInfo,
-            d: days.map(d => ({
-                t: d.date || '',
-                c: d.city || '',
-                x: d.text || '',
-                o: d.notes || '',
-                imgs: (d.images || []).filter(img => img.url).map(img => ({ u: img.url, p: img.portrait || false, h: img.half || false })),
-                fit: d.imageFit || 'cover'
-            }))
-        };
-        const json = JSON.stringify(data);
-        const compressed = LZString.compressToEncodedURIComponent(json);
-        const url = `${location.origin}${location.pathname}share/?d=${compressed}`;
+
+    const basePath = location.pathname.replace(/\/?(index\.html)?$/, '').replace(/\/$/, '');
+    const data = {
+        n: document.getElementById('clientName')?.value || '',
+        i: tripInfo,
+        d: days.map(d => ({
+            t: d.date || '',
+            c: d.city || '',
+            x: d.text || '',
+            o: d.notes || '',
+            imgs: (d.images || []).filter(img => img.url).map(img => ({ u: img.url, p: img.portrait || false, h: img.half || false })),
+            fit: d.imageFit || 'cover'
+        }))
+    };
+
+    function onDone(url) {
         navigator.clipboard.writeText(url).then(() => {
             if (btn) { btn.textContent = '✓ 已复制链接'; setTimeout(() => { btn.textContent = orig || '🔗 生成链接'; }, 2000); }
         }).catch(() => {});
         window.open(url, '_blank');
-    } catch (e) {
-        if (btn) btn.textContent = orig || '🔗 生成链接';
-        alert('生成失败: ' + e.message);
     }
+
+    function fallbackLong() {
+        try {
+            const json = JSON.stringify(data);
+            const compressed = LZString.compressToEncodedURIComponent(json);
+            const url = location.origin + basePath + '/share/?d=' + compressed;
+            onDone(url);
+        } catch (e) {
+            if (btn) btn.textContent = orig || '🔗 生成链接';
+            alert('生成失败: ' + e.message);
+        }
+    }
+
+    // If on localhost, try short link via local server
+    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+        fetch('/api/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(result) {
+            if (result.id) {
+                onDone(location.origin + basePath + '/share/?id=' + result.id);
+            } else {
+                fallbackLong();
+            }
+        })
+        .catch(function() {
+            // Server not running, fallback
+            fallbackLong();
+        });
+        return;
+    }
+
+    fallbackLong();
 }
 
 function exportPDF() {
