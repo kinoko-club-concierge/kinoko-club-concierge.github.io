@@ -1575,7 +1575,7 @@ function exportPDF(mode) {
         i: { brief: tripInfo.brief || '', tourNum: tripInfo.tourNum || '', adult: tripInfo.adult || '', kidsCount: tripInfo.kidsCount || '', kidsAge: tripInfo.kidsAge || '' },
         d: days.map(function(d) {
             var wi = typeof getWeekdayInfo === 'function' ? getWeekdayInfo(d.date) : { weekdayText: '', holidayName: '' };
-            return { t: d.date || '', w: wi.weekdayText || '', h: wi.holidayName || '', c: d.city || '', x: d.text || '', o: mode === 'internal' ? (d.notes || '') : '' };
+            return { t: d.date || '', w: wi.weekdayText || '', h: wi.holidayName || '', c: d.city || '', x: d.text || '', o: mode === 'internal' ? (d.notes || '') : '', imgs: (d.images || []).filter(function(im) { return im.url; }).map(function(im) { return { u: im.url, h: im.half || false }; }), fit: d.imageFit || 'cover' };
         })
     };
 
