@@ -1649,6 +1649,7 @@ function exportPDF(mode) {
     // Build trip data for server-side PDF
     var data = {
         n: clientName,
+        m: mode,
         i: { brief: tripInfo.brief || '', tourNum: tripInfo.tourNum || '', adult: tripInfo.adult || '', kidsCount: tripInfo.kidsCount || '', kidsAge: tripInfo.kidsAge || '' },
         d: days.map(function(d) {
             var wi = typeof getWeekdayInfo === 'function' ? getWeekdayInfo(d.date) : { weekdayText: '', holidayName: '' };
