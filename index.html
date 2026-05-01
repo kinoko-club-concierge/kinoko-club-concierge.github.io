@@ -1049,7 +1049,7 @@ function renderEditor() {
     // Update toolbar buttons (defensive: only if elements exist)
     const $ = (id) => document.getElementById(id);
     if ($('addDayBtn')) $('addDayBtn').textContent = t('addDay');
-    if ($('genLinkBtn')) $('genLinkBtn').textContent = t('genLink');
+    if ($('genLinkBtn')) $('genLinkBtn').innerHTML = t('genLink') + ' <span class="menu-arrow">▾</span>';
     if ($('exportPDFBtn')) $('exportPDFBtn').textContent = t('exportPDF');
     if ($('clientName')) $('clientName').placeholder = t('customerNamePh');
     updateUndoRedoButtons();
@@ -1521,7 +1521,7 @@ function switchLanguage(lang) {
     const ub = document.getElementById('undoBtn'); if (ub) ub.textContent = t('undo');
     const rb = document.getElementById('redoBtn'); if (rb) rb.textContent = t('redo');
     const sb = document.getElementById('saveBtn'); if (sb) sb.textContent = t('save');
-    const gl = document.getElementById('genLinkBtn'); if (gl) gl.textContent = t('genLink');
+    const gl = document.getElementById('genLinkBtn'); if (gl) gl.innerHTML = t('genLink') + ' <span class="menu-arrow">▾</span>';
     const ep = document.getElementById('exportPDFBtn'); if (ep) ep.textContent = t('exportPDF');
     renderEditor();
     updatePreview();
@@ -1590,7 +1590,7 @@ function doExport(mode) {
     };
 
     function onDone(url) {
-        if (btn) { btn.textContent = '✓ 已复制链接'; setTimeout(function() { btn.textContent = '生成链接 ▾'; }, 2000); }
+        if (btn) { btn.textContent = '✓ 已复制链接'; setTimeout(function() { btn.innerHTML = t('genLink') + ' <span class="menu-arrow">▾</span>'; }, 2000); }
         navigator.clipboard.writeText(url).catch(function() {});
         if (preview) {
             preview.location = url;
@@ -1602,13 +1602,13 @@ function doExport(mode) {
             if (btn) {
                 btn.textContent = '✓ 已复制 — 点我打开';
                 btn.onclick = function() { window.open(url, '_blank'); };
-                setTimeout(function() { btn.textContent = '生成链接 ▾'; btn.onclick = toggleGenMenu; }, 5000);
+                setTimeout(function() { btn.innerHTML = t('genLink') + ' <span class="menu-arrow">▾</span>'; btn.onclick = toggleGenMenu; }, 5000);
             }
         }
     }
 
     function onError() {
-        if (btn) btn.textContent = '生成链接 ▾';
+        if (btn) btn.innerHTML = t('genLink') + ' <span class="menu-arrow">▾</span>';
         if (preview) preview.close();
     }
 
