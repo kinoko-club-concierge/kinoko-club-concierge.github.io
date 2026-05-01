@@ -591,7 +591,6 @@ body::before {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
-<script src="lib/html2pdf.bundle.min.js"></script>
 <script>
 // === Data ===
 let days = [];
@@ -1567,13 +1566,9 @@ function doExport(mode) {
 
 function exportPDF(mode) {
     document.getElementById('pdfMenu').style.display = 'none';
-
-    var html = generateExportHTML(mode);
     var clientName = document.getElementById('clientName')?.value || 'itinerary';
 
-    // Try local Chrome headless first (perfect PDF, no headers)
-    var isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-    if (isLocal) {
+    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
         var data = {
             n: clientName,
             i: { brief: tripInfo.brief || '', tourNum: tripInfo.tourNum || '', adult: tripInfo.adult || '', kidsCount: tripInfo.kidsCount || '', kidsAge: tripInfo.kidsAge || '' },
@@ -1582,54 +1577,14 @@ function exportPDF(mode) {
                 return { t: d.date || '', w: wi.weekdayText || '', h: wi.holidayName || '', c: d.city || '', x: d.text || '', o: mode === 'internal' ? (d.notes || '') : '' };
             })
         };
-        fetch('http://localhost:8765/api/pdf', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
-        }).then(function(res) { return res.blob(); }).then(function(blob) {
+        fetch('http://localhost:8765/api/pdf', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+        .then(function(res) { return res.blob(); })
+        .then(function(blob) {
             var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = '行程_' + clientName + '.pdf'; a.click();
-        }).catch(function() {
-            // Chrome headless failed, fall through to html2pdf below
-            doHtml2Pdf();
-        });
-        return;
-    }
-
-    doHtml2Pdf();
-
-    function doHtml2Pdf() {
-        if (typeof html2pdf === 'undefined') {
-            // Ultimate fallback
-            var blob = new Blob([html], { type: 'text/html' });
-            var w = window.open(URL.createObjectURL(blob), '_blank');
-            setTimeout(function() { if (w && !w.closed) w.print(); }, 800);
-            return;
-        }
-
-        // Create visible overlay for html2canvas capture
-        var overlay = document.createElement('div');
-        overlay.id = 'pdf-overlay';
-        overlay.innerHTML = html;
-        overlay.style.cssText = [
-            'position:fixed', 'top:0', 'left:0', 'width:100%', 'height:100vh',
-            'z-index:99999', 'background:#fff', 'overflow-y:auto', 'padding:2rem'
-        ].join(';');
-        document.body.appendChild(overlay);
-
-        // Small delay for fonts/layout
-        setTimeout(function() {
-            var opt = {
-                margin: [8, 8, 8, 8],
-                filename: '行程_' + clientName + '.pdf',
-                image: { type: 'jpeg', quality: 0.95 },
-                html2canvas: { scale: 2, useCORS: true, letterRendering: true, logging: false },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-            html2pdf().set(opt).from(overlay).save().then(function() {
-                document.body.removeChild(overlay);
-            }).catch(function() {
-                document.body.removeChild(overlay);
-                alert('PDF 生成失败，请确认本地服务已启动 (http://localhost:8765)');
-            });
-        }, 300);
+        })
+        .catch(function() { alert('PDF 生成失败，请确认本地服务运行中'); });
+    } else {
+        alert('PDF 生成请在本地版操作：\nhttp://localhost:8765/');
     }
 }
 
