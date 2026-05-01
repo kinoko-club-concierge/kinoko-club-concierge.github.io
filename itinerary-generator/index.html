@@ -1444,6 +1444,8 @@ function exportWeb() {
 
     // Open preview window immediately to avoid popup blocker
     var preview = window.open('about:blank', '_blank');
+    // Fallback: if popup blocked, turn button into clickable link
+    var popupBlocked = !preview;
 
     const SHARE_ORIGIN = 'https://kinoko-club-concierge.github.io';
     const basePath = location.pathname.replace(/\/?(index\.html)?$/, '').replace(/\/$/, '');
@@ -1462,13 +1464,23 @@ function exportWeb() {
 
     function onDone(url) {
         navigator.clipboard.writeText(url).catch(function() {});
-        if (btn) { btn.textContent = '✓ 已复制链接'; setTimeout(function() { btn.textContent = orig || '🔗 生成链接'; }, 2000); }
-        if (preview) preview.location = url;
+        if (preview) {
+            preview.location = url;
+            if (btn) { btn.textContent = '✓ 已复制链接'; setTimeout(function() { btn.textContent = orig || '🔗 生成链接'; }, 2000); }
+        } else {
+            // Popup blocked — turn button into clickable link
+            if (btn) {
+                btn.textContent = '✓ 已复制 — 点我打开';
+                btn.onclick = function() { window.open(url, '_blank'); };
+                setTimeout(function() { btn.textContent = orig || '🔗 生成链接'; btn.onclick = exportWeb; }, 5000);
+            }
+        }
     }
 
     function onError() {
         if (btn) btn.textContent = orig || '🔗 生成链接';
         if (preview) preview.close();
+        if (!preview && btn) btn.onclick = exportWeb;
     }
 
     function longUrl() {
