@@ -1467,7 +1467,7 @@ function exportWeb() {
         try {
             const json = JSON.stringify(data);
             const compressed = LZString.compressToEncodedURIComponent(json);
-            const url = location.origin + basePath + '/share/?d=' + compressed;
+            const url = location.origin + basePath + '/share/?v=69&d=' + compressed;
             onDone(url);
         } catch (e) {
             if (btn) btn.textContent = orig || '🔗 生成链接';
