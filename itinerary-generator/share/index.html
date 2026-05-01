@@ -90,6 +90,7 @@ h1 { font-size: 1.3rem; color: var(--dark); font-weight: 500; margin-bottom: 0.2
             html += '<div class="day">';
             html += '<div class="day-label">Day ' + (i + 1) + (day.t ? ' — ' + day.t : '') + '</div>';
             if (day.c) html += '<div class="day-location">📍 ' + day.c + '</div>';
+            if (day.x) html += '<div class="day-text">' + formatText(day.x) + '</div>';
             if (day.imgs && day.imgs.length) {
                 var fit = day.fit || 'cover';
                 html += '<div class="day-images">';
@@ -100,7 +101,6 @@ h1 { font-size: 1.3rem; color: var(--dark); font-weight: 500; margin-bottom: 0.2
                 });
                 html += '</div>';
             }
-            if (day.x) html += '<div class="day-text">' + formatText(day.x) + '</div>';
             if (day.o) html += '<div class="day-notes">' + formatText(day.o) + '</div>';
             html += '</div>';
         });
