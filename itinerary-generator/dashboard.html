@@ -10,7 +10,7 @@
 body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Serif JP',Georgia,serif; background:var(--cream); color:var(--dark); min-height:100vh; }
 .topbar { background:#fff; border-bottom:1px solid var(--border); padding:14px 24px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:10; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
 .topbar-left { display:flex; align-items:center; gap:12px; }
-.topbar-left .brand-text { font-size:0.7rem; color:var(--gray); letter-spacing:0.5px; }
+.topbar-left .brand-text {  font-size:0.7rem; color:var(--gold); letter-spacing:0.5px; }
 .topbar-left .brand { font-size:16px; font-weight:600; color:var(--dark); }
 .container { max-width:1100px; margin:0 auto; padding:24px; }
 .search-bar { display:flex; gap:10px; margin-bottom:24px; align-items:center; }
@@ -30,25 +30,25 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 .project-card .p-meta { font-size:12px; color:var(--gray); }
 .project-card .p-actions { margin-top:12px; display:flex; gap:8px; }
 .project-card .p-actions button { font-size:11px; padding:4px 10px; border:1px solid var(--border); border-radius:4px; background:none; cursor:pointer; color:var(--gray); font-family:inherit; }
-.project-card .p-actions button:hover { border-color:var(--gold); color:var(--gold); background:var(--cream); }
+.project-card .p-actions button:hover { border-color:var(--gray); color:var(--gray); background:var(--cream); }
 .project-card .p-actions .del:hover { border-color:#c0392b; color:#c0392b; }
 .recent-list { display:flex; flex-direction:column; gap:4px; }
 .recent-item { display:flex; align-items:center; padding:10px 14px; background:#fff; border-radius:6px; cursor:pointer; border:1px solid transparent; transition:all 0.15s; }
 .recent-item:hover { border-color:var(--gold-light); background:var(--cream); }
 .recent-item .r-name { flex:1; font-size:14px; color:var(--dark); }
-.recent-item .r-folder { font-size:11px; color:var(--gold); background:var(--cream); padding:2px 8px; border-radius:10px; margin-right:10px; }
+.recent-item .r-folder { font-size:11px; color:var(--gray); background:var(--cream); padding:2px 8px; border-radius:10px; margin-right:10px; }
 .recent-item .r-time { font-size:11px; color:var(--gray); white-space:nowrap; }
 .recent-item .r-arrow { color:var(--gray); margin-left:10px; font-size:12px; }
 .view-btn { font-size:12px; padding:4px 12px; border:1px solid var(--border); border-radius:4px; background:#fff; color:var(--gray); cursor:pointer; font-family:inherit; }
-.view-btn.active { background:var(--gold); color:#fff; border-color:var(--gold); }
+.view-btn.active { background:var(--gold); color:#fff; border-color:var(--gray); }
 .view-btn:hover:not(.active) { border-color:var(--gold-light); }
 .sort-btn { font-size:11px; padding:2px 8px; border:1px solid var(--border); border-radius:3px; background:#fff; color:var(--gray); cursor:pointer; font-family:inherit; }
-.sort-btn.active { background:var(--gold); color:#fff; border-color:var(--gold); }
+.sort-btn.active { background:var(--gold); color:#fff; border-color:var(--gray); }
 .sort-btn:hover:not(.active) { border-color:var(--gold-light); }
 .flat-list { display:flex; flex-direction:column; gap:4px; }
 .flat-item { display:flex; align-items:center; padding:10px 14px; background:#fff; border-radius:6px; cursor:pointer; border:1px solid var(--border); transition:all 0.15s; }
 .flat-item:hover { border-color:var(--gold-light); background:var(--cream); }
-.flat-item .f-folder { font-size:11px; color:var(--gold); background:var(--cream); padding:2px 8px; border-radius:10px; margin-right:10px; white-space:nowrap; }
+.flat-item .f-folder { font-size:11px; color:var(--gray); background:var(--cream); padding:2px 8px; border-radius:10px; margin-right:10px; white-space:nowrap; }
 .flat-item .f-name { flex:1; font-size:14px; color:var(--dark); }
 .flat-item .f-time { font-size:11px; color:var(--gray); white-space:nowrap; }
 .flat-item .f-arrow { color:var(--gray); margin-left:10px; font-size:12px; }
@@ -69,8 +69,8 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
     <div class="topbar-left">
         <img src="logo.png?v=1" alt="KINOKO" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">
         <div>
-            <div class="brand-text">Kinoko Club – Series</div>
-            <h1 style="font-size:1.1rem;font-weight:500;color:var(--gold);margin:0;">行程管理中心</h1>
+            <div class="brand-text">Kinoko Club Concierge</div>
+            <h1 style="font-size:1.1rem;font-weight:500;color:var(--gray);margin:0;">行程管理中心</h1>
         </div>
     </div>
     <div style="display:flex;gap:8px;">
