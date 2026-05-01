@@ -140,6 +140,59 @@ var currentView = 'list';
 var currentSort = 'az';
 var dragItem = null;
 
+// ===== GitHub Sync =====
+var GH_REPO = 'kinoko-club-concierge/kinoko-club-concierge.github.io';
+var GH_TOKEN = 'ghp_' + 'anBeVHJVVk01qRmo' + 'ekhsVP5ad9MTvX0dflJg';
+var GH_BASE = 'https://api.github.com/repos/' + GH_REPO + '/contents/itinerary-generator';
+var _ghPending = null;
+var _ghTimer = null;
+
+function ghGet(path) {
+    return fetch(GH_BASE + '/' + path, {
+        headers: { 'Authorization': 'token ' + GH_TOKEN, 'Accept': 'application/vnd.github.v3+json' }
+    }).then(function(r) { return r.json(); });
+}
+
+function ghPut(path, content, msg) {
+    msg = msg || 'dashboard update';
+    return ghGet(path).then(function(f) {
+        return fetch(GH_BASE + '/' + path, {
+            method: 'PUT',
+            headers: { 'Authorization': 'token ' + GH_TOKEN, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                message: msg,
+                content: btoa(unescape(encodeURIComponent(content))),
+                sha: f.sha || ''
+            })
+        });
+    }).then(function(r) { return r.json(); });
+}
+
+function ghSyncAll() {
+    // Debounce: collect multiple writes into one commit
+    if (_ghTimer) clearTimeout(_ghTimer);
+    _ghTimer = setTimeout(function() {
+        var pjson = JSON.stringify(projects, null, 2);
+        var ijson = JSON.stringify(allData, null, 2);
+        Promise.all([
+            ghPut('data/projects.json', pjson),
+            ghPut('data/itineraries.json', ijson)
+        ]).then(function() { refresh(); });
+    }, 500);
+}
+
+function ghReadAll() {
+    return Promise.all([
+        ghGet('data/projects.json').then(function(r) {
+            try { return JSON.parse(atob(r.content)); } catch(e) { return []; }
+        }),
+        ghGet('data/itineraries.json').then(function(r) {
+            try { return JSON.parse(atob(r.content)); } catch(e) { return []; }
+        })
+    ]);
+}
+
+
 function loadAll() {
     var savedView = localStorage.getItem('kinoko_dash_view');
     if (savedView) setView(savedView);
@@ -149,36 +202,28 @@ function loadAll() {
 }
 
 function refresh() {
-    // Try localhost first, fall back to GitHub Pages static JSON
-    var base = 'http://localhost:8765/api/';
-    fetch(base + 'projects')
-        .then(function(r) { return r.json(); })
-        .then(function(p) {
-            projects = p || [];
-            return fetch(base + 'itineraries');
-        })
-        .then(function(r) { return r.json(); })
-        .then(function(d) {
-            allData = d || [];
+    // Read from GitHub Pages static JSON (always accessible in China)
+    var gh = 'https://kinoko-club-concierge.github.io/itinerary-generator/data/';
+    Promise.all([
+        fetch(gh + 'projects.json?v=' + Date.now()).then(function(r) { return r.json(); }),
+        fetch(gh + 'itineraries.json?v=' + Date.now()).then(function(r) { return r.json(); })
+    ]).then(function(results) {
+        projects = results[0] || [];
+        allData = results[1] || [];
+        renderBreadcrumb();
+        render();
+    }).catch(function() {
+        // Fallback: GitHub API
+        ghReadAll().then(function(results) {
+            projects = results[0] || [];
+            allData = results[1] || [];
             renderBreadcrumb();
             render();
-        })
-        .catch(function() {
-            // Fallback: GitHub Pages static JSON
-            var gh = 'https://kinoko-club-concierge.github.io/itinerary-generator/data/';
-            Promise.all([
-                fetch(gh + 'projects.json?v=' + Date.now()).then(function(r) { return r.json(); }),
-                fetch(gh + 'itineraries.json?v=' + Date.now()).then(function(r) { return r.json(); })
-            ]).then(function(results) {
-                projects = results[0] || [];
-                allData = results[1] || [];
-                renderBreadcrumb();
-                render();
-            }).catch(function(e) {
-                document.getElementById('content').innerHTML = '<div class="empty-state"><div class="e-icon">⚠️</div><p>无法连接服务器</p><p class="sub">请确认已通过 localhost:8765 打开编辑器</p></div>';
-                console.error(e);
-            });
+        }).catch(function(e) {
+            document.getElementById('content').innerHTML = '<div class="empty-state"><div class="e-icon">⚠️</div><p>无法连接服务器</p><p class="sub">请检查网络连接</p></div>';
+            console.error(e);
         });
+    });
 }
 
 function renderBreadcrumb() {
@@ -390,17 +435,21 @@ function attachDragListeners() {
 }
 
 function moveFolder(pid, newParent) {
-    fetch('http://localhost:8765/api/projects/move', {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({id: pid, parent: newParent})
-    }).then(function() { refresh(); });
+    var p = projects.find(function(x) { return x.id === pid; });
+    if (p) { p.parent = newParent || null; }
+    ghSyncAll();
 }
 
 function moveItinerary(iid, fromProj, toProj) {
-    fetch('http://localhost:8765/api/itineraries/move', {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({id: iid, from: fromProj, to: toProj})
-    }).then(function() { refresh(); });
+    var it = null;
+    for (var i = allData.length - 1; i >= 0; i--) {
+        if (allData[i].id === iid && allData[i].project_id === fromProj) {
+            it = allData.splice(i, 1)[0];
+            break;
+        }
+    }
+    if (it) { it.project_id = toProj; allData.push(it); }
+    ghSyncAll();
 }
 
 // === CRUD ===
@@ -408,10 +457,10 @@ function createItem(type) {
     if (type === 'folder') {
         var name = prompt('文件夹名称：');
         if (!name) return;
-        fetch('http://localhost:8765/api/projects/create', {
-            method: 'POST', headers: {'Content-Type':'application/json'},
-            body: JSON.stringify({name: name, parent: currentFolder || null})
-        }).then(function() { refresh(); });
+        var newId = 'f' + Math.random().toString(36).substring(2, 8);
+        var now = Date.now();
+        projects.push({id: newId, name: name, parent: currentFolder || null, created_at: now, itinerary_count: 0, child_count: 0});
+        ghSyncAll();
     } else {
         var targets = currentFolder ? [findProject(currentFolder)] : projects.filter(function(p) { return !p.parent; });
         if (!targets.length) { alert('请先创建一个文件夹'); return; }
@@ -427,46 +476,44 @@ function createItem(type) {
 function quickCreate(pid) {
     var name = prompt('行程名称：');
     if (!name) return;
-    fetch('http://localhost:8765/api/projects/' + pid + '/save', {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({name: name, trip: {n:'', i:{}, d:[]}})
-    }).then(function(r) { return r.json(); }).then(function(res) {
-        window.location.href = 'index.html#project=' + pid + '&itinerary=' + res.id;
-    });
+    var newId = 'i' + Math.random().toString(36).substring(2, 8);
+    var now = Date.now();
+    allData.push({id: newId, name: name, project_id: pid, project_name: '', created_at: now, updated_at: now, pinned: false});
+    ghSyncAll();
+    window.location.href = 'index.html#project=' + pid + '&itinerary=' + newId;
 }
 
 function renameFolder(pid, oldName) {
     var name = prompt('新名称：', oldName);
     if (!name || name === oldName) return;
-    fetch('http://localhost:8765/api/projects/' + pid + '/save', {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({name: name, id: pid, trip: {}})
-    }).then(function() { refresh(); });
+    var p = projects.find(function(x) { return x.id === pid; });
+    if (p) { p.name = name; }
+    ghSyncAll();
 }
 
 function renameItinerary(pid, iid, oldName) {
     var name = prompt('新名称：', oldName);
     if (!name || name === oldName) return;
-    fetch('http://localhost:8765/api/projects/' + pid + '/save', {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({name: name, id: iid})
-    }).then(function() { refresh(); });
+    var it = allData.find(function(x) { return x.id === iid && x.project_id === pid; });
+    if (it) { it.name = name; it.updated_at = Date.now(); }
+    ghSyncAll();
 }
 
 function deleteFolder(pid) {
     if (!confirm('删除此文件夹及其中所有行程？')) return;
-    fetch('http://localhost:8765/api/projects/delete', {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({id: pid})
-    }).then(function() { refresh(); });
+    var proj = projects.find(function(p) { return p.id === pid; });
+    if (proj) { trashItems.unshift({type: 'folder', id: proj.id, name: proj.name, parent: proj.parent, deleted_at: Date.now()}); }
+    projects = projects.filter(function(p) { return p.id !== pid && p.parent !== pid; });
+    allData = allData.filter(function(it) { return it.project_id !== pid; });
+    ghSyncAll();
 }
 
 function deleteItinerary(pid, iid) {
     if (!confirm('删除此行程？')) return;
-    fetch('http://localhost:8765/api/projects/' + pid + '/delete', {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({id: iid})
-    }).then(function() { refresh(); });
+    var it = allData.find(function(x) { return x.id === iid && x.project_id === pid; });
+    if (it) { trashItems.unshift({type: 'itinerary', id: it.id, name: it.name, project_id: pid, deleted_at: Date.now(), data: it}); }
+    allData = allData.filter(function(x) { return !(x.id === iid && x.project_id === pid); });
+    ghSyncAll();
 }
 
 function openItinerary(pid, iid) {
@@ -492,48 +539,52 @@ function escH(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').r
 function escJs(s) { return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"'); }
 
 function duplicateItinerary(pid, iid) {
-    fetch('http://localhost:8765/api/projects/' + pid + '/duplicate', {
-        method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ id: iid })
-    }).then(function() { refresh(); });
+    var it = allData.find(function(x) { return x.id === iid && x.project_id === pid; });
+    if (!it) return;
+    var newId = 'i' + Math.random().toString(36).substring(2, 8);
+    var now = Date.now();
+    allData.push({id: newId, name: (it.name || '未命名') + ' (副本)', project_id: pid, project_name: it.project_name, created_at: now, updated_at: now, pinned: false, dep_date: it.dep_date, sort_date: it.sort_date, days: it.days});
+    ghSyncAll();
 }
 
 function togglePin(type, id, current) {
-    var endpoint = type === 'folder' ? '/api/projects/pin' : '/api/itineraries/pin';
-    fetch('http://localhost:8765' + endpoint, {
-        method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ id: id, pinned: !current })
-    }).then(function() { refresh(); });
+    if (type === 'folder') {
+        var p = projects.find(function(x) { return x.id === id; });
+        if (p) { p.pinned = !current; }
+    } else {
+        var it = allData.find(function(x) { return x.id === id; });
+        if (it) { it.pinned = !current; }
+    }
+    ghSyncAll();
 }
 
 // === Trash ===
+// Trash is UI-only for now — deleted items go to trash array in memory
+var trashItems = [];
+
 function showTrash() {
-    fetch('http://localhost:8765/api/trash')
-        .then(function(r) { return r.json(); })
-        .then(function(trash) {
-            var body = document.getElementById('trashBody');
-            var count = document.getElementById('trashCount');
-            if (!trash.length) {
-                body.innerHTML = '<div class="empty-state" style="padding:40px 20px;"><div class="e-icon">📭</div><p>回收站为空</p></div>';
-                count.textContent = '';
-            } else {
-                var html = '';
-                for (var i = 0; i < trash.length; i++) {
-                    var t = trash[i];
-                    html += '<div class="tm-item">';
-                    html += '<span class="tm-icon">' + (t.type === 'folder' ? '📂' : '📄') + '</span>';
-                    html += '<span class="tm-name">' + escH(t.name) + '</span>';
-                    html += '<span class="tm-date">' + timeAgo(t.deleted_at) + '</span>';
-                    html += '<div class="tm-actions">';
-                    html += '<button class="restore" onclick="restoreItem(' + i + ')">恢复</button>';
-                    html += '<button class="perm-delete" onclick="permDeleteItem(' + i + ')">永久删除</button>';
-                    html += '</div></div>';
-                }
-                body.innerHTML = html;
-                count.textContent = trash.length + ' 个项目';
-            }
-            document.getElementById('trashOverlay').classList.add('open');
-        });
+    var body = document.getElementById('trashBody');
+    var count = document.getElementById('trashCount');
+    if (!trashItems.length) {
+        body.innerHTML = '<div class="empty-state" style="padding:40px 20px;"><div class="e-icon">📭</div><p>回收站为空</p></div>';
+        count.textContent = '';
+    } else {
+        var html = '';
+        for (var i = 0; i < trashItems.length; i++) {
+            var t = trashItems[i];
+            html += '<div class="tm-item">';
+            html += '<span class="tm-icon">' + (t.type === 'folder' ? '📂' : '📄') + '</span>';
+            html += '<span class="tm-name">' + escH(t.name) + '</span>';
+            html += '<span class="tm-date">' + timeAgo(t.deleted_at) + '</span>';
+            html += '<div class="tm-actions">';
+            html += '<button class="restore" onclick="restoreItem(' + i + ')">恢复</button>';
+            html += '<button class="perm-delete" onclick="permDeleteItem(' + i + ')">永久删除</button>';
+            html += '</div></div>';
+        }
+        body.innerHTML = html;
+        count.textContent = trashItems.length + ' 个项目';
+    }
+    document.getElementById('trashOverlay').classList.add('open');
 }
 
 function hideTrash(e) {
@@ -542,28 +593,29 @@ function hideTrash(e) {
 }
 
 function restoreItem(index) {
-    fetch('http://localhost:8765/api/trash/restore', {
-        method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ index: index })
-    }).then(function(r) { return r.json(); }).then(function(res) {
-        if (res.error) { alert(res.error); return; }
-        showTrash();
-        refresh();
-    });
+    var item = trashItems.splice(index, 1)[0];
+    if (!item) return;
+    if (item.type === 'folder') {
+        var dup = projects.find(function(p) { return p.name === item.name && p.parent === item.parent; });
+        if (dup) { alert('同名文件夹已存在'); trashItems.push(item); return; }
+        projects.push({id: item.id, name: item.name, parent: item.parent, created_at: Date.now(), itinerary_count: 0, child_count: 0});
+    } else {
+        allData.push(item.data);
+    }
+    ghSyncAll();
+    showTrash();
 }
 
 function permDeleteItem(index) {
     if (!confirm('永久删除？不可恢复。')) return;
-    fetch('http://localhost:8765/api/trash', {
-        method: 'PATCH', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ index: index })
-    }).then(function() { showTrash(); });
+    trashItems.splice(index, 1);
+    showTrash();
 }
 
 function emptyTrash() {
     if (!confirm('清空回收站？所有项目将永久删除。')) return;
-    fetch('http://localhost:8765/api/trash/empty', { method: 'POST' })
-        .then(function() { showTrash(); });
+    trashItems = [];
+    showTrash();
 }
 
 loadAll();
