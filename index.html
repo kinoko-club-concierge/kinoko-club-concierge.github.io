@@ -67,6 +67,7 @@ body::before {
     color: var(--dark);
 }
 .btn-sm {
+    font-family: "Hiragino Mincho ProN", "Songti SC", "Noto Serif CJK SC", serif;
     padding: 0.35rem 0.55rem; font-size: 0.75rem;
     border: 1px solid var(--border); border-radius: 6px;
     background: #fff; color: var(--dark); cursor: pointer;
@@ -75,7 +76,8 @@ body::before {
 .btn-sm:hover { background: #f5f3ea; }
 .header-sep { width: 1px; height: 24px; background: var(--border); display: inline-block; }
 .btn { border: none; color: #fff; font-weight: 500; }
-.btn-gold { background: #8a6d3b; }
+.btn-gold {
+    font-family: "Hiragino Mincho ProN", "Songti SC", "Noto Serif CJK SC", serif; background: #8a6d3b; }
 .btn-gold:hover { background: #8a6d3b; }
 
 .gen-link-wrap { position: relative; display: inline-block; }
@@ -89,7 +91,8 @@ body::before {
     transition: background 0.15s;
 }
 .gen-menu div:hover { background: var(--cream); color: #8a6d3b; }
-.btn-outline { background: #fff; border: 1px solid var(--border); color: var(--dark); }
+.btn-outline {
+    font-family: "Hiragino Mincho ProN", "Songti SC", "Noto Serif CJK SC", serif; background: #fff; border: 1px solid var(--border); color: var(--dark); }
 .btn-outline:hover { background: #f5f3ea; }
 
 /* Layout */
@@ -524,8 +527,8 @@ body::before {
         </div>
     </div>
     <div class="header-actions">
-        <button class="btn btn-outline" id="undoBtn" onclick="undo()" title="撤回 Ctrl+Z">撤回</button>
-        <button class="btn btn-outline" id="redoBtn" onclick="redo()" title="恢复 Ctrl+Shift+Z">恢复</button>
+        <button class="btn btn-outline" id="undoBtn" onclick="undo()" title="撤回 Ctrl+Z">↩</button>
+        <button class="btn btn-outline" id="redoBtn" onclick="redo()" title="恢复 Ctrl+Shift+Z">↪</button>
         <button class="btn btn-outline" id="saveBtn" onclick="doSave()" title="Ctrl+S">保存</button>
         <div class="gen-link-wrap" id="genLinkWrap">
         <button class="btn btn-gold" id="genLinkBtn" onclick="toggleGenMenu()">生成链接 ▾</button>
