@@ -1658,7 +1658,7 @@ function exportPDF(mode) {
     };
 
     // Try local server (Chrome headless — perfect PDF, no browser quirks)
-    fetch('http://localhost:8765/api/pdf', {
+    fetch('https://kinoko-share.yujian1933.workers.dev/api/pdf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
@@ -1934,7 +1934,7 @@ function toggleSidebar() {
 }
 
 function loadProjects() {
-    fetch('http://localhost:8765/api/projects')
+    fetch('https://kinoko-share.yujian1933.workers.dev/api/projects')
         .then(function(r) { return r.json(); })
         .then(function(data) {
             projectList = data || [];
@@ -1990,7 +1990,7 @@ function toggleProject(pid) {
 }
 
 function loadItineraries(pid) {
-    fetch('http://localhost:8765/api/projects/' + pid)
+    fetch('https://kinoko-share.yujian1933.workers.dev/api/projects/' + pid)
         .then(function(r) { return r.json(); })
         .then(function(data) {
             var its = data.itineraries || [];
@@ -2017,7 +2017,7 @@ function loadItineraries(pid) {
 function openItinerary(pid, iid) {
     activeItineraryId = iid;
     activeProjectId = pid;
-    fetch('http://localhost:8765/api/projects/' + pid + '/' + iid)
+    fetch('https://kinoko-share.yujian1933.workers.dev/api/projects/' + pid + '/' + iid)
         .then(function(r) { return r.json(); })
         .then(function(trip) {
             // Restore trip data
@@ -2065,7 +2065,7 @@ function saveToProject() {
         })
     };
     var payload = { name: name, id: activeItineraryId || undefined, trip: trip };
-    fetch('http://localhost:8765/api/projects/' + activeProjectId + '/save', {
+    fetch('https://kinoko-share.yujian1933.workers.dev/api/projects/' + activeProjectId + '/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -2087,7 +2087,7 @@ function saveToProject() {
 function newProject() {
     var name = prompt('新建文件夹名称（客户名）', '');
     if (!name) return;
-    fetch('http://localhost:8765/api/projects/create', {
+    fetch('https://kinoko-share.yujian1933.workers.dev/api/projects/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: name })
@@ -2103,7 +2103,7 @@ function newProject() {
 function deleteProject(e, pid) {
     e.stopPropagation();
     if (!confirm('删除整个文件夹及其中所有行程？')) return;
-    fetch('http://localhost:8765/api/projects/delete', {
+    fetch('https://kinoko-share.yujian1933.workers.dev/api/projects/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: pid })
@@ -2117,7 +2117,7 @@ function deleteProject(e, pid) {
 function deleteItinerary(e, pid, iid) {
     e.stopPropagation();
     if (!confirm('删除该行程？')) return;
-    fetch('http://localhost:8765/api/projects/' + pid + '/delete', {
+    fetch('https://kinoko-share.yujian1933.workers.dev/api/projects/' + pid + '/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: iid })

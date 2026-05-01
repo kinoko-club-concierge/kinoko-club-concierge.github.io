@@ -128,8 +128,8 @@ function loadAll() {
 
 function refresh() {
     Promise.all([
-        fetch('http://localhost:8765/api/projects').then(function(r) { return r.json(); }),
-        fetch('http://localhost:8765/api/itineraries').then(function(r) { return r.json(); })
+        fetch('https://kinoko-share.yujian1933.workers.dev/api/projects').then(function(r) { return r.json(); }),
+        fetch('https://kinoko-share.yujian1933.workers.dev/api/itineraries').then(function(r) { return r.json(); })
     ]).then(function(results) {
         projects = results[0] || [];
         allData = results[1] || [];
@@ -347,14 +347,14 @@ function attachDragListeners() {
 }
 
 function moveFolder(pid, newParent) {
-    fetch('http://localhost:8765/api/projects/move', {
+    fetch('https://kinoko-share.yujian1933.workers.dev/api/projects/move', {
         method: 'POST', headers: {'Content-Type':'application/json'},
         body: JSON.stringify({id: pid, parent: newParent})
     }).then(function() { refresh(); });
 }
 
 function moveItinerary(iid, fromProj, toProj) {
-    fetch('http://localhost:8765/api/itineraries/move', {
+    fetch('https://kinoko-share.yujian1933.workers.dev/api/itineraries/move', {
         method: 'POST', headers: {'Content-Type':'application/json'},
         body: JSON.stringify({id: iid, from: fromProj, to: toProj})
     }).then(function() { refresh(); });
@@ -365,7 +365,7 @@ function createItem(type) {
     if (type === 'folder') {
         var name = prompt('文件夹名称：');
         if (!name) return;
-        fetch('http://localhost:8765/api/projects/create', {
+        fetch('https://kinoko-share.yujian1933.workers.dev/api/projects/create', {
             method: 'POST', headers: {'Content-Type':'application/json'},
             body: JSON.stringify({name: name, parent: currentFolder || null})
         }).then(function() { refresh(); });
@@ -384,7 +384,7 @@ function createItem(type) {
 function quickCreate(pid) {
     var name = prompt('行程名称：');
     if (!name) return;
-    fetch('http://localhost:8765/api/projects/' + pid + '/save', {
+    fetch('https://kinoko-share.yujian1933.workers.dev/api/projects/' + pid + '/save', {
         method: 'POST', headers: {'Content-Type':'application/json'},
         body: JSON.stringify({name: name, trip: {n:'', i:{}, d:[]}})
     }).then(function(r) { return r.json(); }).then(function(res) {
@@ -395,7 +395,7 @@ function quickCreate(pid) {
 function renameFolder(pid, oldName) {
     var name = prompt('新名称：', oldName);
     if (!name || name === oldName) return;
-    fetch('http://localhost:8765/api/projects/' + pid + '/save', {
+    fetch('https://kinoko-share.yujian1933.workers.dev/api/projects/' + pid + '/save', {
         method: 'POST', headers: {'Content-Type':'application/json'},
         body: JSON.stringify({name: name, id: pid, trip: {}})
     }).then(function() { refresh(); });
@@ -404,7 +404,7 @@ function renameFolder(pid, oldName) {
 function renameItinerary(pid, iid, oldName) {
     var name = prompt('新名称：', oldName);
     if (!name || name === oldName) return;
-    fetch('http://localhost:8765/api/projects/' + pid + '/save', {
+    fetch('https://kinoko-share.yujian1933.workers.dev/api/projects/' + pid + '/save', {
         method: 'POST', headers: {'Content-Type':'application/json'},
         body: JSON.stringify({name: name, id: iid})
     }).then(function() { refresh(); });
@@ -412,7 +412,7 @@ function renameItinerary(pid, iid, oldName) {
 
 function deleteFolder(pid) {
     if (!confirm('删除此文件夹及其中所有行程？')) return;
-    fetch('http://localhost:8765/api/projects/delete', {
+    fetch('https://kinoko-share.yujian1933.workers.dev/api/projects/delete', {
         method: 'POST', headers: {'Content-Type':'application/json'},
         body: JSON.stringify({id: pid})
     }).then(function() { refresh(); });
@@ -420,7 +420,7 @@ function deleteFolder(pid) {
 
 function deleteItinerary(pid, iid) {
     if (!confirm('删除此行程？')) return;
-    fetch('http://localhost:8765/api/projects/' + pid + '/delete', {
+    fetch('https://kinoko-share.yujian1933.workers.dev/api/projects/' + pid + '/delete', {
         method: 'POST', headers: {'Content-Type':'application/json'},
         body: JSON.stringify({id: iid})
     }).then(function() { refresh(); });
