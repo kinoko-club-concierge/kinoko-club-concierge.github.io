@@ -27,7 +27,7 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 .list-header { display:none; align-items:center; padding:6px 14px; font-size:11px; color:#999; font-weight:500; }
 .list-header.visible { display:flex; }
 .list-header .lh-icon { width:26px; flex:0 0 auto; }
-.list-header .lh-name { flex:1; min-width:120px; padding-right:20px; }
+.list-header .lh-name { flex:1; min-width:120px; padding-right:20px; text-align:center; }
 .list-header .lh-meta { width:100px; text-align:center; padding:0 12px; flex:0 0 auto; }
 .list-header .lh-date { width:140px; text-align:right; padding-left:20px; flex:0 0 auto; }
 .list-header .lh-actions { width:145px; flex:0 0 auto; text-align:right; }
@@ -52,7 +52,7 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 .item.dragging { opacity:0.5; }
 .item.drag-over { border-color:var(--gold); background:linear-gradient(135deg, var(--cream), #fff8e1); box-shadow:0 0 0 2px var(--gold); position:relative; }
 .item.drag-over::after { content:'松开放入此文件夹'; position:absolute; right:100px; top:50%; transform:translateY(-50%); font-size:11px; color:var(--gold); font-weight:600; white-space:nowrap; pointer-events:none; }
-.item .name { flex:1; min-width:120px; font-size:14px; color:var(--dark); font-weight:500; word-break:break-all; padding-right:20px; }
+.item .name { flex:1; min-width:120px; font-size:14px; color:var(--dark); font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding-right:20px; }
 .item .meta { font-size:12px; color:#888; white-space:nowrap; width:100px; text-align:center; flex:0 0 auto; padding:0 12px; }
 .item.pinned { background: rgba(139,105,20,0.06); border-left: 3px solid var(--gold); padding-left: 13px; border-radius: 0 6px 6px 0; }
 .item .date { font-size:12px; color:#888; white-space:nowrap; width:140px; text-align:right; flex:0 0 auto; padding-left:20px; }
