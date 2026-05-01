@@ -81,6 +81,7 @@ body::before {
 .btn-gold:hover { background: #8a6d3b; }
 
 .gen-link-wrap { position: relative; display: inline-block; }
+.menu-arrow { font-size: 0.65rem; margin-left: 2px; color: inherit; opacity: 0.6; }
 .gen-menu {
     position: absolute; top: 100%; left: 0; z-index: 100;
     background: #fff; border: 1px solid var(--border); border-radius: 6px;
@@ -531,25 +532,35 @@ body::before {
         <button class="btn btn-outline" id="redoBtn" onclick="redo()" title="恢复 Ctrl+Shift+Z">↪</button>
         <button class="btn btn-outline" id="saveBtn" onclick="doSave()" title="Ctrl+S">保存</button>
         <div class="gen-link-wrap" id="genLinkWrap">
-        <button class="btn btn-gold" id="genLinkBtn" onclick="toggleGenMenu()">生成链接 ▾</button>
+        <button class="btn btn-gold" id="genLinkBtn" onclick="toggleGenMenu()">生成链接 <span class="menu-arrow">▾</span></button>
         <div class="gen-menu" id="genMenu" style="display:none">
             <div onclick="doExport('client')">生成客户版</div>
             <div onclick="doExport('internal')">生成内部版</div>
         </div>
         </div>
         <div class="gen-link-wrap" id="pdfWrap">
-        <button class="btn btn-outline" id="exportPDFBtn" onclick="togglePDFMenu()">PDF ▾</button>
+        <button class="btn btn-outline" id="exportPDFBtn" onclick="togglePDFMenu()">PDF <span class="menu-arrow">▾</span></button>
         <div class="gen-menu" id="pdfMenu" style="display:none">
             <div onclick="exportPDF('client')">客户版</div>
             <div onclick="exportPDF('internal')">内部版</div>
         </div>
         </div>
-        <select id="langSelect" onchange="switchLanguage(this.value)">
-            <option value="zh">简体中文</option>
-            <option value="en">English</option>
-            <option value="zh-tw">繁體中文</option>
-            <option value="ja">日本語</option>
-        </select>
+        <div class="gen-link-wrap" id="wordWrap">
+        <button class="btn btn-outline" id="exportWordBtn" onclick="toggleWordMenu()">Word <span class="menu-arrow">▾</span></button>
+        <div class="gen-menu" id="wordMenu" style="display:none">
+            <div onclick="exportWord('client')">客户版</div>
+            <div onclick="exportWord('internal')">内部版</div>
+        </div>
+        </div>
+        <div class="gen-link-wrap" id="langWrap">
+        <button class="btn btn-outline" id="langBtn" onclick="toggleLangMenu()">简体中文 <span class="menu-arrow">▾</span></button>
+        <div class="gen-menu" id="langMenu" style="display:none">
+            <div onclick="setLang('zh')">简体中文</div>
+            <div onclick="setLang('en')">English</div>
+            <div onclick="setLang('zh-tw')">繁體中文</div>
+            <div onclick="setLang('ja')">日本語</div>
+        </div>
+        </div>
     </div>
 </div>
 
@@ -1532,12 +1543,25 @@ function togglePDFMenu() {
     var menu = document.getElementById('pdfMenu');
     menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
 }
+function toggleWordMenu() {
+    var menu = document.getElementById('wordMenu');
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+function toggleLangMenu() {
+    var menu = document.getElementById('langMenu');
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+function setLang(lang) {
+    document.getElementById('langMenu').style.display = 'none';
+    document.getElementById('langBtn').innerHTML = {zh:'简体中文',en:'English','zh-tw':'繁體中文',ja:'日本語'}[lang] + ' <span class="menu-arrow">▾</span>';
+    switchLanguage(lang);
+}
 
 // Close menus when clicking outside
 document.addEventListener('click', function(e) {
-    ['genLinkWrap','pdfWrap'].forEach(function(id) {
+    ['genLinkWrap','pdfWrap','wordWrap','langWrap'].forEach(function(id) {
         var wrap = document.getElementById(id);
-        var menuId = id === 'genLinkWrap' ? 'genMenu' : 'pdfMenu';
+        var menuId = id === 'genLinkWrap' ? 'genMenu' : id === 'pdfWrap' ? 'pdfMenu' : id === 'langWrap' ? 'langMenu' : 'wordMenu';
         var menu = document.getElementById(menuId);
         if (wrap && menu && !wrap.contains(e.target)) {
             menu.style.display = 'none';
