@@ -14,22 +14,22 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 .topbar-left h1 { font-size:1.1rem; font-weight:400; color:var(--dark); margin:0 0 2px 0; font-family:'Hiragino Mincho ProN','Songti SC','Noto Serif CJK SC',serif; letter-spacing:0.04em; }
 .topbar-left .header-sub { font-size:0.6rem; color:var(--gray); letter-spacing:0.18em; text-transform:uppercase; display:block; line-height:1; }
 .container { max-width:900px; margin:0 auto; padding:24px; }
-/* Breadcrumb */
-.breadcrumb { display:flex; align-items:center; gap:6px; margin-bottom:16px; font-size:13px; color:var(--gray); flex-wrap:wrap; }
-.breadcrumb a { color:var(--gold); text-decoration:none; cursor:pointer; }
-.breadcrumb a:hover { text-decoration:underline; }
-.breadcrumb .sep { color:var(--border); }
 /* Search row */
-.search-row { display:flex; gap:10px; margin-bottom:16px; align-items:center; }
+.search-row { display:flex; gap:10px; margin-bottom:14px; align-items:center; }
 .search-row input { flex:1; padding:10px 16px; border:1px solid var(--border); border-radius:6px; font-size:14px; background:#fff; font-family:inherit; outline:none; }
 .search-row input:focus { border-color:var(--gold-light); box-shadow:0 0 0 3px rgba(139,105,20,0.08); }
+.section-divider { border-bottom:1px solid var(--border); margin-bottom:12px; }
 .btn { padding:10px 20px; border:none; border-radius:6px; font-size:13px; cursor:pointer; font-family:inherit; white-space:nowrap; }
 .btn-gold { background:#8a6d3b; color:#fff; }
 .btn-gold:hover { background:#7a5d2b; }
 .btn-outline { background:#fff; border:1px solid var(--border); color:var(--dark); }
 .btn-outline:hover { background:var(--cream); }
 /* Controls bar */
-.controls-bar { display:flex; justify-content:flex-end; align-items:center; gap:8px; margin-bottom:16px; }
+.controls-bar { display:flex; align-items:center; gap:8px; margin-bottom:4px; min-height:28px; }
+.controls-bar .breadcrumb { font-size:13px; color:var(--gray); display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.controls-bar .breadcrumb a { color:var(--gold); text-decoration:none; cursor:pointer; }
+.controls-bar .breadcrumb a:hover { text-decoration:underline; }
+.controls-bar .breadcrumb .sep { color:var(--border); }
 .ctrl-btn { font-size:11px; padding:3px 8px; border:1px solid var(--border); border-radius:3px; cursor:pointer; background:none; color:var(--gray); font-family:inherit; }
 .ctrl-btn:hover { border-color:var(--gold-light); }
 .ctrl-btn.active { background:var(--gold); color:#fff; border-color:var(--gold); }
@@ -88,8 +88,6 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 </div>
 
 <div class="container">
-    <div class="breadcrumb" id="breadcrumb"></div>
-
     <div class="search-row">
         <input type="text" id="searchInput" placeholder="搜索…" oninput="doSearch()">
         <button class="btn btn-gold" onclick="createItem('folder')">+ 新建文件夹</button>
@@ -97,13 +95,17 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
     </div>
 
     <div class="controls-bar" id="controlsBar">
-        <button class="ctrl-btn active" id="sortTime" onclick="setSort('time')">按时间</button>
-        <button class="ctrl-btn" id="sortAZ" onclick="setSort('az')">A→Z</button>
-        <button class="ctrl-btn" id="sortZA" onclick="setSort('za')">Z→A</button>
-        <span style="color:var(--border);font-size:11px;">|</span>
-        <button class="ctrl-btn active" id="viewList" onclick="setView('list')">☰</button>
-        <button class="ctrl-btn" id="viewGrid" onclick="setView('grid')">▦</button>
+        <span class="breadcrumb" id="breadcrumb"></span>
+        <span style="display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0;">
+            <button class="ctrl-btn active" id="sortTime" onclick="setSort('time')">按时间</button>
+            <button class="ctrl-btn" id="sortAZ" onclick="setSort('az')">A→Z</button>
+            <button class="ctrl-btn" id="sortZA" onclick="setSort('za')">Z→A</button>
+            <span style="color:var(--border);font-size:11px;">|</span>
+            <button class="ctrl-btn active" id="viewList" onclick="setView('list')">☰</button>
+            <button class="ctrl-btn" id="viewGrid" onclick="setView('grid')">▦</button>
+        </span>
     </div>
+    <div class="section-divider"></div>
 
     <div id="content">
         <div class="empty-state"><div class="e-icon">📋</div><p>加载中…</p></div>
