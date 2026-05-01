@@ -1489,8 +1489,11 @@ function doExport(mode) {
         n: document.getElementById('clientName')?.value || '',
         i: tripInfo,
         d: days.map(function(d) {
+            var wi = typeof getWeekdayInfo === 'function' ? getWeekdayInfo(d.date) : { weekdayText: '', holidayName: '' };
             return {
                 t: d.date || '',
+                w: wi.weekdayText || '',
+                h: wi.holidayName || '',
                 c: d.city || '',
                 x: d.text || '',
                 o: mode === 'internal' ? (d.notes || '') : '',
@@ -1536,7 +1539,7 @@ function doExport(mode) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         }).then(function(res) { return res.json(); }).then(function(result) {
-            if (result.id) onDone(SHARE_ORIGIN + basePath + '/share/?v=90&id=' + result.id);
+            if (result.id) onDone(SHARE_ORIGIN + basePath + '/share/?v=91&id=' + result.id);
             else onDone(longUrl());
         }).catch(function() { onDone(longUrl()); });
         return;
@@ -1548,7 +1551,7 @@ function doExport(mode) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
     }).then(function(res) { return res.json(); }).then(function(result) {
-        if (result.id) onDone(SHARE_ORIGIN + basePath + '/share/?v=90&id=' + result.id);
+        if (result.id) onDone(SHARE_ORIGIN + basePath + '/share/?v=91&id=' + result.id);
         else onDone(longUrl());
     }).catch(function() { onDone(longUrl()); });
 }
