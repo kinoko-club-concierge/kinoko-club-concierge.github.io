@@ -127,11 +127,16 @@ h1 { font-size: 1.3rem; color: var(--dark); font-weight: 500; margin-bottom: 0.2
     }
 
     try {
+        var origD = d;
         var json = LZString.decompressFromEncodedURIComponent(d);
-        if (!json) throw new Error('解压失败——数据可能被截断，请重新生成链接');
+        if (!json) {
+            // Debug: show what we got
+            var debug = 'd 长度: ' + d.length + '\\nd 前30字符: ' + d.substring(0, 30) + '\\n含空格: ' + d.includes(' ') + ' 含+: ' + d.includes('+');
+            throw new Error('解压失败——数据可能被截断，请重新生成链接\\n' + debug);
+        }
         renderTrip(JSON.parse(json));
     } catch (e) {
-        showError('解析失败：' + e.message);
+        showError('解析失败：' + e.message.replace(/\\n/g, '<br>'));
     }
 })();
 </script>
