@@ -1465,8 +1465,9 @@ function exportWeb() {
 
     function longUrl() {
         var json = JSON.stringify(data);
-        var compressed = LZString.compressToEncodedURIComponent(json);
-        return location.origin + basePath + '/share/?v=71&d=' + compressed;
+        // Use standard base64 + URL encoding — no lz-string encoding gotchas
+        var encoded = encodeURIComponent(btoa(unescape(encodeURIComponent(json))));
+        return location.origin + basePath + '/share/?v=73&d=' + encoded;
     }
 
     // localhost → short link via local server
