@@ -112,8 +112,9 @@ h1 { font-size: 1.3rem; color: var(--dark); font-weight: 500; margin-bottom: 0.2
     // --- Main: determine data source ---
     if (id) {
         var retries = 0;
+        var DATA_URL = 'https://kinoko-share.yujian1933.workers.dev/data/' + id + '.json';
         function loadData() {
-            fetch(location.pathname.replace(/\/[^/]*$/, '') + '/../data/' + id + '.json')
+            fetch(DATA_URL)
                 .then(function(res) {
                     if (!res.ok) {
                         if (res.status === 404 && retries < 5) {
