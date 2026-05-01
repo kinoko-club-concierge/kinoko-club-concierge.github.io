@@ -1,153 +1,39 @@
 [
   {
+    "id": "etc7yj",
+    "name": "2023",
+    "created_at": 1777632865280,
+    "pinned": true,
+    "itinerary_count": 1,
+    "child_count": 2
+  },
+  {
     "id": "x7m9nj",
     "name": "2024",
     "created_at": 1777632870187,
     "itinerary_count": 0,
-    "child_count": 0,
-    "pinned": true
+    "child_count": 0
   },
   {
     "id": "am78c2",
     "name": "2025",
     "created_at": 1777632876576,
     "itinerary_count": 0,
-    "child_count": 0,
-    "pinned": false
+    "child_count": 0
   },
   {
-    "id": "f3sbhvb",
-    "name": "2013",
-    "parent": null,
-    "created_at": 1777648358694,
-    "updated_at": 1777648358694,
-    "itinerary_count": 0,
-    "child_count": 0,
-    "pinned": true
-  },
-  {
-    "id": "fywn8o7",
-    "name": "2026",
-    "parent": null,
-    "created_at": 1777648382504,
-    "updated_at": 1777648382504,
+    "id": "8kdshy",
+    "name": "已完成",
+    "parent": "etc7yj",
+    "created_at": 1777633888654,
     "itinerary_count": 0,
     "child_count": 0
   },
   {
-    "id": "f9hynyq",
-    "name": "2027",
-    "parent": null,
-    "created_at": 1777648386784,
-    "updated_at": 1777648386784,
-    "itinerary_count": 0,
-    "child_count": 0
-  },
-  {
-    "id": "f60mze9",
-    "name": "1",
-    "parent": null,
-    "created_at": 1777650407273,
-    "updated_at": 1777650407273,
-    "itinerary_count": 0,
-    "child_count": 0
-  },
-  {
-    "id": "f7ke831",
-    "name": "2",
-    "parent": null,
-    "created_at": 1777650410151,
-    "updated_at": 1777650410151,
-    "itinerary_count": 0,
-    "child_count": 0
-  },
-  {
-    "id": "fdunu5h",
-    "name": "3",
-    "parent": null,
-    "created_at": 1777650412734,
-    "updated_at": 1777650412734,
-    "itinerary_count": 0,
-    "child_count": 0
-  },
-  {
-    "id": "frqtrjm",
-    "name": "4",
-    "parent": null,
-    "created_at": 1777650415292,
-    "updated_at": 1777650415292,
-    "itinerary_count": 0,
-    "child_count": 0
-  },
-  {
-    "id": "fytgaaq",
-    "name": "5",
-    "parent": null,
-    "created_at": 1777650418150,
-    "updated_at": 1777650418150,
-    "itinerary_count": 0,
-    "child_count": 0
-  },
-  {
-    "id": "fptc5xz",
-    "name": "6",
-    "parent": null,
-    "created_at": 1777650421720,
-    "updated_at": 1777650421720,
-    "itinerary_count": 0,
-    "child_count": 0
-  },
-  {
-    "id": "fla4wi1",
-    "name": "7",
-    "parent": null,
-    "created_at": 1777650425806,
-    "updated_at": 1777650425806,
-    "itinerary_count": 0,
-    "child_count": 0
-  },
-  {
-    "id": "f9o7l9o",
-    "name": "8",
-    "parent": null,
-    "created_at": 1777650430986,
-    "updated_at": 1777650430986,
-    "itinerary_count": 0,
-    "child_count": 0
-  },
-  {
-    "id": "f7dd3sj",
-    "name": "9",
-    "parent": null,
-    "created_at": 1777650443422,
-    "updated_at": 1777650443422,
-    "itinerary_count": 0,
-    "child_count": 0
-  },
-  {
-    "id": "fesoyby",
-    "name": "10",
-    "parent": null,
-    "created_at": 1777650446341,
-    "updated_at": 1777650446341,
-    "itinerary_count": 0,
-    "child_count": 0
-  },
-  {
-    "id": "fvhtamm",
-    "name": "11",
-    "parent": null,
-    "created_at": 1777650452289,
-    "updated_at": 1777650452289,
-    "itinerary_count": 0,
-    "child_count": 0
-  },
-  {
-    "id": "fiht4f6",
-    "name": "12",
-    "parent": null,
-    "created_at": 1777650454906,
-    "updated_at": 1777650454906,
+    "id": "j77w98",
+    "name": "删除",
+    "parent": "etc7yj",
+    "created_at": 1777633893177,
     "itinerary_count": 0,
     "child_count": 0
   }
