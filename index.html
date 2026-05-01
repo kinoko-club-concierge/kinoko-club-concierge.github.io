@@ -473,8 +473,20 @@ body::before {
             <div onclick="doExport('internal')">生成内部版</div>
         </div>
         </div>
-        <button class="btn btn-outline" id="exportPDFBtn" onclick="exportPDF()">PDF</button>
-        <button class="btn btn-outline" id="exportWordBtn" onclick="exportWord()">Word</button>
+        <div class="gen-link-wrap" id="pdfWrap">
+        <button class="btn btn-outline" id="exportPDFBtn" onclick="togglePDFMenu()">PDF ▾</button>
+        <div class="gen-menu" id="pdfMenu" style="display:none">
+            <div onclick="exportPDF('client')">客户版</div>
+            <div onclick="exportPDF('internal')">内部版</div>
+        </div>
+        </div>
+        <div class="gen-link-wrap" id="wordWrap">
+        <button class="btn btn-outline" id="exportWordBtn" onclick="toggleWordMenu()">Word ▾</button>
+        <div class="gen-menu" id="wordMenu" style="display:none">
+            <div onclick="exportWord('client')">客户版</div>
+            <div onclick="exportWord('internal')">内部版</div>
+        </div>
+        </div>
         <select id="langSelect" onchange="switchLanguage(this.value)">
             <option value="zh">简体中文</option>
             <option value="en">English</option>
@@ -631,9 +643,8 @@ const langLabels = {
     searchEmpty: { zh: '请在搜索框输入施設名，或在行程中写明景点名称', en: 'Enter a venue name in the search box or add it to the itinerary text', 'zh-tw': '請在搜索框輸入施設名，或在行程中寫明景點名稱', ja: '検索ボックスに施設名を入力するか、旅程に施設名を記入してください' },
     selectDate: { zh: '📅 选择日期', en: '📅 Select Date', 'zh-tw': '📅 選擇日期', ja: '📅 日付を選択' },
     genLink: { zh: '🔗 生成链接', en: '🔗 Share Link', 'zh-tw': '🔗 生成連結', ja: '🔗 リンク生成' },
-    exportPDF: { zh: '📄 PDF', en: '📄 PDF', 'zh-tw': '📄 PDF', ja: '📄 PDF' },
-    exportPDF: { zh: 'PDF', en: 'PDF', 'zh-tw': 'PDF', ja: 'PDF' },
-    exportWord: { zh: 'Word', en: 'Word', 'zh-tw': 'Word', ja: 'Word' },
+    exportPDF: { zh: 'PDF ▾', en: 'PDF ▾', 'zh-tw': 'PDF ▾', ja: 'PDF ▾' },
+    exportWord: { zh: 'Word ▾', en: 'Word ▾', 'zh-tw': 'Word ▾', ja: 'Word ▾' },
     save: { zh: '保存', en: 'Save', 'zh-tw': '儲存', ja: '保存' },
     saved: { zh: '✓ 已保存', en: '✓ Saved', 'zh-tw': '✓ 已儲存', ja: '✓ 保存済' },
     undo: { zh: '↩ 撤回', en: '↩ Undo', 'zh-tw': '↩ 撤回', ja: '↩ 戻す' },
@@ -1462,14 +1473,25 @@ function toggleGenMenu() {
     var menu = document.getElementById('genMenu');
     menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
 }
+function togglePDFMenu() {
+    var menu = document.getElementById('pdfMenu');
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+function toggleWordMenu() {
+    var menu = document.getElementById('wordMenu');
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
 
-// Close menu when clicking outside
+// Close menus when clicking outside
 document.addEventListener('click', function(e) {
-    var wrap = document.getElementById('genLinkWrap');
-    var menu = document.getElementById('genMenu');
-    if (wrap && menu && !wrap.contains(e.target)) {
-        menu.style.display = 'none';
-    }
+    ['genLinkWrap','pdfWrap','wordWrap'].forEach(function(id) {
+        var wrap = document.getElementById(id);
+        var menuId = id === 'genLinkWrap' ? 'genMenu' : id === 'pdfWrap' ? 'pdfMenu' : 'wordMenu';
+        var menu = document.getElementById(menuId);
+        if (wrap && menu && !wrap.contains(e.target)) {
+            menu.style.display = 'none';
+        }
+    });
 });
 
 function doExport(mode) {
@@ -1556,14 +1578,16 @@ function doExport(mode) {
     }).catch(function() { onDone(longUrl()); });
 }
 
-function exportPDF() {
-    const html = generateExportHTML();
+function exportPDF(mode) {
+    document.getElementById('pdfMenu').style.display = 'none';
+    const html = generateExportHTML(mode);
     const w = window.open('about:blank');
     w.document.write(html + '<script>window.onload=function(){window.print();}<\/script>');
 }
 
-function exportWord() {
-    const html = generateExportHTML();
+function exportWord(mode) {
+    document.getElementById('wordMenu').style.display = 'none';
+    const html = generateExportHTML(mode);
     const blob = new Blob([html], { type: 'application/msword' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -1572,7 +1596,7 @@ function exportWord() {
     a.click();
 }
 
-function generateExportHTML() {
+function generateExportHTML(mode) {
     const clientName = document.getElementById('clientName').value;
     const tourNum = tripInfo.tourNum ? 'KNO-' + tripInfo.tourNum : '';
     const brief = tripInfo.brief || '';
@@ -1601,7 +1625,7 @@ function generateExportHTML() {
             ${wi.holidayName ? `<div style="font-size:0.68rem;padding:0.15rem 0.45rem;border-radius:3px;background:#fff3e0;color:#d35400;display:inline-block;margin-top:0.2rem;">⚠️ ${wi.holidayName} 是日本公休日，部分景点和商店可能调整营业时间</div>` : ''}
             ${imgHTML}
             <div style="font-size:0.88rem; line-height:1.8; color:#1a2a3a; margin-top:0.3rem;">${formatText(d.text)}</div>
-            ${d.notes ? `<div style="margin-top:0.5rem;padding:0.6rem 0.8rem;background:#f9f6ec;border-left:3px solid #C9A96E;font-size:0.82rem;color:#5a4a2a;">${formatText(d.notes)}</div>` : ''}
+            ${(mode === 'internal' && d.notes) ? `<div style="margin-top:0.5rem;padding:0.6rem 0.8rem;background:#f9f6ec;border-left:3px solid #C9A96E;font-size:0.82rem;color:#5a4a2a;"><strong>内部备注</strong><br>${formatText(d.notes)}</div>` : ''}
         </div>
         `;
     }).join('');
