@@ -36,6 +36,7 @@ h1 { font-size: 1.3rem; color: var(--dark); font-weight: 500; margin-bottom: 0.2
 .day-text { font-size: 0.88rem; line-height: 1.8; color: var(--dark); margin-top: 0.3rem; }
 .day-text p { margin-bottom: 0.3rem; }
 .day-text a { color: var(--gold); }
+.day-holiday { font-size: 0.68rem; padding: 0.15rem 0.45rem; border-radius: 3px; background: #fff3e0; color: #d35400; display: inline-block; margin-top: 0.2rem; }
 .day-notes { margin-top: 0.5rem; padding: 0.6rem 0.8rem; background: #f9f6ec; border-left: 3px solid var(--gold-light); font-size: 0.82rem; color: #5a4a2a; }
 .day-notes p { margin-bottom: 0.2rem; }
 .day-images { display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0.5rem 0; }
@@ -88,8 +89,9 @@ h1 { font-size: 1.3rem; color: var(--dark); font-weight: 500; margin-bottom: 0.2
 
         (data.d || []).forEach(function(day, i) {
             html += '<div class="day">';
-            html += '<div class="day-label">Day ' + (i + 1) + (day.t ? ' — ' + day.t : '') + '</div>';
+            html += '<div class="day-label">Day ' + (i + 1) + (day.t ? ' — ' + formatDate(day.t) : '') + (day.w ? ' (' + day.w + ')' : '') + (day.h ? ' 🎌 ' + day.h : '') + '</div>';
             if (day.c) html += '<div class="day-location">📍 ' + day.c + '</div>';
+            if (day.h) html += '<div class="day-holiday">⚠️ ' + day.h + ' 是日本公休日，部分景点和商店可能调整营业时间</div>';
             if (day.x) html += '<div class="day-text">' + formatText(day.x) + '</div>';
             if (day.imgs && day.imgs.length) {
                 var fit = day.fit || 'cover';
@@ -97,7 +99,7 @@ h1 { font-size: 1.3rem; color: var(--dark); font-weight: 500; margin-bottom: 0.2
                 day.imgs.forEach(function(img) {
                     var w = img.h ? 'calc(50% - 0.15rem)' : '100%';
                     var pw = img.p ? '50%' : '100%';
-                    html += '<div style="flex:0 0 ' + w + ';min-width:0;border-radius:6px;overflow:hidden;' + (img.p ? 'text-align:center;' : '') + '"><img src="' + esc(img.u) + '" alt="" style="object-fit:' + fit + ';width:' + pw + ';height:auto;border-radius:6px;"></div>';
+                    html += '<div style="flex:0 0 ' + w + ';min-width:0;border-radius:6px;overflow:hidden;"><img src="' + esc(img.u) + '" alt="" style="object-fit:' + fit + ';width:' + pw + ';height:auto;border-radius:6px;' + (img.p ? 'display:block;margin:0 auto;' : '') + '"></div>';
                 });
                 html += '</div>';
             }
@@ -109,6 +111,12 @@ h1 { font-size: 1.3rem; color: var(--dark); font-weight: 500; margin-bottom: 0.2
         document.getElementById('app').innerHTML = html;
     }
 
+    function formatDate(dateStr) {
+        if (!dateStr) return '';
+        var parts = dateStr.split(/[\/\-\.]/);
+        if (parts.length === 3) return parseInt(parts[0]) + '/' + parseInt(parts[1]) + '/' + parseInt(parts[2]);
+        return dateStr;
+    }
     function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
     function formatText(text) {
         if (!text) return '';
