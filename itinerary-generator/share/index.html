@@ -111,13 +111,25 @@ h1 { font-size: 1.3rem; color: var(--dark); font-weight: 500; margin-bottom: 0.2
 
     // --- Main: determine data source ---
     if (id) {
-        fetch(location.pathname.replace(/\/[^/]*$/, '') + '/../data/' + id + '.json')
-            .then(function(res) {
-                if (!res.ok) throw new Error('数据不存在 (HTTP ' + res.status + ')');
-                return res.json();
-            })
-            .then(renderTrip)
-            .catch(function(e) { showError('加载失败：' + e.message); });
+        var retries = 0;
+        function loadData() {
+            fetch(location.pathname.replace(/\/[^/]*$/, '') + '/../data/' + id + '.json')
+                .then(function(res) {
+                    if (!res.ok) {
+                        if (res.status === 404 && retries < 5) {
+                            retries++;
+                            document.getElementById('app').innerHTML = '<div class="loading">数据同步中… 第 ' + retries + ' 次重试…</div>';
+                            setTimeout(loadData, retries * 3000);
+                            return;
+                        }
+                        throw new Error('数据不存在 (HTTP ' + res.status + ')');
+                    }
+                    return res.json();
+                })
+                .then(function(data) { if (data) renderTrip(data); })
+                .catch(function(e) { showError('加载失败：' + e.message); });
+        }
+        loadData();
         return;
     }
 
