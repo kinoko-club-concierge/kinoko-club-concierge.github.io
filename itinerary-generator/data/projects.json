@@ -12,7 +12,8 @@
     "name": "2025",
     "created_at": 1777632876576,
     "itinerary_count": 0,
-    "child_count": 0
+    "child_count": 0,
+    "pinned": true
   },
   {
     "id": "f3sbhvb",
