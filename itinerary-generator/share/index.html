@@ -39,8 +39,8 @@ h1 { font-size: 1.3rem; color: var(--dark); font-weight: 500; margin-bottom: 0.2
 .day-holiday { font-size: 0.68rem; padding: 0.15rem 0.45rem; border-radius: 3px; background: #fff3e0; color: #d35400; display: inline-block; margin-top: 0.2rem; }
 .day-notes { margin-top: 0.5rem; padding: 0.6rem 0.8rem; background: #f9f6ec; border-left: 3px solid var(--gold-light); font-size: 0.82rem; color: #5a4a2a; }
 .day-notes p { margin-bottom: 0.2rem; }
-.day-images { display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0.5rem 0; }
-.day-images img { border-radius: 6px; display: block; }
+.day-images { display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0.5rem 0; justify-content: center; align-items: center; }
+.day-images img { border-radius: 6px; display: block; max-width: 100%; height: auto; }
 .footer { text-align: center; font-size: 0.7rem; color: var(--gray); margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e8e5db; }
 .error { text-align: center; color: #d35400; padding: 3rem; font-size: 0.9rem; }
 .loading { text-align: center; color: var(--gray); padding: 5rem; }
@@ -98,8 +98,7 @@ h1 { font-size: 1.3rem; color: var(--dark); font-weight: 500; margin-bottom: 0.2
                 html += '<div class="day-images">';
                 day.imgs.forEach(function(img) {
                     var w = img.h ? 'calc(50% - 0.15rem)' : '100%';
-                    var pw = img.p ? '50%' : '100%';
-                    html += '<div style="flex:0 0 ' + w + ';min-width:0;border-radius:6px;overflow:hidden;"><img src="' + esc(img.u) + '" alt="" style="object-fit:' + fit + ';width:' + pw + ';height:auto;border-radius:6px;' + (img.p ? 'display:block;margin:0 auto;' : '') + '"></div>';
+                    html += '<div style="flex:0 0 ' + w + ';min-width:0;display:flex;align-items:center;justify-content:center;"><img src="' + esc(img.u) + '" alt="" style="object-fit:' + fit + ';max-width:100%;height:auto;border-radius:6px;display:block;margin:0 auto;"></div>';
                 });
                 html += '</div>';
             }
