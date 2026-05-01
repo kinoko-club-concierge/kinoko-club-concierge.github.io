@@ -39,12 +39,10 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 .item:hover { border-color:var(--gold-light); background:var(--cream); }
 .item.dragging { opacity:0.5; }
 .item.drag-over { border-color:var(--gold); background:var(--cream); box-shadow:inset 0 0 0 2px var(--gold-light); }
-.item .name { flex:0 1 200px; min-width:80px; font-size:14px; color:var(--dark); font-weight:500; word-break:break-all; }
-.item .meta { font-size:11px; color:#aaa; white-space:nowrap; flex:0 0 auto; }
-.item .meta::before { content:' · '; color:#ccc; }
+.item .name { flex:1; min-width:120px; font-size:14px; color:var(--dark); font-weight:500; word-break:break-all; padding-right:20px; }
+.item .meta { font-size:12px; color:#888; white-space:nowrap; flex:1; text-align:center; padding:0 12px; }
 .item.pinned { background: rgba(139,105,20,0.06); border-left: 3px solid var(--gold); padding-left: 13px; border-radius: 0 6px 6px 0; }
-.item .date { font-size:11px; color:#aaa; white-space:nowrap; flex:0 0 auto; }
-.item .date::before { content:' · '; color:#ccc; }
+.item .date { font-size:12px; color:#888; white-space:nowrap; flex:1; text-align:right; padding-left:20px; }
 .item .actions { display:flex; gap:4px; opacity:0; transition:opacity 0.15s; flex:0 0 auto; margin-left:auto; min-width:155px; justify-content:flex-end; }
 .item:hover .actions { opacity:1; }
 .item .action-btn { font-size:10px; padding:2px 6px; border:1px solid var(--border); border-radius:3px; background:none; cursor:pointer; color:var(--gray); font-family:inherit; white-space:nowrap; }
