@@ -118,6 +118,7 @@ h1 { font-size: 1.3rem; color: var(--dark); font-weight: 500; margin-bottom: 0.2
                     if (!res.ok) {
                         if (res.status === 404 && retries < 5) {
                             retries++;
+                            document.getElementById('app').innerHTML = '<div class="loading">加载中…</div>';
                             setTimeout(loadData, 1500 + retries * 1000);
                             return;
                         }
