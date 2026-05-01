@@ -10,9 +10,8 @@
 body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Serif JP',Georgia,serif; background:var(--cream); color:var(--dark); min-height:100vh; }
 .topbar { background:#fff; border-bottom:1px solid var(--border); padding:14px 24px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:10; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
 .topbar-left { display:flex; align-items:center; gap:12px; }
-.topbar-left img { height:28px; }
+.topbar-left .brand-text { font-size:0.7rem; color:var(--gray); letter-spacing:0.5px; }
 .topbar-left .brand { font-size:16px; font-weight:600; color:var(--dark); }
-.topbar-left .sub { font-size:12px; color:var(--gray); }
 .container { max-width:1100px; margin:0 auto; padding:24px; }
 .search-bar { display:flex; gap:10px; margin-bottom:24px; align-items:center; }
 .search-bar input { flex:1; padding:10px 16px; border:1px solid var(--border); border-radius:6px; font-size:14px; background:#fff; font-family:inherit; outline:none; }
@@ -68,14 +67,13 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 
 <div class="topbar">
     <div class="topbar-left">
-        <img src="logo.png?v=1" alt="KINOKO" style="height:28px;">
+        <img src="logo.png?v=1" alt="KINOKO" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">
         <div>
-            <div class="brand">Kinoko Club Concierge</div>
-            <div class="sub">行程管理中心</div>
+            <div class="brand-text">Kinoko Club – Series</div>
+            <h1 style="font-size:1.1rem;font-weight:500;color:var(--gold);margin:0;">行程管理中心</h1>
         </div>
     </div>
     <div style="display:flex;gap:8px;">
-        <button class="btn btn-outline" onclick="window.open('index.html','_blank')">编辑器中打开</button>
     </div>
 </div>
 
