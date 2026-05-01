@@ -598,7 +598,6 @@ body::before {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
 // === Data ===
 let days = [];
@@ -1582,42 +1581,50 @@ function doExport(mode) {
 function exportPDF(mode) {
     document.getElementById('pdfMenu').style.display = 'none';
 
-    var html = generateExportHTML(mode);
-    var clientName = document.getElementById('clientName')?.value || 'itinerary';
-
-    // Use html2pdf to generate and download
-    if (typeof html2pdf === 'undefined') {
-        // Fallback: print dialog
-        var w = window.open('about:blank');
-        w.document.write(html + '<script>window.onload=function(){window.print();}<\/script>');
-        return;
-    }
-
-    var container = document.createElement('div');
-    container.innerHTML = html;
-    container.style.position = 'fixed';
-    container.style.top = '0';
-    container.style.left = '0';
-    container.style.width = '794px';
-    container.style.background = '#fff';
-    container.style.zIndex = '99999';
-    container.style.maxHeight = '100vh';
-    container.style.overflow = 'hidden';
-    document.body.appendChild(container);
-
-    var opt = {
-        margin: [10, 10, 10, 10],
-        filename: '行程_' + clientName + '.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, letterRendering: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    // Build trip data
+    var data = {
+        n: document.getElementById('clientName')?.value || '',
+        i: {
+            brief: tripInfo.brief || '',
+            tourNum: tripInfo.tourNum || '',
+            adult: tripInfo.adult || '',
+            kidsCount: tripInfo.kidsCount || '',
+            kidsAge: tripInfo.kidsAge || ''
+        },
+        d: days.map(function(d) {
+            var wi = typeof getWeekdayInfo === 'function' ? getWeekdayInfo(d.date) : { weekdayText: '', holidayName: '' };
+            return {
+                t: d.date || '',
+                w: wi.weekdayText || '',
+                h: wi.holidayName || '',
+                c: d.city || '',
+                x: d.text || '',
+                o: mode === 'internal' ? (d.notes || '') : ''
+            };
+        })
     };
 
-    html2pdf().set(opt).from(container).save().then(function() {
-        document.body.removeChild(container);
-    }).catch(function() {
-        document.body.removeChild(container);
-        // Fallback
+    // Try local server (Chrome headless PDF)
+    fetch('http://localhost:8765/api/pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(function(res) {
+        if (!res.ok) throw new Error('local server returned ' + res.status);
+        return res.blob();
+    })
+    .then(function(blob) {
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = '行程_' + (document.getElementById('clientName').value || 'itinerary') + '.pdf';
+        a.click();
+        URL.revokeObjectURL(url);
+    })
+    .catch(function() {
+        // Fallback: print dialog
+        var html = generateExportHTML(mode);
         var w = window.open('about:blank');
         w.document.write(html + '<script>window.onload=function(){window.print();}<\/script>');
     });
