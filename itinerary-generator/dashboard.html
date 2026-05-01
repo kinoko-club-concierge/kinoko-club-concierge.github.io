@@ -385,7 +385,7 @@ function renderListItem(item) {
         dd += '<button class="action-btn del" onclick="event.stopPropagation();deleteFolder(\'' + esc(d.id) + '\')">删除</button>';
     } else {
         dd += '<button class="action-btn" onclick="event.stopPropagation();togglePin(\'itinerary\',\'' + esc(d.id) + '\',' + (d.pinned ? 'true' : 'false') + ')">' + (d.pinned ? '取消置顶' : '置顶') + '</button>';
-        dd += '<button class="action-btn" onclick="event.stopPropagation();duplicateItinerary(\'' + esc(d.project_id) + '\',\'' + esc(d.id) + '\')">📋 复制</button>';
+        dd += '<button class="action-btn" onclick="event.stopPropagation();duplicateItinerary(\'' + esc(d.project_id) + '\',\'' + esc(d.id) + '\')">复制</button>';
         dd += '<button class="action-btn" onclick="event.stopPropagation();renameItinerary(\'' + esc(d.project_id) + '\',\'' + esc(d.id) + '\',\'' + escJs(d.name) + '\')">重命名</button>';
         dd += '<button class="action-btn del" onclick="event.stopPropagation();deleteItinerary(\'' + esc(d.project_id) + '\',\'' + esc(d.id) + '\')">删除</button>';
     }
