@@ -1587,13 +1587,61 @@ function exportPDF(mode) {
 
 function exportWord(mode) {
     document.getElementById('wordMenu').style.display = 'none';
-    const html = generateExportHTML(mode);
-    const blob = new Blob([html], { type: 'application/msword' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = '行程_' + (document.getElementById('clientName').value || 'itinerary') + '.doc';
-    a.click();
+
+    // Build trip data to send to local server
+    var wi0 = typeof getWeekdayInfo === 'function' ? getWeekdayInfo(days[0]?.date || '') : { weekdayText: '', holidayName: '' };
+    var data = {
+        n: document.getElementById('clientName')?.value || '',
+        i: {
+            brief: tripInfo.brief || '',
+            tourNum: tripInfo.tourNum || '',
+            adult: tripInfo.adult || '',
+            kidsCount: tripInfo.kidsCount || '',
+            kidsAge: tripInfo.kidsAge || ''
+        },
+        d: days.map(function(d) {
+            var wi = typeof getWeekdayInfo === 'function' ? getWeekdayInfo(d.date) : { weekdayText: '', holidayName: '' };
+            return {
+                t: d.date || '',
+                w: wi.weekdayText || '',
+                h: wi.holidayName || '',
+                c: d.city || '',
+                x: d.text || '',
+                o: mode === 'internal' ? (d.notes || '') : ''
+            };
+        })
+    };
+
+    // Try local server first for real .docx
+    var LOCAL_URL = 'http://localhost:8765/api/docx';
+    fetch(LOCAL_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(function(res) {
+        if (!res.ok) throw new Error('local server returned ' + res.status);
+        return res.blob();
+    })
+    .then(function(blob) {
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = '行程_' + (document.getElementById('clientName').value || 'itinerary') + '.docx';
+        a.click();
+        URL.revokeObjectURL(url);
+    })
+    .catch(function() {
+        // Fallback: HTML-based .doc
+        var html = generateExportHTML(mode);
+        var blob = new Blob([html], { type: 'application/msword' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = '行程_' + (document.getElementById('clientName').value || 'itinerary') + '.doc';
+        a.click();
+        URL.revokeObjectURL(url);
+    });
 }
 
 function generateExportHTML(mode) {
