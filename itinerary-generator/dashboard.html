@@ -24,10 +24,10 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 .btn-outline { background:#fff; border:1px solid var(--border); color:var(--dark); }
 .btn-outline:hover { background:var(--cream); }
 /* View toggle */
-.view-tabs { display:flex; gap:4px; margin-left:auto; }
-.view-tab { padding:6px 10px; border:1px solid var(--border); border-radius:4px; font-size:12px; cursor:pointer; background:#fff; color:var(--gray); font-family:inherit; display:flex; align-items:center; gap:4px; }
-.view-tab:hover { border-color:var(--gold-light); }
-.view-tab.active { background:var(--gold); color:#fff; border-color:var(--gold); }
+.month-label .view-tabs { display:flex; gap:2px; }
+.month-label .view-tab { padding:3px 8px; border:1px solid var(--border); border-radius:3px; font-size:11px; cursor:pointer; background:none; color:var(--gray); font-family:inherit; }
+.month-label .view-tab:hover { border-color:var(--gold-light); }
+.month-label .view-tab.active { background:var(--gold); color:#fff; border-color:var(--gold); }
 /* Month tabs */
 .month-tabs { display:flex; gap:6px; margin-bottom:24px; flex-wrap:wrap; }
 .month-tab { padding:6px 16px; border:1px solid var(--border); border-radius:16px; font-size:13px; cursor:pointer; background:#fff; color:var(--gray); font-family:inherit; transition:all 0.15s; }
@@ -35,7 +35,11 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 .month-tab.active { background:var(--gold); color:#fff; border-color:var(--gold); }
 /* Timeline */
 .month-group { margin-bottom:32px; }
-.month-label { font-size:13px; color:var(--gray); letter-spacing:0.5px; padding:0 0 8px 0; border-bottom:1px solid var(--border); margin-bottom:8px; }
+.month-label { font-size:13px; color:var(--gray); letter-spacing:0.5px; padding:0 0 8px 0; border-bottom:1px solid var(--border); margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; }
+.month-label .view-tabs { display:flex; gap:2px; }
+.month-label .view-tab { padding:3px 8px; border:1px solid var(--border); border-radius:3px; font-size:11px; cursor:pointer; background:none; color:var(--gray); font-family:inherit; }
+.month-label .view-tab:hover { border-color:var(--gold-light); }
+.month-label .view-tab.active { background:var(--gold); color:#fff; border-color:var(--gold); }
 .timeline-list { display:flex; flex-direction:column; gap:2px; }
 .timeline-item { display:flex; align-items:center; padding:12px 16px; background:#fff; border-radius:6px; cursor:pointer; border:1px solid transparent; transition:all 0.12s; gap:14px; }
 .timeline-item:hover { border-color:var(--gold-light); background:var(--cream); }
@@ -88,13 +92,6 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
         <button class="btn btn-outline" onclick="newItinerary()">+ 新建行程</button>
     </div>
 
-    <div style="display:flex;justify-content:flex-end;margin-bottom:16px;">
-        <div class="view-tabs">
-            <button class="view-tab active" id="viewList" onclick="setView('list')">☰ 列表</button>
-            <button class="view-tab" id="viewGrid" onclick="setView('grid')">▦ 宫格</button>
-        </div>
-    </div>
-
     <div class="month-tabs" id="monthTabs"></div>
 
     <div id="content">
@@ -110,8 +107,6 @@ var currentView = 'list';
 
 function setView(v) {
     currentView = v;
-    document.getElementById('viewList').classList.toggle('active', v === 'list');
-    document.getElementById('viewGrid').classList.toggle('active', v === 'grid');
     localStorage.setItem('kinoko_dash_view', v);
     render();
 }
@@ -195,13 +190,28 @@ function render() {
     }
     
     var html = '';
+    var toggleRendered = false;
+    
+    // Helper: section label with optional view toggle
+    function sectionLabel(text) {
+        var label = '<div class="month-label"><span>' + text + '</span>';
+        if (!toggleRendered) {
+            toggleRendered = true;
+            label += '<div class="view-tabs">' +
+                '<button class="view-tab' + (currentView === 'list' ? ' active' : '') + '" onclick="setView(\'list\')">☰ 列表</button>' +
+                '<button class="view-tab' + (currentView === 'grid' ? ' active' : '') + '" onclick="setView(\'grid\')">▦ 宫格</button>' +
+                '</div>';
+        }
+        label += '</div>';
+        return label;
+    }
     
     if (currentView === 'grid') {
         // Grid view — same groups as list
         // Folders
         if (hasFolders) {
             html += '<div class="month-group">';
-            html += '<div class="month-label">📁 文件夹 · ' + filteredProjects.length + ' 个</div>';
+            html += sectionLabel('📁 文件夹 · ' + filteredProjects.length + ' 个');
             html += '<div class="grid-view">';
             for (var fi = 0; fi < filteredProjects.length; fi++) {
                 var p = filteredProjects[fi];
@@ -226,7 +236,7 @@ function render() {
             for (var g = 0; g < keys.length; g++) {
                 var items = groups[keys[g]];
                 html += '<div class="month-group">';
-                html += '<div class="month-label">' + (keys[g] === '无日期' ? '未标注日期' : monthLabel(keys[g])) + ' · ' + items.length + ' 个行程</div>';
+                html += sectionLabel((keys[g] === '无日期' ? '未标注日期' : monthLabel(keys[g])) + ' · ' + items.length + ' 个行程');
                 html += '<div class="grid-view">';
                 for (var k = 0; k < items.length; k++) {
                     var it = items[k];
@@ -246,7 +256,7 @@ function render() {
     // Show folders section
     if (hasFolders) {
         html += '<div class="month-group">';
-        html += '<div class="month-label">📁 文件夹 · ' + filteredProjects.length + ' 个</div>';
+        html += sectionLabel('📁 文件夹 · ' + filteredProjects.length + ' 个');
         html += '<div class="timeline-list">';
         for (var i = 0; i < filteredProjects.length; i++) {
             var p = filteredProjects[i];
@@ -273,7 +283,7 @@ function render() {
         for (var g = 0; g < keys.length; g++) {
             var items = groups[keys[g]];
             html += '<div class="month-group">';
-            html += '<div class="month-label">' + (keys[g] === '无日期' ? '未标注日期' : monthLabel(keys[g])) + ' · ' + items.length + ' 个行程</div>';
+            html += sectionLabel((keys[g] === '无日期' ? '未标注日期' : monthLabel(keys[g])) + ' · ' + items.length + ' 个行程');
             html += '<div class="timeline-list">';
             for (var k = 0; k < items.length; k++) {
                 var it = items[k];
