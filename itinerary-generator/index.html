@@ -1483,10 +1483,10 @@ function exportWeb() {
         return;
     }
 
-    // deployed → try tunnel for short link, fallback to base64
-    fetch('https://large-cooks-jump.loca.lt/api/save', {
+    // deployed → try Cloudflare Worker for short link, fallback to base64
+    fetch('https://kinoko-share.yujian1933.workers.dev/api/save', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Bypass-Tunnel-Reminder': 'true' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
     }).then(function(res) { return res.json(); }).then(function(result) {
         if (result.id) onDone(SHARE_ORIGIN + basePath + '/share/?id=' + result.id);
