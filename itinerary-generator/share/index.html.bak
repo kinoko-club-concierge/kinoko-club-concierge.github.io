@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>行程 — Kinoko Club Concierge</title>
+<link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+<style>
+:root {
+    --gold: #8B6914;
+    --gold-light: #C9A96E;
+    --cream: #FDF8EE;
+    --dark: #1a2a3a;
+    --gray: #6a7a8a;
+    --border: #e8e5db;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', 'Noto Serif JP', 'Source Han Serif SC', Georgia, serif;
+    background: var(--cream);
+    color: var(--dark);
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+    min-height: 100vh;
+}
+h1 { font-size: 1.3rem; color: var(--dark); font-weight: 500; margin-bottom: 0.2rem; text-align: center; }
+.subtitle { font-size: 0.85rem; color: var(--gray); margin-bottom: 1.5rem; text-align: center; }
+.trip-info { text-align: center; font-size: 0.82rem; color: var(--gray); margin-bottom: 1rem; }
+.trip-info div { margin-top: 0.2rem; }
+.day { margin-bottom: 1.5rem; padding-left: 1.5rem; border-left: 2px solid var(--gold-light); }
+.day-label { font-size: 0.9rem; color: var(--gold); font-weight: 600; }
+.day-location { font-size: 0.82rem; color: var(--gray); margin-top: 0.1rem; }
+.day-text { font-size: 0.88rem; line-height: 1.8; color: var(--dark); margin-top: 0.3rem; }
+.day-text p { margin-bottom: 0.3rem; }
+.day-text a { color: var(--gold); }
+.day-holiday { font-size: 0.68rem; padding: 0.15rem 0.45rem; border-radius: 3px; background: #fff3e0; color: #d35400; display: inline-block; margin-top: 0.2rem; }
+.day-notes { margin-top: 0.5rem; padding: 0.6rem 0.8rem; background: #f9f6ec; border-left: 3px solid var(--gold-light); font-size: 0.82rem; color: #5a4a2a; }
+.day-notes p { margin-bottom: 0.2rem; }
+.day-images { display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0.5rem 0; }
+.day-images img { border-radius: 6px; display: block; }
+.footer { text-align: center; font-size: 0.7rem; color: var(--gray); margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e8e5db; }
+.error { text-align: center; color: #d35400; padding: 3rem; font-size: 0.9rem; }
+.loading { text-align: center; color: var(--gray); padding: 5rem; }
+@media print {
+    body { background: #fff; padding: 1rem; }
+    .footer { border-top-color: #ccc; }
+}
+</style>
+</head>
+<body>
+<div id="app"><div class="loading">加载中…</div></div>
+<script>var LZString=function(){var r=String.fromCharCode,o="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",n="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-$",e={};function t(r,o){if(!e[r]){e[r]={};for(var n=0;n<r.length;n++)e[r][r.charAt(n)]=n}return e[r][o]}var i={compressToBase64:function(r){if(null==r)return"";var n=i._compress(r,6,function(r){return o.charAt(r)});switch(n.length%4){default:case 0:return n;case 1:return n+"===";case 2:return n+"==";case 3:return n+"="}},decompressFromBase64:function(r){return null==r?"":""==r?null:i._decompress(r.length,32,function(n){return t(o,r.charAt(n))})},compressToUTF16:function(o){return null==o?"":i._compress(o,15,function(o){return r(o+32)})+" "},decompressFromUTF16:function(r){return null==r?"":""==r?null:i._decompress(r.length,16384,function(o){return r.charCodeAt(o)-32})},compressToUint8Array:function(r){for(var o=i.compress(r),n=new Uint8Array(2*o.length),e=0,t=o.length;e<t;e++){var s=o.charCodeAt(e);n[2*e]=s>>>8,n[2*e+1]=s%256}return n},decompressFromUint8Array:function(o){if(null==o)return i.decompress(o);for(var n=new Array(o.length/2),e=0,t=n.length;e<t;e++)n[e]=256*o[2*e]+o[2*e+1];var s=[];return n.forEach(function(o){s.push(r(o))}),i.decompress(s.join(""))},compressToEncodedURIComponent:function(r){return null==r?"":i._compress(r,6,function(r){return n.charAt(r)})},decompressFromEncodedURIComponent:function(r){return null==r?"":""==r?null:(r=r.replace(/ /g,"+"),i._decompress(r.length,32,function(o){return t(n,r.charAt(o))}))},compress:function(o){return i._compress(o,16,function(o){return r(o)})},_compress:function(r,o,n){if(null==r)return"";var e,t,i,s={},u={},a="",p="",c="",l=2,f=3,h=2,d=[],m=0,v=0;for(i=0;i<r.length;i+=1)if(a=r.charAt(i),Object.prototype.hasOwnProperty.call(s,a)||(s[a]=f++,u[a]=!0),p=c+a,Object.prototype.hasOwnProperty.call(s,p))c=p;else{if(Object.prototype.hasOwnProperty.call(u,c)){if(c.charCodeAt(0)<256){for(e=0;e<h;e++)m<<=1,v==o-1?(v=0,d.push(n(m)),m=0):v++;for(t=c.charCodeAt(0),e=0;e<8;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}else{for(t=1,e=0;e<h;e++)m=m<<1|t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t=0;for(t=c.charCodeAt(0),e=0;e<16;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}0==--l&&(l=Math.pow(2,h),h++),delete u[c]}else for(t=s[c],e=0;e<h;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1;0==--l&&(l=Math.pow(2,h),h++),s[p]=f++,c=String(a)}if(""!==c){if(Object.prototype.hasOwnProperty.call(u,c)){if(c.charCodeAt(0)<256){for(e=0;e<h;e++)m<<=1,v==o-1?(v=0,d.push(n(m)),m=0):v++;for(t=c.charCodeAt(0),e=0;e<8;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}else{for(t=1,e=0;e<h;e++)m=m<<1|t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t=0;for(t=c.charCodeAt(0),e=0;e<16;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}0==--l&&(l=Math.pow(2,h),h++),delete u[c]}else for(t=s[c],e=0;e<h;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1;0==--l&&(l=Math.pow(2,h),h++)}for(t=2,e=0;e<h;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1;for(;;){if(m<<=1,v==o-1){d.push(n(m));break}v++}return d.join("")},decompress:function(r){return null==r?"":""==r?null:i._decompress(r.length,32768,function(o){return r.charCodeAt(o)})},_decompress:function(o,n,e){var t,i,s,u,a,p,c,l=[],f=4,h=4,d=3,m="",v=[],g={val:e(0),position:n,index:1};for(t=0;t<3;t+=1)l[t]=t;for(s=0,a=Math.pow(2,2),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;switch(s){case 0:for(s=0,a=Math.pow(2,8),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;c=r(s);break;case 1:for(s=0,a=Math.pow(2,16),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;c=r(s);break;case 2:return""}for(l[3]=c,i=c,v.push(c);;){if(g.index>o)return"";for(s=0,a=Math.pow(2,d),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;switch(c=s){case 0:for(s=0,a=Math.pow(2,8),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;l[h++]=r(s),c=h-1,f--;break;case 1:for(s=0,a=Math.pow(2,16),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;l[h++]=r(s),c=h-1,f--;break;case 2:return v.join("")}if(0==f&&(f=Math.pow(2,d),d++),l[c])m=l[c];else{if(c!==h)return null;m=i+i.charAt(0)}v.push(m),l[h++]=i+m.charAt(0),i=m,0==--f&&(f=Math.pow(2,d),d++)}}};return i}();"function"==typeof define&&define.amd?define(function(){return LZString}):"undefined"!=typeof module&&null!=module?module.exports=LZString:"undefined"!=typeof angular&&null!=angular&&angular.module("LZString",[]).factory("LZString",function(){return LZString});</script>
+<script>
+(function() {
+    if (typeof LZString === 'undefined') {
+        document.getElementById('app').innerHTML = '<div class="error">脚本加载失败，请刷新重试</div>';
+        return;
+    }
+
+    var params = new URLSearchParams(location.search);
+    var id = params.get('id');
+    var d = params.get('d');
+    var tripData = null;
+
+    function showError(msg) {
+        document.getElementById('app').innerHTML = '<div class="error">' + msg + '</div>';
+    }
+
+    function renderTrip(data) {
+        tripData = data;
+
+        var html = '';
+        html += '<h1>' + esc(data.n || '(Untitled)') + '</h1>';
+        html += '<div class="subtitle">Arranged by Kinoko Club Concierge</div>';
+
+        var info = data.i || {};
+        var paxParts = [];
+        if (info.adult) paxParts.push('成人' + info.adult + '名');
+        if (info.kidsCount) paxParts.push('儿童' + info.kidsCount + '名');
+        if (info.kidsAge) paxParts[paxParts.length-1] += ' ' + info.kidsAge;
+        html += '<div class="trip-info">';
+        html += '<div>' + (info.brief || '') + '</div>';
+        if (info.tourNum) html += '<div>KNO-' + info.tourNum + '</div>';
+        html += '<div style="font-size:0.75rem;">' + (paxParts.length ? paxParts.join(' · ') : '') + '</div>';
+        html += '</div>';
+
+        (data.d || []).forEach(function(day, i) {
+            html += '<div class="day">';
+            html += '<div class="day-label">Day ' + (i + 1) + (day.t ? ' — ' + formatDate(day.t) : '') + (day.w ? ' (' + day.w + ')' : '') + (day.h ? ' 🎌 ' + day.h : '') + '</div>';
+            if (day.c) html += '<div class="day-location">📍 ' + day.c + '</div>';
+            if (day.h) html += '<div class="day-holiday">⚠️ ' + day.h + ' 是日本公休日，部分景点和商店可能调整营业时间</div>';
+            if (day.x) html += '<div class="day-text">' + formatText(day.x) + '</div>';
+            if (day.imgs && day.imgs.length) {
+                var fit = day.fit || 'cover';
+                html += '<div class="day-images">';
+                day.imgs.forEach(function(img) {
+                    var w = img.h ? 'calc(50% - 0.15rem)' : '100%';
+                    var pw = img.p ? '50%' : '100%';
+                    html += '<div style="flex:0 0 ' + w + ';min-width:0;border-radius:6px;overflow:hidden;"><img src="' + esc(img.u) + '" alt="" style="object-fit:' + fit + ';width:' + pw + ';height:auto;border-radius:6px;' + (img.p ? 'display:block;margin:0 auto;' : '') + '"></div>';
+                });
+                html += '</div>';
+            }
+            if (day.o) html += '<div class="day-notes">' + formatText(day.o) + '</div>';
+            html += '</div>';
+        });
+
+        html += '<div class="footer">Arranged by Kinoko Club Concierge</div>';
+        document.getElementById('app').innerHTML = html;
+    }
+
+    function formatDate(dateStr) {
+        if (!dateStr) return '';
+        var parts = dateStr.split(/[\/\-\.]/);
+        if (parts.length === 3) return parseInt(parts[0]) + '/' + parseInt(parts[1]) + '/' + parseInt(parts[2]);
+        return dateStr;
+    }
+    function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    function formatText(text) {
+        if (!text) return '';
+        return text.split('\n').filter(function(l) { return l.trim(); }).map(function(l) {
+            var linked = l.replace(/(https?:\/\/[^\s<>]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+            return '<p>' + linked + '</p>';
+        }).join('');
+    }
+
+    // --- Main: determine data source ---
+    if (id) {
+        var retries = 0;
+        var DATA_URL = 'https://kinoko-share.yujian1933.workers.dev/data/' + id + '.json';
+        var loaded = false;
+        var maxRetries = 3;
+        function loadData() {
+            fetch(DATA_URL)
+                .then(function(res) {
+                    if (!res.ok) {
+                        if (res.status === 404 && retries < maxRetries) {
+                            retries++;
+                            document.getElementById('app').innerHTML = '<div class="loading">加载中…（' + retries + '/' + maxRetries + '）</div>';
+                            setTimeout(loadData, 1500 + retries * 1000);
+                            return;
+                        }
+                        throw new Error('数据不存在 (HTTP ' + res.status + ')');
+                    }
+                    return res.json();
+                })
+                .then(function(data) { if (data && !loaded) { loaded = true; renderTrip(data); } })
+                .catch(function(e) { if (!loaded) showError('加载失败：' + e.message); });
+        }
+        window.addEventListener('message', function(e) {
+            if (e.data && e.data.type === 'kinoko_trip' && e.data.data && !loaded) {
+                loaded = true;
+                renderTrip(e.data.data);
+            }
+        });
+        loadData();
+        return;
+    }
+
+    if (!d) {
+        showError('缺少行程数据');
+        return;
+    }
+
+    try {
+        var json;
+        try {
+            json = decodeURIComponent(escape(atob(decodeURIComponent(d))));
+        } catch (_) {
+            json = LZString.decompressFromEncodedURIComponent(d);
+        }
+        if (!json) throw new Error('解压失败——数据可能被截断，请重新生成链接');
+        renderTrip(JSON.parse(json));
+    } catch (e) {
+        showError('解析失败：' + e.message);
+    }
+})();
+</script>
+</body>
+</html>
