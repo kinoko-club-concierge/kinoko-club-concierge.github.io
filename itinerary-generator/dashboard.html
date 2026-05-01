@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v163 embedded-fallback + timeout + abort -->
+<!DOCTYPE html><!-- v162 cache-bust + timeout-diag -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -118,6 +118,7 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 </div>
 
 <div class="container">
+    <div class="header-area">
     <div class="search-row">
         <input type="text" id="searchInput" placeholder="搜索…" oninput="doSearch()">
         <button class="btn btn-gold" onclick="createItem('folder')">+ 新建文件夹</button>
@@ -136,7 +137,14 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
             <button class="ctrl-btn" id="trashBtn" onclick="showTrash()" title="回收站">🗑️</button>
         </span>
     </div>
+    <div class="list-header" id="listHeader">
+        <span class="lh-name">文件名</span>
+        <span class="lh-meta">数量</span>
+        <span class="lh-date">修改时间</span>
+        <span class="lh-actions">编辑</span>
+    </div>
     <div class="section-divider"></div>
+    </div>
 
     <div id="content">
         <div class="empty-state"><div class="e-icon">📋</div><p>加载中…</p></div>
@@ -144,9 +152,10 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 </div>
 
 <script>
-var allData = [];
-var projects = [];
-var currentFolder = null; // null=root, string=project_id
+var allData = _EMBED_ITINERARIES || [];
+var projects = _EMBED_PROJECTS || [];
+var currentFolder = null;
+var _dataFresh = false; // true once live data loaded // null=root, string=project_id
 var currentView = 'list';
 var currentSort = 'az';
 var dragItem = null;
@@ -219,10 +228,10 @@ function ghReadAll() {
 
 
 function loadAll() {
-    var savedView = localStorage.getItem('kinoko_dash_view');
-    if (savedView) setView(savedView);
-    var savedSort = localStorage.getItem('kinoko_dash_sort');
-    if (savedSort) setSort(savedSort);
+    var savedView = localStorage.getItem('kinoko_dash_view') || 'list';
+    setView(savedView);
+    var savedSort = localStorage.getItem('kinoko_dash_sort') || 'az';
+    setSort(savedSort);
     refresh();
 }
 
@@ -237,6 +246,7 @@ function refresh() {
         clearTimeout(timer);
         projects = results[0] || [];
         allData = results[1] || [];
+        _dataFresh = true;
         renderBreadcrumb();
         render();
     }).catch(function() {
@@ -245,19 +255,11 @@ function refresh() {
         ghReadAll().then(function(results) {
             projects = results[0] || [];
             allData = results[1] || [];
+            _dataFresh = true;
             renderBreadcrumb();
             render();
         }).catch(function(e) {
-            // Stage 3: Embedded fallback
-            if (_EMBED_PROJECTS.length || _EMBED_ITINERARIES.length) {
-                projects = _EMBED_PROJECTS;
-                allData = _EMBED_ITINERARIES;
-                renderBreadcrumb();
-                render();
-                document.getElementById('content').insertAdjacentHTML('beforeend', '<div style="text-align:center;margin-top:12px;font-size:11px;color:#aaa;">⚠️ 使用离线数据，部分操作需要网络</div>');
-            } else {
-                document.getElementById('content').innerHTML = '<div class="empty-state"><div class="e-icon">⚠️</div><p>无法连接服务器</p><p class="sub">请检查网络连接</p></div>';
-            }
+            // Stage 3: already rendered from embedded data, keep it
             console.error(e);
         });
     });
