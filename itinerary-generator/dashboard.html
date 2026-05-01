@@ -5,28 +5,29 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kinoko Club Concierge — 行程管理</title>
 <style>
-:root { --gold: #8a6d3b; --gold-light: #C9A96E; --cream: #FDF8EE; --dark: #534741; --gray: #656565; --border: #DBD4CF; --bg: #faf8f4; }
+:root { --gold: #8a6d3b; --gold-light: #C9A96E; --cream: #FDF8EE; --dark: #534741; --gray: #656565; --border: #DBD4CF; }
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Serif JP',Georgia,serif; background:var(--bg); color:var(--dark); min-height:100vh; }
-.topbar { background:#fff; border-bottom:1px solid var(--border); padding:12px 24px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:10; box-shadow:0 1px 3px rgba(0,0,0,0.03); }
+body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Serif JP',Georgia,serif; background:var(--cream); color:var(--dark); min-height:100vh; }
+.topbar { background:#fff; border-bottom:1px solid var(--border); padding:14px 24px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:10; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
 .topbar-left { display:flex; align-items:center; gap:12px; }
-.topbar-left .divider { width:1px; height:28px; background:var(--border); }
-.topbar-left h1 { font-size:1rem; font-weight:400; color:var(--dark); }
-.container { max-width:900px; margin:0 auto; padding:20px 24px; }
+.topbar-left .header-divider { width:1px; height:32px; background:#DBD4CF; flex-shrink:0; }
+.topbar-left h1 { font-size:1.1rem; font-weight:400; color:var(--dark); margin:0 0 2px 0; font-family:'Hiragino Mincho ProN','Songti SC','Noto Serif CJK SC',serif; letter-spacing:0.04em; }
+.topbar-left .header-sub { font-size:0.6rem; color:var(--gray); letter-spacing:0.18em; text-transform:uppercase; display:block; line-height:1; }
+.container { max-width:900px; margin:0 auto; padding:24px; }
 /* Search bar */
 .search-row { display:flex; gap:10px; margin-bottom:20px; align-items:center; }
-.search-row input { flex:1; padding:10px 14px; border:1px solid var(--border); border-radius:6px; font-size:14px; background:#fff; font-family:inherit; outline:none; }
-.search-row input:focus { border-color:var(--gold-light); box-shadow:0 0 0 3px rgba(139,105,20,0.06); }
-.search-row .btn { padding:10px 18px; border:none; border-radius:6px; font-size:13px; cursor:pointer; font-family:inherit; white-space:nowrap; }
-.btn-gold { background:var(--gold); color:#fff; }
+.search-row input { flex:1; padding:10px 16px; border:1px solid var(--border); border-radius:6px; font-size:14px; background:#fff; font-family:inherit; outline:none; }
+.search-row input:focus { border-color:var(--gold-light); box-shadow:0 0 0 3px rgba(139,105,20,0.08); }
+.search-row .btn { padding:10px 20px; border:none; border-radius:6px; font-size:13px; cursor:pointer; font-family:inherit; white-space:nowrap; }
+.btn-gold { background:#8a6d3b; color:#fff; }
 .btn-gold:hover { background:#7a5d2b; }
 /* Month tabs */
-.month-tabs { display:flex; gap:6px; margin-bottom:20px; flex-wrap:wrap; }
+.month-tabs { display:flex; gap:6px; margin-bottom:24px; flex-wrap:wrap; }
 .month-tab { padding:6px 16px; border:1px solid var(--border); border-radius:16px; font-size:13px; cursor:pointer; background:#fff; color:var(--gray); font-family:inherit; transition:all 0.15s; }
 .month-tab:hover { border-color:var(--gold-light); }
 .month-tab.active { background:var(--gold); color:#fff; border-color:var(--gold); }
 /* Timeline */
-.month-group { margin-bottom:28px; }
+.month-group { margin-bottom:32px; }
 .month-label { font-size:13px; color:var(--gray); letter-spacing:0.5px; padding:0 0 8px 0; border-bottom:1px solid var(--border); margin-bottom:8px; }
 .timeline-list { display:flex; flex-direction:column; gap:2px; }
 .timeline-item { display:flex; align-items:center; padding:12px 16px; background:#fff; border-radius:6px; cursor:pointer; border:1px solid transparent; transition:all 0.12s; gap:14px; }
@@ -34,7 +35,7 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 .ti-date { font-size:13px; color:var(--gray); white-space:nowrap; min-width:130px; font-variant-numeric:tabular-nums; }
 .ti-date .arrow { color:var(--gold-light); margin:0 4px; }
 .ti-name { flex:1; font-size:14px; color:var(--dark); font-weight:500; }
-.ti-folder { font-size:11px; color:var(--gray); background:var(--bg); padding:2px 8px; border-radius:10px; white-space:nowrap; }
+.ti-folder { font-size:11px; color:var(--gray); background:var(--cream); padding:2px 8px; border-radius:10px; white-space:nowrap; }
 .ti-meta { font-size:11px; color:var(--gray); white-space:nowrap; min-width:60px; text-align:right; }
 .ti-arrow { color:var(--gray); font-size:12px; }
 /* Empty */
@@ -43,8 +44,8 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 .empty-state p { font-size:14px; margin-bottom:6px; }
 .empty-state .sub { font-size:12px; color:#999; }
 @media (max-width:768px) {
-    .container { padding:12px; }
-    .topbar { padding:10px 14px; }
+    .container { padding:16px; }
+    .topbar { padding:10px 16px; }
     .ti-date { min-width:100px; font-size:12px; }
     .search-row { flex-wrap:wrap; }
 }
@@ -54,11 +55,16 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 
 <div class="topbar">
     <div class="topbar-left">
-        <img src="icon-32.png?v=1" alt="Kinoko" style="height:28px;">
-        <div class="divider"></div>
-        <h1>行程管理中心</h1>
+        <img src="brand-logo.png?v=1" alt="Kinoko Club Concierge" style="height:36px;">
+        <div class="header-divider"></div>
+        <div>
+            <h1>行程管理中心</h1>
+            <span class="header-sub">Itinerary Management</span>
+        </div>
     </div>
-    <a href="index.html" style="font-size:13px;color:var(--gray);text-decoration:none;padding:6px 12px;border:1px solid var(--border);border-radius:6px;">📝 编辑器中打开</a>
+    <div style="display:flex;gap:8px;">
+        <a href="index.html" style="font-size:13px;color:var(--gray);text-decoration:none;padding:6px 14px;border:1px solid var(--border);border-radius:6px;">📝 编辑器中打开</a>
+    </div>
 </div>
 
 <div class="container">
