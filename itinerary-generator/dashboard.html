@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v192 tree-sort + pinned + rename -->
+<!DOCTYPE html><!-- v193 no-emoji-svg-icons -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="version" content="v192">
+<meta name="version" content="v193">
 <title>Kinoko Club Concierge — 行程管理</title>
 <style>
 :root { --gold: #8a6d3b; --gold-light: #C9A96E; --cream: #FDF8EE; --dark: #534741; --gray: #656565; --border: #DBD4CF; }
@@ -80,7 +80,8 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 .grid-card .gc-date { font-size:11px; color:var(--gray); margin-top:2px; }
 /* Empty */
 .empty-state { text-align:center; padding:80px 20px; color:var(--gray); }
-.empty-state .e-icon { font-size:40px; margin-bottom:12px; }
+.empty-state .e-icon { font-size:40px; margin-bottom:12px; color:var(--border); }
+.empty-state .e-icon svg { opacity:0.4; }
 .empty-state p { font-size:14px; margin-bottom:6px; }
 .empty-state .sub { font-size:12px; color:#999; }
 /* Trash modal */
@@ -149,7 +150,7 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 .sidebar .sidebar-title { font-size:10px; color:var(--gray); letter-spacing:0.1em; padding:10px 16px 4px; font-weight:500; display:flex; align-items:center; justify-content:space-between; }
 .tree-sort { font-size:10px; cursor:pointer; color:var(--gray); padding:2px 6px; border-radius:3px; transition:all 0.12s; }
 .tree-sort:hover { background:var(--cream); color:var(--gold); }
-.ft-pin { font-size:10px; margin-left:4px; opacity:0.6; flex:0 0 auto; }
+.ft-pin { margin-left:4px; opacity:0.7; flex:0 0 auto; display:inline-flex; align-items:center; }
 .sidebar .sidebar-item { display:flex; align-items:center; gap:8px; padding:7px 16px; cursor:pointer; font-size:12px; color:var(--dark); transition:background 0.12s; }
 .sidebar .sidebar-item:hover { background:rgba(139,105,20,0.06); }
 .sidebar .sidebar-item:active { background:rgba(139,105,20,0.1); }
@@ -241,6 +242,15 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
     <circle cx="15.5" cy="7" r="1.8" fill="none" stroke="#8a6d3b" stroke-width="1"/>
     <path d="M15.5 4.5v2M14 7h3" stroke="#8a6d3b" stroke-width="0.8" stroke-linecap="round"/>
   </symbol>
+  <symbol id="icon-trash" viewBox="0 0 20 22">
+    <path d="M6 2.5h8l1 2h4.5v1.5H18l-1 14.5a2 2 0 01-2 2H5a2 2 0 01-2-2L2 6H.5V4.5h4.5l1-2z" fill="none" stroke="#8a6d3b" stroke-width="1.3" stroke-linejoin="round"/>
+    <line x1="8" y1="10" x2="8" y2="17" stroke="#8a6d3b" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="12" y1="10" x2="12" y2="17" stroke="#8a6d3b" stroke-width="1.2" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="icon-pin" viewBox="0 0 14 20">
+    <path d="M1 8l5-6 6 6-2 1v6l-3 3.5-1-1.5v-8L1 8z" fill="none" stroke="#C9A96E" stroke-width="1.3" stroke-linejoin="round"/>
+    <circle cx="7" cy="3.5" r="1.5" fill="none" stroke="#C9A96E" stroke-width="0.8"/>
+  </symbol>
 </svg>
 <div class="toast-container" id="toastContainer"></div>
 <div class="move-popup" id="movePopup" onclick="event.stopPropagation()"></div>
@@ -310,7 +320,7 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
             <button class="ctrl-btn active" id="viewList" onclick="setView('list')">☰</button>
             <button class="ctrl-btn" id="viewGrid" onclick="setView('grid')">▦</button>
             <span style="color:var(--border);font-size:11px;">|</span>
-            <button class="ctrl-btn" id="trashBtn" onclick="showTrash()" title="回收站">🗑️</button>
+            <button class="ctrl-btn" id="trashBtn" onclick="showTrash()" title="回收站"><svg style="width:14px;height:14px"><use href="#icon-trash"/></svg></button>
         </span>
     </div>
     <div class="list-header" id="listHeader">
@@ -324,7 +334,7 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
     </div>
 
     <div id="content">
-        <div class="empty-state"><div class="e-icon">📋</div><p>加载中…</p></div>
+        <div class="empty-state"><div class="e-icon">—</div><p>加载中…</p></div>
     </div>
 </div>
 </div>
@@ -469,7 +479,7 @@ function renderSidebarTree() {
                 h += '<span class="ft-arrow placeholder"></span>';
             }
             h += '<span class="ft-icon"><svg><use href="#icon-folder"/></svg></span>';
-            h += '<span class="ft-name">' + escH(c.name) + (c.pinned ? '<span class="ft-pin">📌</span>' : '') + '</span>';
+            h += '<span class="ft-name">' + escH(c.name) + (c.pinned ? '<span class="ft-pin"><svg style="width:10px;height:10px"><use href="#icon-pin"/></svg></span>' : '') + '</span>';
             h += '</div>';
             var childrenHtml = '';
             if (hasKids) {
@@ -511,7 +521,7 @@ function renderSidebarTree() {
             html += '<span class="ft-arrow placeholder"></span>';
         }
         html += '<span class="ft-icon"><svg><use href="#icon-folder"/></svg></span>';
-        html += '<span class="ft-name">' + escH(r.name) + (r.pinned ? '<span class="ft-pin">📌</span>' : '') + '</span>';
+        html += '<span class="ft-name">' + escH(r.name) + (r.pinned ? '<span class="ft-pin"><svg style="width:10px;height:10px"><use href="#icon-pin"/></svg></span>' : '') + '</span>';
         html += '</div>';
         var childrenHtml = '';
         if (hasKids) {
@@ -670,20 +680,20 @@ function showCtxMenu(e, type, id, proj) {
     if (type === 'folder') {
         var p = projects.find(function(x) { return x.id === id; });
         var isPinned = p && p.pinned;
-        html += '<div class="ctx-item" onclick="ctxTogglePin(\'folder\',\'' + esc(id) + '\',' + (isPinned?'true':'false') + ')">📌 ' + (isPinned ? '取消置顶' : '置顶') + '</div>';
-        html += '<div class="ctx-item" onclick="ctxRename(\'folder\',\'' + esc(id) + '\')">✏️ 重命名</div>';
-        html += '<div class="ctx-item" onclick="ctxDup(\'folder\',\'' + esc(id) + '\')">📋 复制文件夹</div>';
+        html += '<div class="ctx-item" onclick="ctxTogglePin(\'folder\',\'' + esc(id) + '\',' + (isPinned?'true':'false') + ')">' + (isPinned ? '取消置顶' : '置顶') + '</div>';
+        html += '<div class="ctx-item" onclick="ctxRename(\'folder\',\'' + esc(id) + '\')">重命名</div>';
+        html += '<div class="ctx-item" onclick="ctxDup(\'folder\',\'' + esc(id) + '\')">复制文件夹</div>';
         html += '<div class="ctx-divider"></div>';
-        html += '<div class="ctx-item danger" onclick="ctxDelete(\'folder\',\'' + esc(id) + '\')">🗑️ 删除</div>';
+        html += '<div class="ctx-item danger" onclick="ctxDelete(\'folder\',\'' + esc(id) + '\')">删除</div>';
     } else {
         var it = allData.find(function(x) { return x.id === id && (x.project_id === proj || (!proj && !x.project_id)); });
         var isPinned = it && it.pinned;
-        html += '<div class="ctx-item" onclick="ctxTogglePin(\'itinerary\',\'' + esc(id) + '\',' + (isPinned?'true':'false') + ')">📌 ' + (isPinned ? '取消置顶' : '置顶') + '</div>';
-        html += '<div class="ctx-item" onclick="ctxRename(\'itinerary\',\'' + esc(id) + '\')">✏️ 重命名</div>';
-        html += '<div class="ctx-item" onclick="ctxDup(\'itinerary\',\'' + esc(id) + '\')">📋 复制行程</div>';
-        html += '<div class="ctx-item" onclick="showMovePopup(\'itinerary\',\'' + esc(id) + '\',\'' + esc(proj||'') + '\',document.getElementById(\'ctxMenu\'))">📁 移动到…</div>';
+        html += '<div class="ctx-item" onclick="ctxTogglePin(\'itinerary\',\'' + esc(id) + '\',' + (isPinned?'true':'false') + ')">' + (isPinned ? '取消置顶' : '置顶') + '</div>';
+        html += '<div class="ctx-item" onclick="ctxRename(\'itinerary\',\'' + esc(id) + '\')">重命名</div>';
+        html += '<div class="ctx-item" onclick="ctxDup(\'itinerary\',\'' + esc(id) + '\')">复制行程</div>';
+        html += '<div class="ctx-item" onclick="showMovePopup(\'itinerary\',\'' + esc(id) + '\',\'' + esc(proj||'') + '\',document.getElementById(\'ctxMenu\'))">移动到…</div>';
         html += '<div class="ctx-divider"></div>';
-        html += '<div class="ctx-item danger" onclick="ctxDelete(\'itinerary\',\'' + esc(id) + '\')">🗑️ 删除</div>';
+        html += '<div class="ctx-item danger" onclick="ctxDelete(\'itinerary\',\'' + esc(id) + '\')">删除</div>';
     }
     menu.innerHTML = html;
     menu.style.top = Math.min(e.clientY, window.innerHeight - 200) + 'px';
@@ -1009,7 +1019,7 @@ var GH_TOKEN = 'ghp_' + 'anBeVHJVVk01qRmo' + 'ekhsVP5ad9MTvX0dflJg';
 var GH_BASE = 'https://api.github.com/repos/' + GH_REPO + '/contents/itinerary-generator';
 var _ghPending = null;
 var _ghTimer = null;
-var _currentVer = 'v192';
+var _currentVer = 'v193';
 // Embedded fallback data — used when network fetch fails (e.g. behind firewall)
 var _EMBED_PROJECTS = [{"id":"etc7yj","name":"2023","created_at":1777632865280,"pinned":true,"itinerary_count":1,"child_count":2},{"id":"x7m9nj","name":"2024","created_at":1777632870187,"itinerary_count":0,"child_count":0},{"id":"am78c2","name":"2025","created_at":1777632876576,"itinerary_count":0,"child_count":0},{"id":"8kdshy","name":"已完成","parent":"etc7yj","created_at":1777633888654,"itinerary_count":0,"child_count":0},{"id":"j77w98","name":"删除","parent":"etc7yj","created_at":1777633893177,"itinerary_count":0,"child_count":0}];
 var _EMBED_ITINERARIES = [{"id":"b27zpw","name":"KNO1","created_at":1777633907157,"updated_at":1777633907157,"pinned":true,"project_id":"etc7yj","project_name":"2023"}];
@@ -1290,7 +1300,7 @@ function render() {
     });
     
     if (!items.length) {
-        container.innerHTML = '<div class="empty-state"><div class="e-icon">📭</div><p>' + (q ? '没有匹配的内容' : '文件夹为空') + '</p>' +
+        container.innerHTML = '<div class="empty-state"><div class="e-icon"><svg style="width:32px;height:32px"><use href="#icon-folder"/></svg></div><p>' + (q ? '没有匹配的内容' : '文件夹为空') + '</p>' +
             (!q ? '<div style="margin-top:12px;display:flex;gap:8px;justify-content:center;"><button class="btn btn-gold" onclick="createItem(\'folder\')">+ 新建文件夹</button><button class="btn btn-outline" onclick="createItem(\'itinerary\')">+ 新建行程</button></div>' : '') + '</div>';
         return;
     }
@@ -1578,14 +1588,14 @@ function showTrash() {
     var body = document.getElementById('trashBody');
     var count = document.getElementById('trashCount');
     if (!trashItems.length) {
-        body.innerHTML = '<div class="empty-state" style="padding:40px 20px;"><div class="e-icon">📭</div><p>回收站为空</p></div>';
+        body.innerHTML = '<div class="empty-state" style="padding:40px 20px;"><div class="e-icon"><svg style="width:32px;height:32px"><use href="#icon-trash"/></svg></div><p>回收站为空</p></div>';
         count.textContent = '';
     } else {
         var html = '';
         for (var i = 0; i < trashItems.length; i++) {
             var t = trashItems[i];
             html += '<div class="tm-item">';
-            html += '<span class="tm-icon">' + (t.type === 'folder' ? '📂' : '📄') + '</span>';
+            html += '<span class="tm-icon"><svg style="width:14px;height:14px"><use href="#icon-' + (t.type === 'folder' ? 'folder' : 'itinerary') + '"/></svg></span>';
             html += '<span class="tm-name">' + escH(t.name) + '</span>';
             html += '<span class="tm-date">' + timeAgo(t.deleted_at) + '</span>';
             html += '<div class="tm-actions">';
@@ -1635,7 +1645,7 @@ loadAll();
 setTimeout(function() {
     var c = document.getElementById('content');
     if (c && c.textContent.indexOf('加载中') >= 0) {
-        c.innerHTML = '<div class="empty-state"><div class="e-icon">⏳</div><p>加载超时</p><p class="sub">数据请求未响应，请检查网络或刷新页面</p><p class="sub" style="margin-top:8px;"><button class="btn btn-outline" onclick="location.reload(true)">强制刷新</button></p></div>';
+        c.innerHTML = '<div class="empty-state"><div class="e-icon">⏤</div><p>加载超时</p><p class="sub">数据请求未响应，请检查网络或刷新页面</p><p class="sub" style="margin-top:8px;"><button class="btn btn-outline" onclick="location.reload(true)">强制刷新</button></p></div>';
     }
 }, 10000);
 </script>
