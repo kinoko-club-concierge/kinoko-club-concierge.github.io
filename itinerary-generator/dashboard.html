@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v183 hover-sidebar + toolbar-top + drag-ctx -->
+<!DOCTYPE html><!-- v184 svg-icons-replace-emoji -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="version" content="v183">
+<meta name="version" content="v184">
 <title>Kinoko Club Concierge — 行程管理</title>
 <style>
 :root { --gold: #8a6d3b; --gold-light: #C9A96E; --cream: #FDF8EE; --dark: #534741; --gray: #656565; --border: #DBD4CF; }
@@ -57,7 +57,8 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 .item .meta { font-size:12px; color:#888; white-space:nowrap; width:100px; text-align:center; flex:0 0 auto; padding:0 12px; }
 .item.pinned { background: rgba(139,105,20,0.06); border-left: 3px solid var(--gold); padding-left: 13px; border-radius: 0 6px 6px 0; }
 .item .date { font-size:12px; color:#888; white-space:nowrap; width:140px; text-align:right; flex:0 0 auto; padding-left:20px; }
-.item .type-icon { font-size:18px; flex:0 0 auto; margin-right:8px; }
+.item .type-icon { font-size:18px; flex:0 0 auto; margin-right:8px; display:flex; align-items:center; }
+.item .type-icon svg,.sidebar-item .si-icon svg,.ft-icon svg { width:18px; height:18px; flex-shrink:0; }
 .item .actions-wrap { width:145px; flex:0 0 auto; display:flex; justify-content:flex-end; align-items:center; position:relative; min-height:22px; }
 .item .actions { display:flex; gap:4px; opacity:0; transition:opacity 0.15s; position:absolute; right:0; white-space:nowrap; }
 .item .actions-dots { font-size:16px; color:#bbb; cursor:default; user-select:none; position:absolute; right:0; }
@@ -217,6 +218,19 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 </style>
 </head>
 <body>
+<svg style="display:none" aria-hidden="true">
+  <symbol id="icon-folder" viewBox="0 0 24 20">
+    <path d="M2 4h7l2 2h10a1.5 1.5 0 011.5 1.5v9a1.5 1.5 0 01-1.5 1.5H2a1.5 1.5 0 01-1.5-1.5V5.5A1.5 1.5 0 012 4z" fill="#FDF8EE" stroke="#8a6d3b" stroke-width="1.2" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="icon-itinerary" viewBox="0 0 20 24">
+    <rect x="3" y="2" width="14" height="20" rx="1.5" fill="#FDF8EE" stroke="#8a6d3b" stroke-width="1.2"/>
+    <line x1="6.5" y1="8" x2="13.5" y2="8" stroke="#8a6d3b" stroke-width="1" stroke-linecap="round"/>
+    <line x1="6.5" y1="11.5" x2="13.5" y2="11.5" stroke="#C9A96E" stroke-width="1" stroke-linecap="round"/>
+    <line x1="6.5" y1="15" x2="11" y2="15" stroke="#C9A96E" stroke-width="1" stroke-linecap="round"/>
+    <circle cx="15.5" cy="7" r="1.8" fill="none" stroke="#8a6d3b" stroke-width="1"/>
+    <path d="M15.5 4.5v2M14 7h3" stroke="#8a6d3b" stroke-width="0.8" stroke-linecap="round"/>
+  </symbol>
+</svg>
 <div class="toast-container" id="toastContainer"></div>
 <div class="move-popup" id="movePopup" onclick="event.stopPropagation()"></div>
 
@@ -242,8 +256,8 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
     <div class="sidebar-toolbar">
         <button onclick="undoLast()" title="上一步 ⌘Z">←</button>
         <button onclick="redoLast()" title="下一步 ⌘⇧Z">→</button>
-        <button class="st-new" onclick="createItem('folder')" title="新建文件夹">📁+</button>
-        <button class="st-new" onclick="createItem('itinerary')" title="新建行程">🗒️+</button>
+        <button class="st-new" onclick="createItem('folder')" title="新建文件夹"><svg style="width:14px;height:14px"><use href="#icon-folder"/></svg>+</button>
+        <button class="st-new" onclick="createItem('itinerary')" title="新建行程"><svg style="width:14px;height:14px"><use href="#icon-itinerary"/></svg>+</button>
     </div>
     <div class="sidebar-body" id="sidebarBody">
         <div class="sidebar-section">
@@ -346,7 +360,7 @@ function renderRecent() {
     var html = '';
     for (var i = 0; i < _recentItems.length; i++) {
         var r = _recentItems[i];
-        var icon = r.type === 'folder' ? '📁' : '🗒️';
+        var icon = '<svg><use href="#icon-' + (r.type === 'folder' ? 'folder' : 'itinerary') + '"/></svg>';
         var onclick = r.type === 'folder' ? 'navTo(\'' + esc(r.id) + '\')' : 'openItinerary(\'' + esc(r.proj) + '\',\'' + esc(r.id) + '\')';
         html += '<div class="sidebar-item" draggable="true" data-stype="' + r.type + '" data-sid="' + esc(r.id) + '" data-sproj="' + esc(r.proj||'') + '" onclick="' + onclick + '" oncontextmenu="event.preventDefault();showCtxMenu(event,\'' + r.type + '\',\'' + esc(r.id) + '\',\'' + esc(r.proj||'') + '\')">';
         html += '<span class="si-icon">' + icon + '</span>';
@@ -432,7 +446,7 @@ function renderSidebarTree() {
             } else {
                 h += '<span class="ft-arrow placeholder"></span>';
             }
-            h += '<span class="ft-icon">📁</span>';
+            h += '<span class="ft-icon"><svg><use href="#icon-folder"/></svg></span>';
             h += '<span class="ft-name">' + escH(c.name) + '</span>';
             h += '</div>';
             if (hasKids) {
@@ -459,7 +473,7 @@ function renderSidebarTree() {
         } else {
             html += '<span class="ft-arrow placeholder"></span>';
         }
-        html += '<span class="ft-icon">📁</span>';
+        html += '<span class="ft-icon"><svg><use href="#icon-folder"/></svg></span>';
         html += '<span class="ft-name">' + escH(r.name) + '</span>';
         html += '</div>';
         if (hasKids) {
@@ -783,7 +797,7 @@ function showMovePopup(type, id, fromProj, btnEl) {
             collect(kids[i].id, prefix + '  ');
         }
     }
-    folders.push({id: '', name: '📁 根目录（未归档）', depth: 0});
+    folders.push({id: '', name: '<svg style="width:14px;height:14px;vertical-align:-2px"><use href="#icon-folder"/></svg> 根目录（未归档）', depth: 0});
     collect(null, '');
     
     var html = '<div class="mp-title">移动到…</div>';
@@ -791,7 +805,7 @@ function showMovePopup(type, id, fromProj, btnEl) {
         var f = folders[i];
         if (i === 1) html += '<div class="mp-divider"></div>';
         var indent = 'padding-left:' + (14 + f.depth * 14) + 'px';
-        html += '<div class="mp-item" style="' + indent + '" onclick="moveItemTo(\'' + type + '\',\'' + esc(id) + '\',\'' + esc(fromProj||'') + '\',\'' + esc(f.id) + '\')"><span class="mp-icon">📁</span>' + escH(f.name) + '</div>';
+        html += '<div class="mp-item" style="' + indent + '" onclick="moveItemTo(\'' + type + '\',\'' + esc(id) + '\',\'' + esc(fromProj||'') + '\',\'' + esc(f.id) + '\')"><span class="mp-icon"><svg style="width:14px;height:14px"><use href="#icon-folder"/></svg></span>' + escH(f.name) + '</div>';
     }
     popup.innerHTML = html;
     
@@ -840,7 +854,7 @@ var GH_TOKEN = 'ghp_' + 'anBeVHJVVk01qRmo' + 'ekhsVP5ad9MTvX0dflJg';
 var GH_BASE = 'https://api.github.com/repos/' + GH_REPO + '/contents/itinerary-generator';
 var _ghPending = null;
 var _ghTimer = null;
-var _currentVer = 'v183';
+var _currentVer = 'v184';
 // Embedded fallback data — used when network fetch fails (e.g. behind firewall)
 var _EMBED_PROJECTS = [{"id":"etc7yj","name":"2023","created_at":1777632865280,"pinned":true,"itinerary_count":1,"child_count":2},{"id":"x7m9nj","name":"2024","created_at":1777632870187,"itinerary_count":0,"child_count":0},{"id":"am78c2","name":"2025","created_at":1777632876576,"itinerary_count":0,"child_count":0},{"id":"8kdshy","name":"已完成","parent":"etc7yj","created_at":1777633888654,"itinerary_count":0,"child_count":0},{"id":"j77w98","name":"删除","parent":"etc7yj","created_at":1777633893177,"itinerary_count":0,"child_count":0}];
 var _EMBED_ITINERARIES = [{"id":"b27zpw","name":"KNO1","created_at":1777633907157,"updated_at":1777633907157,"pinned":true,"project_id":"etc7yj","project_name":"2023"}];
@@ -1031,7 +1045,7 @@ function bootFetch() {
 
 function renderBreadcrumb() {
     var bc = document.getElementById('breadcrumb');
-    var html = '<a onclick="navTo(null)">📁 所有文件</a>';
+    var html = '<a onclick="navTo(null)"><svg style="width:14px;height:14px;vertical-align:-2px"><use href="#icon-folder"/></svg> 所有文件</a>';
     if (currentFolder) {
         var proj = findProject(currentFolder);
         if (proj) {
@@ -1176,7 +1190,7 @@ function renderListItem(item) {
         ? '<div class="item' + pinnedClass + '" draggable="true" data-type="folder" data-id="' + esc(d.id) + '" onclick="navTo(\'' + esc(d.id) + '\')">'
         : '<div class="item' + pinnedClass + '" draggable="true" data-type="itinerary" data-id="' + esc(d.id) + '" data-proj="' + esc(d.project_id||'') + '" onclick="openItinerary(\'' + esc(d.project_id||'') + '\', \'' + esc(d.id) + '\')">';
     dd += '<span class="item-check" onclick="event.stopPropagation()"><input type="checkbox" onchange="toggleSelect(\'' + item.type + '\',\'' + esc(d.id) + '\',this.checked)" ' + (_selectedItems[item.type + '_' + d.id] ? 'checked' : '') + '></span>';
-    dd += '<span class="type-icon">' + (item.type === 'folder' ? '📁' : '🗒️') + '</span>';
+    dd += '<span class="type-icon"><svg><use href="#' + (item.type === 'folder' ? 'icon-folder' : 'icon-itinerary') + '"/></svg></span>';
     dd += '<span class="name">' + escH(d.name) + '</span>';
     if (item.type === 'folder') {
         dd += '<span class="meta">文件夹</span>';
@@ -1474,7 +1488,7 @@ setTimeout(function() {
 <div class="trash-overlay" id="trashOverlay" onclick="hideTrash(event)">
     <div class="trash-modal" onclick="event.stopPropagation()">
         <div class="tm-head">
-            <h3>🗑️ 回收站 <span style="font-size:12px;color:var(--gray);font-weight:normal;">30天后自动清理</span></h3>
+            <h3><svg style="width:16px;height:16px;vertical-align:-3px"><use href="#icon-folder"/></svg> 回收站 <span style="font-size:12px;color:var(--gray);font-weight:normal;">30天后自动清理</span></h3>
             <button class="close-btn" onclick="hideTrash()">×</button>
         </div>
         <div class="tm-body" id="trashBody"></div>
