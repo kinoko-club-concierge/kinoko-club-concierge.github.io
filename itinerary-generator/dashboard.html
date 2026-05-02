@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v182 fixed-slidein-sidebar + quick-actions -->
+<!DOCTYPE html><!-- v183 hover-sidebar + toolbar-top + drag-ctx -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="version" content="v182">
+<meta name="version" content="v183">
 <title>Kinoko Club Concierge — 行程管理</title>
 <style>
 :root { --gold: #8a6d3b; --gold-light: #C9A96E; --cream: #FDF8EE; --dark: #534741; --gray: #656565; --border: #DBD4CF; }
@@ -125,34 +125,43 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 .app-layout { display:block; max-width:900px; margin:0 auto; }
 
 /* Sidebar — fixed slide-in */
-.sidebar-tab { position:fixed; left:0; top:50%; transform:translateY(-50%); width:28px; height:80px; background:var(--gold); color:#fff; border-radius:0 6px 6px 0; cursor:pointer; display:flex; align-items:center; justify-content:center; writing-mode:vertical-lr; font-size:11px; letter-spacing:3px; z-index:1000; transition:left 0.25s; font-family:inherit; }
+.sidebar-tab { position:fixed; left:0; top:calc(50vh + 28px); transform:translateY(-50%); width:28px; height:80px; background:var(--gold); color:#fff; border-radius:0 6px 6px 0; cursor:pointer; display:flex; align-items:center; justify-content:center; writing-mode:vertical-lr; font-size:11px; letter-spacing:3px; z-index:1000; transition:left 0.25s; font-family:inherit; }
 .sidebar-tab:hover { background:#7a5d2b; }
 .sidebar-tab.open { left:260px; }
-.sidebar { position:fixed; left:-270px; top:0; width:260px; height:100vh; background:#fff; border-right:1px solid var(--border); z-index:999; display:flex; flex-direction:column; transition:left 0.25s ease; box-shadow:2px 0 16px rgba(0,0,0,0.08); }
+.sidebar { position:fixed; left:-270px; top:56px; width:260px; height:calc(100vh - 56px); background:#fff; border-right:1px solid var(--border); z-index:999; display:flex; flex-direction:column; transition:left 0.25s ease; box-shadow:2px 0 16px rgba(0,0,0,0.08); }
 .sidebar.open { left:0; }
-.sidebar-header { padding:14px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
-.sidebar-header span { font-size:14px; font-weight:600; color:var(--dark); letter-spacing:0.04em; }
-.sidebar-header button { background:none; border:none; font-size:18px; cursor:pointer; color:var(--gray); padding:2px 6px; border-radius:3px; }
+/* Sidebar header */
+.sidebar-header { padding:12px 14px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+.sidebar-header span { font-size:13px; font-weight:600; color:var(--dark); letter-spacing:0.04em; }
+.sidebar-header button { background:none; border:none; font-size:16px; cursor:pointer; color:var(--gray); padding:2px 6px; border-radius:3px; }
 .sidebar-header button:hover { color:var(--dark); background:var(--cream); }
-.sidebar-body { flex:1; overflow-y:auto; padding:8px 0; }
+/* Sidebar toolbar */
+.sidebar-toolbar { padding:8px 12px; border-bottom:1px solid var(--border); flex-shrink:0; display:flex; gap:5px; }
+.sidebar-toolbar button { flex:1; padding:5px 0; border:1px solid var(--border); border-radius:4px; background:#fff; cursor:pointer; font-family:inherit; font-size:13px; color:var(--gray); display:flex; align-items:center; justify-content:center; transition:all 0.12s; min-width:0; }
+.sidebar-toolbar button:hover { border-color:var(--gold-light); color:var(--gold); background:var(--cream); }
+.sidebar-toolbar .st-new:hover { color:#2e7d32; border-color:#a5d6a7; }
+/* Sidebar body */
+.sidebar-body { flex:1; overflow-y:auto; padding:6px 0; }
 .sidebar-body::-webkit-scrollbar { width:4px; }
 .sidebar-body::-webkit-scrollbar-track { background:transparent; }
 .sidebar-body::-webkit-scrollbar-thumb { background:#D1C4B0; border-radius:10px; }
 .sidebar-section { padding:0; }
-.sidebar .sidebar-title { font-size:10px; color:var(--gray); letter-spacing:0.1em; padding:12px 16px 6px; font-weight:500; text-transform:uppercase; }
+.sidebar .sidebar-title { font-size:10px; color:var(--gray); letter-spacing:0.1em; padding:10px 16px 4px; font-weight:500; text-transform:uppercase; }
 .sidebar .sidebar-item { display:flex; align-items:center; gap:8px; padding:7px 16px; cursor:pointer; font-size:12px; color:var(--dark); transition:background 0.12s; }
 .sidebar .sidebar-item:hover { background:rgba(139,105,20,0.06); }
 .sidebar .sidebar-item:active { background:rgba(139,105,20,0.1); }
 .sidebar .sidebar-item .si-icon { font-size:15px; flex-shrink:0; opacity:0.8; }
 .sidebar .sidebar-item .si-name { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .sidebar .sidebar-item .si-meta { font-size:10px; color:#aaa; flex-shrink:0; }
-.sidebar .sidebar-divider { border:none; border-top:1px solid var(--border); margin:10px 16px; opacity:0.4; }
+.sidebar .sidebar-divider { border:none; border-top:1px solid var(--border); margin:8px 16px; opacity:0.4; }
 /* Folder tree in sidebar */
 .sidebar .folder-tree { padding:0; }
-.ft-row { display:flex; align-items:center; padding:5px 8px; border-radius:4px; cursor:pointer; margin:0 8px; transition:background 0.12s; }
+.ft-row { display:flex; align-items:center; padding:5px 8px; border-radius:4px; cursor:pointer; margin:0 8px; transition:background 0.12s; user-select:none; }
 .ft-row:hover { background:rgba(139,105,20,0.06); }
 .ft-row.active .ft-name { color:var(--gold); font-weight:600; }
-.ft-arrow { width:18px; height:18px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:9px; color:var(--gray); transition:transform 0.15s; border-radius:3px; }
+.ft-row.drag-over { background:rgba(139,105,20,0.12); outline:2px dashed var(--gold-light); outline-offset:-2px; }
+.ft-row.dragging { opacity:0.4; }
+.ft-arrow { width:16px; height:16px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:8px; color:var(--gray); transition:transform 0.15s; border-radius:3px; }
 .ft-arrow:hover { background:rgba(139,105,20,0.06); color:var(--gold); }
 .ft-arrow.expanded { transform:rotate(90deg); }
 .ft-arrow.placeholder { visibility:hidden; }
@@ -160,15 +169,17 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 .ft-name { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; color:var(--dark); }
 .ft-children { overflow:hidden; }
 .ft-children.collapsed { display:none; }
-/* Sidebar footer */
-.sidebar-footer { padding:10px 12px; border-top:1px solid var(--border); flex-shrink:0; }
-.sidebar-footer .sf-row { display:flex; gap:6px; margin-bottom:6px; }
-.sidebar-footer .sf-row:last-child { margin-bottom:0; }
-.sidebar-footer button { flex:1; padding:7px 0; border:1px solid var(--border); border-radius:4px; background:#fff; font-size:11px; color:var(--gray); cursor:pointer; font-family:inherit; display:flex; align-items:center; justify-content:center; gap:3px; white-space:nowrap; transition:all 0.12s; }
-.sidebar-footer button:hover { border-color:var(--gold-light); color:var(--dark); background:var(--cream); }
-/* Overlay when sidebar open */
-.sidebar-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.15); z-index:998; }
-.sidebar-overlay.visible { display:block; }
+/* Sidebar drag */
+.sidebar-item.dragging { opacity:0.4; }
+.sidebar-item.drag-over { background:rgba(139,105,20,0.12); outline:2px dashed var(--gold-light); outline-offset:-2px; }
+/* Context menu */
+.ctx-menu { display:none; position:fixed; z-index:200; background:#fff; border:1px solid var(--border); border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,0.12); min-width:150px; padding:4px 0; }
+.ctx-menu.open { display:block; }
+.ctx-menu .ctx-item { padding:8px 16px; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:8px; transition:background 0.1s; color:var(--dark); }
+.ctx-menu .ctx-item:hover { background:var(--cream); }
+.ctx-menu .ctx-item.danger { color:#c62828; }
+.ctx-menu .ctx-item.danger:hover { background:#ffebee; }
+.ctx-menu .ctx-divider { border-top:1px solid var(--border); margin:4px 0; opacity:0.5; }
 @media (max-width:768px) {
     .sidebar { width:240px; left:-250px; }
     .sidebar.open { left:0; }
@@ -222,11 +233,17 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
     </div>
 </div>
 
-<div class="sidebar-tab" id="sidebarTab" onclick="toggleSidebar()">快捷区</div>
+<div class="sidebar-tab" id="sidebarTab">快捷区</div>
 <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
         <span>快捷区</span>
-        <button onclick="toggleSidebar()">×</button>
+        <button onclick="closeSidebar()">×</button>
+    </div>
+    <div class="sidebar-toolbar">
+        <button onclick="undoLast()" title="上一步 ⌘Z">←</button>
+        <button onclick="redoLast()" title="下一步 ⌘⇧Z">→</button>
+        <button class="st-new" onclick="createItem('folder')" title="新建文件夹">📁+</button>
+        <button class="st-new" onclick="createItem('itinerary')" title="新建行程">🗒️+</button>
     </div>
     <div class="sidebar-body" id="sidebarBody">
         <div class="sidebar-section">
@@ -239,17 +256,8 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
             <div class="folder-tree" id="sidebarTree"></div>
         </div>
     </div>
-    <div class="sidebar-footer">
-        <div class="sf-row">
-            <button onclick="undoLast()" title="撤销 ⌘Z">↩ 撤销</button>
-            <button onclick="redoLast()" title="重做 ⌘⇧Z">↪ 重做</button>
-        </div>
-        <div class="sf-row">
-            <button onclick="createItem('folder')">+ 文件夹</button>
-            <button onclick="createItem('itinerary')">+ 行程</button>
-        </div>
-    </div>
 </aside>
+<div class="ctx-menu" id="ctxMenu"></div>
 
 <div class="app-layout">
 <div class="container">
@@ -332,6 +340,7 @@ function renderRecent() {
     if (!el) return;
     if (!_recentItems.length) {
         el.innerHTML = '<div class="sidebar-item" style="color:#aaa;cursor:default;"><span class="si-name">暂无记录</span></div>';
+        attachSidebarDrag();
         return;
     }
     var html = '';
@@ -339,23 +348,65 @@ function renderRecent() {
         var r = _recentItems[i];
         var icon = r.type === 'folder' ? '📁' : '🗒️';
         var onclick = r.type === 'folder' ? 'navTo(\'' + esc(r.id) + '\')' : 'openItinerary(\'' + esc(r.proj) + '\',\'' + esc(r.id) + '\')';
-        html += '<div class="sidebar-item" onclick="' + onclick + '">';
+        html += '<div class="sidebar-item" draggable="true" data-stype="' + r.type + '" data-sid="' + esc(r.id) + '" data-sproj="' + esc(r.proj||'') + '" onclick="' + onclick + '" oncontextmenu="event.preventDefault();showCtxMenu(event,\'' + r.type + '\',\'' + esc(r.id) + '\',\'' + esc(r.proj||'') + '\')">';
         html += '<span class="si-icon">' + icon + '</span>';
         html += '<span class="si-name" title="' + escH(r.name) + '">' + escH(r.name) + '</span>';
         html += '<span class="si-meta">' + timeAgo(r.ts) + '</span>';
         html += '</div>';
     }
     el.innerHTML = html;
+    attachSidebarDrag();
 }
 var sidebarOpen = false;
+var _sidebarHover = false;
+var _sidebarTimer = null;
 function toggleSidebar() {
     sidebarOpen = !sidebarOpen;
     var s = document.getElementById('sidebar');
     var tab = document.getElementById('sidebarTab');
     s.classList.toggle('open', sidebarOpen);
     tab.classList.toggle('open', sidebarOpen);
+    _sidebarHover = sidebarOpen;
 }
-function initSidebar() {}
+function closeSidebar() {
+    sidebarOpen = false;
+    _sidebarHover = false;
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebarTab').classList.remove('open');
+    if (_sidebarTimer) { clearTimeout(_sidebarTimer); _sidebarTimer = null; }
+}
+function initSidebar() {
+    var tab = document.getElementById('sidebarTab');
+    var sidebar = document.getElementById('sidebar');
+    if (!tab || !sidebar) return;
+    tab.addEventListener('mouseenter', function() {
+        if (!sidebarOpen) { openSidebarHover(); }
+        _sidebarHover = true;
+    });
+    sidebar.addEventListener('mouseenter', function() {
+        _sidebarHover = true;
+        if (_sidebarTimer) { clearTimeout(_sidebarTimer); _sidebarTimer = null; }
+    });
+    tab.addEventListener('mouseleave', function() { scheduleSidebarClose(); });
+    sidebar.addEventListener('mouseleave', function() { scheduleSidebarClose(); });
+    tab.addEventListener('click', function() { toggleSidebar(); });
+}
+function openSidebarHover() {
+    var s = document.getElementById('sidebar');
+    var tab = document.getElementById('sidebarTab');
+    s.classList.add('open');
+    tab.classList.add('open');
+}
+function scheduleSidebarClose() {
+    _sidebarHover = false;
+    if (_sidebarTimer) clearTimeout(_sidebarTimer);
+    _sidebarTimer = setTimeout(function() {
+        if (!_sidebarHover && !sidebarOpen) {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebarTab').classList.remove('open');
+        }
+    }, 400);
+}
 function renderSidebarTree() {
     var el = document.getElementById('sidebarTree');
     if (!el) return;
@@ -375,7 +426,7 @@ function renderSidebarTree() {
             var isExpanded = _expanded[key] !== false; // default expanded
             var isActive = currentFolder === c.id;
             h += '<div class="ft-node">';
-            h += '<div class="ft-row' + (isActive ? ' active' : '') + '" style="padding-left:' + (depth * 16 + 8) + 'px" onclick="navTo(\'' + esc(c.id) + '\')">';
+            h += '<div class="ft-row' + (isActive ? ' active' : '') + '" draggable="true" data-stype="folder" data-sid="' + esc(c.id) + '" data-sproj="' + esc(c.parent||'') + '" style="padding-left:' + (depth * 16 + 8) + 'px" onclick="navTo(\'' + esc(c.id) + '\')" oncontextmenu="event.preventDefault();event.stopPropagation();showCtxMenu(event,\'folder\',\'' + esc(c.id) + '\',\'' + esc(c.parent||'') + '\')">';
             if (hasKids) {
                 h += '<span class="ft-arrow' + (isExpanded ? ' expanded' : '') + '" onclick="event.stopPropagation();toggleFTNode(\'' + esc(c.id) + '\',this)">▶</span>';
             } else {
@@ -402,7 +453,7 @@ function renderSidebarTree() {
         var isExpanded = _expanded[key] !== false;
         var isActive = currentFolder === r.id;
         html += '<div class="ft-node">';
-        html += '<div class="ft-row' + (isActive ? ' active' : '') + '" style="padding-left:8px" onclick="navTo(\'' + esc(r.id) + '\')">';
+        html += '<div class="ft-row' + (isActive ? ' active' : '') + '" draggable="true" data-stype="folder" data-sid="' + esc(r.id) + '" data-sproj="' + esc(r.parent||'') + '" style="padding-left:8px" onclick="navTo(\'' + esc(r.id) + '\')" oncontextmenu="event.preventDefault();event.stopPropagation();showCtxMenu(event,\'folder\',\'' + esc(r.id) + '\',\'' + esc(r.parent||'') + '\')">';
         if (hasKids) {
             html += '<span class="ft-arrow' + (isExpanded ? ' expanded' : '') + '" onclick="event.stopPropagation();toggleFTNode(\'' + esc(r.id) + '\',this)">▶</span>';
         } else {
@@ -436,6 +487,116 @@ function toggleFTNode(id, arrowEl) {
         arrowEl.classList.remove('expanded');
         window._ftExpanded[key] = false;
     }
+}
+
+// ===== Sidebar Drag to Main Area =====
+var _sbDragItem = null;
+function attachSidebarDrag() {
+    var items = document.querySelectorAll('#sidebar .sidebar-item[draggable], #sidebar .ft-row[draggable]');
+    for (var i = 0; i < items.length; i++) {
+        items[i].addEventListener('dragstart', function(e) {
+            _sbDragItem = {type: this.dataset.stype, id: this.dataset.sid, proj: this.dataset.sproj};
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', this.dataset.stype + '/' + this.dataset.sid);
+        });
+        items[i].addEventListener('dragend', function() {
+            this.classList.remove('dragging');
+            _sbDragItem = null;
+            document.querySelectorAll('.sidebar-item.drag-over, .ft-row.drag-over').forEach(function(el) { el.classList.remove('drag-over'); });
+        });
+        items[i].addEventListener('dragover', function(e) {
+            e.preventDefault();
+            if (!_sbDragItem) return;
+            if (this.dataset.sid === _sbDragItem.id && this.dataset.stype === _sbDragItem.type) return;
+            this.classList.add('drag-over');
+        });
+        items[i].addEventListener('dragleave', function() { this.classList.remove('drag-over'); });
+        items[i].addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('drag-over');
+            if (!_sbDragItem) return;
+            var targetType = this.dataset.stype;
+            var targetId = this.dataset.sid;
+            if (targetType === 'folder' && _sbDragItem.type !== targetType) return; // can't mix types without folder as target
+            if (targetType === 'folder' && _sbDragItem.type === 'folder') {
+                if (_sbDragItem.id === targetId) return;
+                if (window.moveFolder) moveFolder(_sbDragItem.id, targetId);
+            } else if (targetType === 'folder' && _sbDragItem.type === 'itinerary') {
+                if (_sbDragItem.proj === targetId) return;
+                if (window.moveItinerary) moveItinerary(_sbDragItem.id, _sbDragItem.proj, targetId);
+            }
+        });
+    }
+}
+
+// ===== Right-click Context Menu =====
+var _ctxTarget = null;
+function showCtxMenu(e, type, id, proj) {
+    hideCtxMenu();
+    _ctxTarget = {type: type, id: id, proj: proj};
+    var menu = document.getElementById('ctxMenu');
+    var html = '';
+    if (type === 'folder') {
+        var p = projects.find(function(x) { return x.id === id; });
+        var isPinned = p && p.pinned;
+        html += '<div class="ctx-item" onclick="ctxTogglePin(\'folder\',\'' + esc(id) + '\',' + (isPinned?'true':'false') + ')">📌 ' + (isPinned ? '取消置顶' : '置顶') + '</div>';
+        html += '<div class="ctx-item" onclick="ctxRename(\'folder\',\'' + esc(id) + '\')">✏️ 重命名</div>';
+        html += '<div class="ctx-item" onclick="ctxDup(\'folder\',\'' + esc(id) + '\')">📋 复制文件夹</div>';
+        html += '<div class="ctx-divider"></div>';
+        html += '<div class="ctx-item danger" onclick="ctxDelete(\'folder\',\'' + esc(id) + '\')">🗑️ 删除</div>';
+    } else {
+        var it = allData.find(function(x) { return x.id === id && (x.project_id === proj || (!proj && !x.project_id)); });
+        var isPinned = it && it.pinned;
+        html += '<div class="ctx-item" onclick="ctxTogglePin(\'itinerary\',\'' + esc(id) + '\',' + (isPinned?'true':'false') + ')">📌 ' + (isPinned ? '取消置顶' : '置顶') + '</div>';
+        html += '<div class="ctx-item" onclick="ctxRename(\'itinerary\',\'' + esc(id) + '\')">✏️ 重命名</div>';
+        html += '<div class="ctx-item" onclick="ctxDup(\'itinerary\',\'' + esc(id) + '\')">📋 复制行程</div>';
+        html += '<div class="ctx-item" onclick="showMovePopup(\'itinerary\',\'' + esc(id) + '\',\'' + esc(proj||'') + '\',document.getElementById(\'ctxMenu\'))">📁 移动到…</div>';
+        html += '<div class="ctx-divider"></div>';
+        html += '<div class="ctx-item danger" onclick="ctxDelete(\'itinerary\',\'' + esc(id) + '\')">🗑️ 删除</div>';
+    }
+    menu.innerHTML = html;
+    menu.style.top = Math.min(e.clientY, window.innerHeight - 200) + 'px';
+    menu.style.left = Math.min(e.clientX, window.innerWidth - 170) + 'px';
+    menu.classList.add('open');
+    setTimeout(function() { document.addEventListener('click', hideCtxMenu, {once: true}); }, 0);
+}
+function hideCtxMenu() {
+    document.getElementById('ctxMenu').classList.remove('open');
+    _ctxTarget = null;
+}
+function ctxTogglePin(type, id, current) {
+    hideCtxMenu();
+    if (type === 'folder') { var p = projects.find(function(x) { return x.id === id; }); if (p) { p.pinned = !current; } }
+    else { var it = allData.find(function(x) { return x.id === id; }); if (it) { it.pinned = !current; } }
+    ghSyncAll();
+}
+function ctxRename(type, id) {
+    hideCtxMenu();
+    if (type === 'folder') { var p = projects.find(function(x) { return x.id === id; }); if (p) renameFolder(id, p.name); }
+    else { var it = allData.find(function(x) { return x.id === id; }); if (it) renameItinerary(it.project_id||'', id, it.name); }
+}
+function ctxDup(type, id) {
+    hideCtxMenu();
+    if (type === 'folder') {
+        var p = projects.find(function(x) { return x.id === id; });
+        if (!p) return;
+        var newId = 'f' + Math.random().toString(36).substring(2, 8);
+        var now = Date.now();
+        projects.push({id: newId, name: (p.name||'') + ' (副本)', parent: p.parent, created_at: now, updated_at: now, itinerary_count: 0, child_count: 0});
+    } else {
+        var it = allData.find(function(x) { return x.id === id; });
+        if (!it) return;
+        var newId = 'i' + Math.random().toString(36).substring(2, 8);
+        var now = Date.now();
+        allData.push({id: newId, name: (it.name||'') + ' (副本)', project_id: it.project_id, created_at: now, updated_at: now, pinned: false});
+    }
+    ghSyncAll();
+}
+function ctxDelete(type, id) {
+    hideCtxMenu();
+    if (type === 'folder') { deleteFolder(id); }
+    else { var it = allData.find(function(x) { return x.id === id; }); if (it) deleteItinerary(it.project_id||'', id); }
 }
 
 // ===== Undo/Redo =====
@@ -679,7 +840,7 @@ var GH_TOKEN = 'ghp_' + 'anBeVHJVVk01qRmo' + 'ekhsVP5ad9MTvX0dflJg';
 var GH_BASE = 'https://api.github.com/repos/' + GH_REPO + '/contents/itinerary-generator';
 var _ghPending = null;
 var _ghTimer = null;
-var _currentVer = 'v182';
+var _currentVer = 'v183';
 // Embedded fallback data — used when network fetch fails (e.g. behind firewall)
 var _EMBED_PROJECTS = [{"id":"etc7yj","name":"2023","created_at":1777632865280,"pinned":true,"itinerary_count":1,"child_count":2},{"id":"x7m9nj","name":"2024","created_at":1777632870187,"itinerary_count":0,"child_count":0},{"id":"am78c2","name":"2025","created_at":1777632876576,"itinerary_count":0,"child_count":0},{"id":"8kdshy","name":"已完成","parent":"etc7yj","created_at":1777633888654,"itinerary_count":0,"child_count":0},{"id":"j77w98","name":"删除","parent":"etc7yj","created_at":1777633893177,"itinerary_count":0,"child_count":0}];
 var _EMBED_ITINERARIES = [{"id":"b27zpw","name":"KNO1","created_at":1777633907157,"updated_at":1777633907157,"pinned":true,"project_id":"etc7yj","project_name":"2023"}];
@@ -985,6 +1146,7 @@ function render() {
     // Attach drag listeners
     attachDragListeners();
     renderSidebarTree();
+    attachSidebarDrag();
     renderBatchBar();
 }
 
