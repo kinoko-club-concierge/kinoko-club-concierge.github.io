@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v194 move-folder + fix-popup-html -->
+<!DOCTYPE html><!-- v195 toast-zindex + deep-delete-fix -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="version" content="v194">
+<meta name="version" content="v195">
 <title>Kinoko Club Concierge — 行程管理</title>
 <style>
 :root { --gold: #8a6d3b; --gold-light: #C9A96E; --cream: #FDF8EE; --dark: #534741; --gray: #656565; --border: #DBD4CF; }
@@ -112,7 +112,7 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
     .search-row { flex-wrap:wrap; }
 }
 /* Toast notifications */
-.toast-container { position:fixed; top:70px; left:50%; transform:translateX(-50%); z-index:200; display:flex; flex-direction:column; gap:6px; align-items:center; pointer-events:none; }
+.toast-container { position:fixed; top:70px; left:50%; transform:translateX(-50%); z-index:2000; display:flex; flex-direction:column; gap:6px; align-items:center; pointer-events:none; }
 .toast { padding:10px 20px; border-radius:6px; font-size:13px; pointer-events:auto; animation:toastIn 0.3s ease; box-shadow:0 4px 12px rgba(0,0,0,0.1); max-width:90vw; }
 .toast-ok { background:#e8f5e9; color:#2e7d32; border:1px solid #a5d6a7; }
 .toast-err { background:#fce4ec; color:#c62828; border:1px solid #ef9a9a; }
@@ -1025,7 +1025,7 @@ var GH_TOKEN = 'ghp_' + 'anBeVHJVVk01qRmo' + 'ekhsVP5ad9MTvX0dflJg';
 var GH_BASE = 'https://api.github.com/repos/' + GH_REPO + '/contents/itinerary-generator';
 var _ghPending = null;
 var _ghTimer = null;
-var _currentVer = 'v194';
+var _currentVer = 'v195';
 // Embedded fallback data — used when network fetch fails (e.g. behind firewall)
 var _EMBED_PROJECTS = [{"id":"etc7yj","name":"2023","created_at":1777632865280,"pinned":true,"itinerary_count":1,"child_count":2},{"id":"x7m9nj","name":"2024","created_at":1777632870187,"itinerary_count":0,"child_count":0},{"id":"am78c2","name":"2025","created_at":1777632876576,"itinerary_count":0,"child_count":0},{"id":"8kdshy","name":"已完成","parent":"etc7yj","created_at":1777633888654,"itinerary_count":0,"child_count":0},{"id":"j77w98","name":"删除","parent":"etc7yj","created_at":1777633893177,"itinerary_count":0,"child_count":0}];
 var _EMBED_ITINERARIES = [{"id":"b27zpw","name":"KNO1","created_at":1777633907157,"updated_at":1777633907157,"pinned":true,"project_id":"etc7yj","project_name":"2023"}];
@@ -1514,13 +1514,21 @@ function renameItinerary(pid, iid, oldName) {
 function deleteFolder(pid) {
     if (!confirm('删除此文件夹及其中所有行程？')) return;
     var proj = projects.find(function(p) { return p.id === pid; });
-    if (proj) {
-        var children = projects.filter(function(p) { return p.parent === pid; });
-        var its = allData.filter(function(it) { return it.project_id === pid; });
-        pushUndo({type: 'delete-folder', label: '已删除文件夹 ' + proj.name, before: proj, children: children, itineraries: its});
+    // Collect ALL descendants recursively
+    var toRemove = [pid];
+    function collectDescendants(p) {
+        var kids = projects.filter(function(x) { return x.parent === p; });
+        for (var i = 0; i < kids.length; i++) {
+            toRemove.push(kids[i].id);
+            collectDescendants(kids[i].id);
+        }
     }
-    projects = projects.filter(function(p) { return p.id !== pid && p.parent !== pid; });
-    allData = allData.filter(function(it) { return it.project_id !== pid; });
+    collectDescendants(pid);
+    if (proj) {
+        pushUndo({type: 'delete-folder', label: '已删除文件夹 ' + proj.name, before: proj, descendantIds: toRemove.slice(1)});
+    }
+    projects = projects.filter(function(p) { return toRemove.indexOf(p.id) === -1; });
+    allData = allData.filter(function(it) { return toRemove.indexOf(it.project_id) === -1; });
     ghSyncAll();
 }
 
