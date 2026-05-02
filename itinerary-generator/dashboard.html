@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v187 tab-slides-with-sidebar -->
+<!DOCTYPE html><!-- v188 grip-drag-reorder -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="version" content="v187">
+<meta name="version" content="v188">
 <title>Kinoko Club Concierge — 行程管理</title>
 <style>
 :root { --gold: #8a6d3b; --gold-light: #C9A96E; --cream: #FDF8EE; --dark: #534741; --gray: #656565; --border: #DBD4CF; }
@@ -125,12 +125,12 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 /* App layout */
 .app-layout { display:block; max-width:1200px; margin:0 auto; }
 
-/* Sidebar — fixed slide-in with separate tab */
-.sidebar-tab { position:fixed; left:0; top:50%; transform:translateY(-50%); width:28px; height:80px; background:var(--gold); color:#fff; border-radius:0 6px 6px 0; cursor:pointer; display:flex; align-items:center; justify-content:center; writing-mode:vertical-lr; font-size:11px; letter-spacing:3px; z-index:1000; font-family:inherit; transition:left 0.25s ease,background 0.15s; }
-.sidebar-tab:hover { background:#7a5d2b; }
-.sidebar-tab.open { left:288px; }
-.sidebar { position:fixed; left:-260px; top:64px; width:260px; height:calc(100vh - 64px); background:#fff; border-right:1px solid var(--border); z-index:999; display:flex; flex-direction:column; transition:left 0.25s ease; box-shadow:2px 0 16px rgba(0,0,0,0.08); }
-.sidebar.open { left:28px; }
+/* Sidebar — single panel with grip handle */
+.sidebar { position:fixed; left:-232px; top:64px; width:260px; height:calc(100vh - 64px); background:#fff; border-right:1px solid var(--border); z-index:999; display:flex; transition:left 0.25s ease; box-shadow:2px 0 16px rgba(0,0,0,0.08); }
+.sidebar.open { left:0; }
+.sidebar-grip { position:absolute; right:0; top:50%; transform:translateY(-50%); width:28px; height:80px; background:var(--gold); color:#fff; border-radius:6px 0 0 6px; cursor:pointer; display:flex; align-items:center; justify-content:center; writing-mode:vertical-lr; font-size:11px; letter-spacing:3px; font-family:inherit; z-index:2; transition:background 0.15s; }
+.sidebar-grip:hover { background:#7a5d2b; }
+.sidebar-inner { flex:1; display:flex; flex-direction:column; overflow:hidden; padding-right:28px; }
 /* Sidebar header */
 .sidebar-header { padding:12px 14px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
 .sidebar-header span { font-size:13px; font-weight:600; color:var(--dark); letter-spacing:0.04em; }
@@ -157,7 +157,7 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 .sidebar .sidebar-divider { border:none; border-top:1px solid var(--border); margin:8px 16px; opacity:0.4; }
 /* Folder tree in sidebar */
 .sidebar .folder-tree { padding:0; }
-.ft-row { display:flex; align-items:center; padding:5px 8px; border-radius:4px; cursor:pointer; margin:0 8px; transition:background 0.12s; user-select:none; }
+.ft-row { display:flex; align-items:center; padding:5px 8px; border-radius:4px; cursor:pointer; margin:0 8px; transition:background 0.12s; user-select:none; position:relative; }
 .ft-row:hover { background:rgba(139,105,20,0.06); }
 .ft-row.active .ft-name { color:var(--gold); font-weight:600; }
 .ft-row.drag-over { background:rgba(139,105,20,0.12); outline:2px dashed var(--gold-light); outline-offset:-2px; }
@@ -173,6 +173,10 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 /* Sidebar drag */
 .sidebar-item.dragging { opacity:0.4; }
 .sidebar-item.drag-over { background:rgba(139,105,20,0.12); outline:2px dashed var(--gold-light); outline-offset:-2px; }
+.ft-row.drop-above::before { content:''; position:absolute; top:-2px; left:8px; right:8px; height:3px; background:var(--gold); border-radius:2px; pointer-events:none; }
+.ft-row.drop-below::after { content:''; position:absolute; bottom:-2px; left:8px; right:8px; height:3px; background:var(--gold); border-radius:2px; pointer-events:none; }
+.drop-root-indicator { height:3px; background:var(--gold); border-radius:2px; margin:2px 8px; display:none; }
+.drop-root-indicator.show { display:block; }
 /* Context menu */
 .ctx-menu { display:none; position:fixed; z-index:200; background:#fff; border:1px solid var(--border); border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,0.12); min-width:150px; padding:4px 0; }
 .ctx-menu.open { display:block; }
@@ -213,9 +217,8 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 .item .item-check { flex:0 0 auto; margin-right:10px; display:flex; align-items:center; }
 .item .item-check input { width:16px; height:16px; cursor:pointer; accent-color:var(--gold); }
 @media (max-width:768px) {
-    .sidebar { left:-260px; width:260px; }
-    .sidebar.open { left:28px; }
-    .sidebar-tab.open { left:288px; }
+    .sidebar { left:-232px; width:260px; }
+    .sidebar.open { left:0; }
     .container { max-width:100%; }
     .item .item-check { margin-right:6px; }
 }
@@ -251,17 +254,16 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
     </div>
 </div>
 
-<div class="sidebar-tab" id="sidebarTab">快捷区</div>
-<aside class="sidebar" id="sidebar">
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-grip" id="sidebarGrip">快捷区</div>
+    <div class="sidebar-inner">
     <div class="sidebar-header">
         <span>快捷区</span>
         <button onclick="closeSidebar()">×</button>
     </div>
     <div class="sidebar-toolbar">
-        <button onclick="undoLast()" title="上一步 ⌘Z">←</button>
-        <button onclick="redoLast()" title="下一步 ⌘⇧Z">→</button>
-        <button class="st-new" onclick="createItem('folder')" title="新建文件夹"><svg style="width:14px;height:14px"><use href="#icon-folder"/></svg>+</button>
-        <button class="st-new" onclick="createItem('itinerary')" title="新建行程"><svg style="width:14px;height:14px"><use href="#icon-itinerary"/></svg>+</button>
+        <button class="st-new" onclick="createItem('folder')" title="新建文件夹"><svg style="width:14px;height:14px"><use href="#icon-folder"/></svg> 新建</button>
+        <button class="st-new" onclick="createItem('itinerary')" title="新建行程"><svg style="width:14px;height:14px"><use href="#icon-itinerary"/></svg> 新建</button>
     </div>
     <div class="sidebar-body" id="sidebarBody">
         <div class="sidebar-section">
@@ -274,7 +276,8 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
             <div class="folder-tree" id="sidebarTree"></div>
         </div>
     </div>
-</aside>
+    </div>
+</div>
 <div class="ctx-menu" id="ctxMenu"></div>
 
 <div class="app-layout">
@@ -381,33 +384,30 @@ var _sidebarTimer = null;
 function toggleSidebar() {
     sidebarOpen = !sidebarOpen;
     var s = document.getElementById('sidebar');
-    var tab = document.getElementById('sidebarTab');
     s.classList.toggle('open', sidebarOpen);
-    tab.classList.toggle('open', sidebarOpen);
     _sidebarHover = sidebarOpen;
 }
 function closeSidebar() {
     sidebarOpen = false;
     _sidebarHover = false;
     document.getElementById('sidebar').classList.remove('open');
-    document.getElementById('sidebarTab').classList.remove('open');
     if (_sidebarTimer) { clearTimeout(_sidebarTimer); _sidebarTimer = null; }
 }
 function initSidebar() {
-    var tab = document.getElementById('sidebarTab');
+    var grip = document.getElementById('sidebarGrip');
     var sidebar = document.getElementById('sidebar');
-    if (!tab || !sidebar) return;
-    tab.addEventListener('mouseenter', function() {
-        if (!sidebarOpen) { sidebar.classList.add('open'); tab.classList.add('open'); }
+    if (!grip || !sidebar) return;
+    grip.addEventListener('mouseenter', function() {
+        if (!sidebarOpen) { sidebar.classList.add('open'); }
         _sidebarHover = true;
     });
     sidebar.addEventListener('mouseenter', function() {
         _sidebarHover = true;
         if (_sidebarTimer) { clearTimeout(_sidebarTimer); _sidebarTimer = null; }
     });
-    tab.addEventListener('mouseleave', function() { scheduleSidebarClose(); });
+    grip.addEventListener('mouseleave', function() { scheduleSidebarClose(); });
     sidebar.addEventListener('mouseleave', function() { scheduleSidebarClose(); });
-    tab.addEventListener('click', function() { toggleSidebar(); });
+    grip.addEventListener('click', function() { toggleSidebar(); });
 }
 function scheduleSidebarClose() {
     _sidebarHover = false;
@@ -415,7 +415,6 @@ function scheduleSidebarClose() {
     _sidebarTimer = setTimeout(function() {
         if (!_sidebarHover && !sidebarOpen) {
             document.getElementById('sidebar').classList.remove('open');
-            document.getElementById('sidebarTab').classList.remove('open');
         }
     }, 400);
 }
@@ -501,44 +500,91 @@ function toggleFTNode(id, arrowEl) {
     }
 }
 
-// ===== Sidebar Drag to Main Area =====
+// ===== Sidebar Drag =====
 var _sbDragItem = null;
 function attachSidebarDrag() {
     var items = document.querySelectorAll('#sidebar .sidebar-item[draggable], #sidebar .ft-row[draggable]');
     for (var i = 0; i < items.length; i++) {
         items[i].addEventListener('dragstart', function(e) {
-            _sbDragItem = {type: this.dataset.stype, id: this.dataset.sid, proj: this.dataset.sproj};
+            _sbDragItem = {type: this.dataset.stype, id: this.dataset.sid, proj: this.dataset.sproj, el: this};
             this.classList.add('dragging');
             e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/plain', this.dataset.stype + '/' + this.dataset.sid);
         });
         items[i].addEventListener('dragend', function() {
             this.classList.remove('dragging');
             _sbDragItem = null;
-            document.querySelectorAll('.sidebar-item.drag-over, .ft-row.drag-over').forEach(function(el) { el.classList.remove('drag-over'); });
+            document.querySelectorAll('.ft-row.drop-above, .ft-row.drop-below, .ft-row.drag-over, .sidebar-item.drag-over').forEach(function(el) { el.classList.remove('drop-above','drop-below','drag-over'); });
         });
         items[i].addEventListener('dragover', function(e) {
             e.preventDefault();
             if (!_sbDragItem) return;
             if (this.dataset.sid === _sbDragItem.id && this.dataset.stype === _sbDragItem.type) return;
-            this.classList.add('drag-over');
-        });
-        items[i].addEventListener('dragleave', function() { this.classList.remove('drag-over'); });
-        items[i].addEventListener('drop', function(e) {
-            e.preventDefault();
-            this.classList.remove('drag-over');
-            if (!_sbDragItem) return;
-            var targetType = this.dataset.stype;
-            var targetId = this.dataset.sid;
-            if (targetType === 'folder' && _sbDragItem.type !== targetType) return; // can't mix types without folder as target
-            if (targetType === 'folder' && _sbDragItem.type === 'folder') {
-                if (_sbDragItem.id === targetId) return;
-                if (window.moveFolder) moveFolder(_sbDragItem.id, targetId);
-            } else if (targetType === 'folder' && _sbDragItem.type === 'itinerary') {
-                if (_sbDragItem.proj === targetId) return;
-                if (window.moveItinerary) moveItinerary(_sbDragItem.id, _sbDragItem.proj, targetId);
+            // Clear all indicators
+            document.querySelectorAll('.ft-row.drop-above, .ft-row.drop-below, .ft-row.drag-over').forEach(function(el) { el.classList.remove('drop-above','drop-below','drag-over'); });
+            var rect = this.getBoundingClientRect();
+            var y = e.clientY - rect.top;
+            var h = rect.height;
+            if (y < h * 0.25) {
+                this.classList.add('drop-above');
+            } else if (y > h * 0.75) {
+                this.classList.add('drop-below');
+            } else if (this.dataset.stype === 'folder') {
+                this.classList.add('drag-over');
             }
         });
+        items[i].addEventListener('dragleave', function(e) {
+            if (!this.contains(e.relatedTarget)) {
+                this.classList.remove('drop-above','drop-below','drag-over');
+            }
+        });
+        items[i].addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('drop-above','drop-below','drag-over');
+            if (!_sbDragItem) return;
+            var rect = this.getBoundingClientRect();
+            var y = e.clientY - rect.top;
+            var h = rect.height;
+            var targetType = this.dataset.stype;
+            var targetId = this.dataset.sid;
+            var targetProj = this.dataset.sproj;
+            
+            if (y < h * 0.25) {
+                // Drop above: move to same level, insert before target
+                sbMoveToLevel(_sbDragItem, targetType, targetId, targetProj, true);
+            } else if (y > h * 0.75) {
+                // Drop below: move to same level, insert after target
+                sbMoveToLevel(_sbDragItem, targetType, targetId, targetProj, false);
+            } else if (targetType === 'folder') {
+                // Drop into folder
+                if (_sbDragItem.type === 'folder' && _sbDragItem.id !== targetId) {
+                    moveFolder(_sbDragItem.id, targetId);
+                } else if (_sbDragItem.type === 'itinerary' && _sbDragItem.proj !== targetId) {
+                    moveItinerary(_sbDragItem.id, _sbDragItem.proj, targetId);
+                }
+            }
+        });
+    }
+}
+function sbMoveToLevel(drag, targetType, targetId, targetProj, above) {
+    if (drag.id === targetId && drag.type === targetType) return;
+    // Determine target parent level
+    var newParent = targetType === 'folder' ? targetProj : null;
+    if (targetType === 'folder' && targetId) {
+        // Target's parent is the parent of the target folder
+        var tp = projects.find(function(x) { return x.id === targetId; });
+        if (tp) newParent = tp.parent || null;
+    }
+    
+    if (drag.type === 'folder') {
+        var p = projects.find(function(x) { return x.id === drag.id; });
+        if (!p) return;
+        p.parent = newParent;
+        ghSyncAll();
+    } else if (drag.type === 'itinerary') {
+        var it = allData.find(function(x) { return x.id === drag.id && (x.project_id === drag.proj || (!drag.proj && !x.project_id)); });
+        if (!it) return;
+        it.project_id = newParent;
+        ghSyncAll();
     }
 }
 
@@ -890,7 +936,7 @@ var GH_TOKEN = 'ghp_' + 'anBeVHJVVk01qRmo' + 'ekhsVP5ad9MTvX0dflJg';
 var GH_BASE = 'https://api.github.com/repos/' + GH_REPO + '/contents/itinerary-generator';
 var _ghPending = null;
 var _ghTimer = null;
-var _currentVer = 'v187';
+var _currentVer = 'v188';
 // Embedded fallback data — used when network fetch fails (e.g. behind firewall)
 var _EMBED_PROJECTS = [{"id":"etc7yj","name":"2023","created_at":1777632865280,"pinned":true,"itinerary_count":1,"child_count":2},{"id":"x7m9nj","name":"2024","created_at":1777632870187,"itinerary_count":0,"child_count":0},{"id":"am78c2","name":"2025","created_at":1777632876576,"itinerary_count":0,"child_count":0},{"id":"8kdshy","name":"已完成","parent":"etc7yj","created_at":1777633888654,"itinerary_count":0,"child_count":0},{"id":"j77w98","name":"删除","parent":"etc7yj","created_at":1777633893177,"itinerary_count":0,"child_count":0}];
 var _EMBED_ITINERARIES = [{"id":"b27zpw","name":"KNO1","created_at":1777633907157,"updated_at":1777633907157,"pinned":true,"project_id":"etc7yj","project_name":"2023"}];
