@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v180 sidebar-collapse + tree-fold + scrollbar -->
+<!DOCTYPE html><!-- v181 undo-redo + cmd-z + moveto -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="version" content="v180">
+<meta name="version" content="v181">
 <title>Kinoko Club Concierge — 行程管理</title>
 <style>
 :root { --gold: #8a6d3b; --gold-light: #C9A96E; --cream: #FDF8EE; --dark: #534741; --gray: #656565; --border: #DBD4CF; }
@@ -170,6 +170,16 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 .batch-bar .bb-btn.danger { border-color:#ef9a9a; color:#c62828; }
 .batch-bar .bb-btn.danger:hover { background:#ffcdd2; }
 .batch-bar .bb-cancel { font-size:12px; color:var(--gray); cursor:pointer; border:none; background:none; font-family:inherit; }
+/* Move popup */
+.move-popup { display:none; position:fixed; z-index:150; background:#fff; border:1px solid var(--border); border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,0.12); min-width:180px; max-height:260px; overflow-y:auto; padding:4px 0; }
+.move-popup.open { display:block; }
+.move-popup .mp-title { font-size:11px; color:var(--gray); padding:6px 12px 2px; letter-spacing:0.05em; }
+.move-popup .mp-item { padding:8px 14px; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:8px; transition:background 0.1s; }
+.move-popup .mp-item:hover { background:var(--cream); }
+.move-popup .mp-item .mp-icon { font-size:15px; opacity:0.7; }
+.move-popup .mp-divider { border-top:1px solid var(--border); margin:4px 0; opacity:0.5; }
+.move-popup::-webkit-scrollbar { width:4px; }
+.move-popup::-webkit-scrollbar-thumb { background:#D1C4B0; border-radius:10px; }
 /* Checkbox */
 .item .item-check { flex:0 0 auto; margin-right:10px; display:flex; align-items:center; }
 .item .item-check input { width:16px; height:16px; cursor:pointer; accent-color:var(--gold); }
@@ -183,6 +193,7 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 </head>
 <body>
 <div class="toast-container" id="toastContainer"></div>
+<div class="move-popup" id="movePopup" onclick="event.stopPropagation()"></div>
 
 <div class="topbar">
     <div class="topbar-left">
@@ -264,7 +275,8 @@ var dragItem = null;
 var _undoStack = [];
 var _undoTimer = null;
 var _undoToast = null;
-var _selectedItems = {}; // {type_id: true}
+var _redoStack = [];
+var _selectedItems = {};
 var _recentItems = [];
 var _recentMax = 15;
 
@@ -395,11 +407,15 @@ function toggleFTNode(id, arrowEl) {
     }
 }
 
-// ===== Undo =====
+// ===== Undo/Redo =====
 function pushUndo(record) {
     _undoStack.push(record);
-    if (_undoStack.length > 20) _undoStack.shift();
+    _redoStack = [];
     showUndoToast(record.label);
+}
+function pushRedo(record) {
+    _redoStack.push(record);
+    if (_redoStack.length > 50) _redoStack.shift();
 }
 function showUndoToast(label) {
     if (_undoToast) { _undoToast.remove(); }
@@ -407,40 +423,77 @@ function showUndoToast(label) {
     var c = document.getElementById('toastContainer');
     var el = document.createElement('div');
     el.className = 'toast toast-undo';
-    el.innerHTML = '<span>' + escH(label) + '</span><button class="undo-btn" onclick="undoLast()">撤销</button>';
+    el.innerHTML = '<span>' + escH(label) + '</span><button class="undo-btn" onclick="undoLast()">撤销 ⌘Z</button>';
     c.appendChild(el);
     _undoToast = el;
     _undoTimer = setTimeout(function() {
         if (el.parentNode) el.parentNode.removeChild(el);
         _undoToast = null;
-    }, 5000);
+    }, 8000);
 }
 function undoLast() {
     if (!_undoStack.length) return;
     var rec = _undoStack.pop();
     if (_undoToast) { _undoToast.remove(); _undoToast = null; }
     if (_undoTimer) { clearTimeout(_undoTimer); _undoTimer = null; }
+    // Save current state as redo record
+    var redoRec = null;
     if (rec.type === 'delete-folder') {
+        redoRec = {type: 'delete-folder', label: '重做删除', before: rec.before, children: rec.children, itineraries: rec.itineraries};
         projects.push(rec.before);
         if (rec.children) { for (var i = 0; i < rec.children.length; i++) { projects.push(rec.children[i]); } }
         if (rec.itineraries) { for (var j = 0; j < rec.itineraries.length; j++) { allData.push(rec.itineraries[j]); } }
     } else if (rec.type === 'delete-itinerary') {
+        redoRec = {type: 'delete-itinerary', label: '重做删除', before: rec.before};
         allData.push(rec.before);
     } else if (rec.type === 'move-folder') {
         var p = projects.find(function(x) { return x.id === rec.id; });
-        if (p) p.parent = rec.oldParent;
+        if (p) { redoRec = {type: 'move-folder', label: '重做移动', id: rec.id, oldParent: p.parent}; p.parent = rec.oldParent; }
     } else if (rec.type === 'move-itinerary') {
         var it = allData.find(function(x) { return x.id === rec.id; });
-        if (it) it.project_id = rec.oldProj;
+        if (it) { redoRec = {type: 'move-itinerary', label: '重做移动', id: rec.id, oldProj: it.project_id}; it.project_id = rec.oldProj; }
     } else if (rec.type === 'rename-folder') {
         var p = projects.find(function(x) { return x.id === rec.id; });
-        if (p) p.name = rec.oldName;
+        if (p) { redoRec = {type: 'rename-folder', label: '重做重命名', id: rec.id, oldName: p.name}; p.name = rec.oldName; }
     } else if (rec.type === 'rename-itinerary') {
         var it = allData.find(function(x) { return x.id === rec.id; });
-        if (it) it.name = rec.oldName;
+        if (it) { redoRec = {type: 'rename-itinerary', label: '重做重命名', id: rec.id, oldName: it.name}; it.name = rec.oldName; }
+    }
+    if (redoRec) pushRedo(redoRec);
+    ghSyncAll();
+}
+function redoLast() {
+    if (!_redoStack.length) return;
+    var rec = _redoStack.pop();
+    // Re-apply the original action
+    if (rec.type === 'delete-folder') {
+        projects = projects.filter(function(p) { return p.id !== rec.before.id && p.parent !== rec.before.id; });
+        if (rec.itineraries) { var ids = {}; for (var k = 0; k < rec.itineraries.length; k++) { ids[rec.itineraries[k].id] = true; } allData = allData.filter(function(it) { return !ids[it.id]; }); }
+        pushUndo({type: 'delete-folder', label: '已删除文件夹 ' + rec.before.name, before: rec.before, children: rec.children, itineraries: rec.itineraries});
+    } else if (rec.type === 'delete-itinerary') {
+        allData = allData.filter(function(x) { return x.id !== rec.before.id; });
+        pushUndo({type: 'delete-itinerary', label: '已删除行程 ' + rec.before.name, before: rec.before});
+    } else if (rec.type === 'move-folder') {
+        var p = projects.find(function(x) { return x.id === rec.id; });
+        if (p) { var cur = p.parent; p.parent = rec.oldParent; pushUndo({type: 'move-folder', label: '已移动文件夹 ' + p.name, id: rec.id, oldParent: cur}); }
+    } else if (rec.type === 'move-itinerary') {
+        var it = allData.find(function(x) { return x.id === rec.id; });
+        if (it) { var cur = it.project_id; it.project_id = rec.oldProj; pushUndo({type: 'move-itinerary', label: '已移动行程 ' + it.name, id: rec.id, oldProj: cur}); }
+    } else if (rec.type === 'rename-folder') {
+        var p = projects.find(function(x) { return x.id === rec.id; });
+        if (p) { var cur = p.name; p.name = rec.oldName; pushUndo({type: 'rename-folder', label: '已重命名文件夹', id: rec.id, oldName: cur}); }
+    } else if (rec.type === 'rename-itinerary') {
+        var it = allData.find(function(x) { return x.id === rec.id; });
+        if (it) { var cur = it.name; it.name = rec.oldName; pushUndo({type: 'rename-itinerary', label: '已重命名行程', id: rec.id, oldName: cur}); }
     }
     ghSyncAll();
 }
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undoLast(); }
+    if ((e.metaKey || e.ctrlKey) && e.key === 'z' && e.shiftKey) { e.preventDefault(); redoLast(); }
+});
 
 // ===== Batch =====
 function toggleSelect(type, id, checked) {
@@ -522,13 +575,80 @@ function batchArchive() {
     ghSyncAll();
 }
 
+// ===== Move To =====
+var _moveTarget = null;
+function showMovePopup(type, id, fromProj, btnEl) {
+    var popup = document.getElementById('movePopup');
+    var rect = btnEl.getBoundingClientRect();
+    _moveTarget = {type: type, id: id, fromProj: fromProj};
+    
+    var folders = [];
+    function collect(p, prefix) {
+        var kids = projects.filter(function(x) { return x.parent === p; });
+        kids.sort(function(a,b) { return (a.name||'').toLowerCase().localeCompare((b.name||'').toLowerCase()); });
+        for (var i = 0; i < kids.length; i++) {
+            folders.push({id: kids[i].id, name: kids[i].name, depth: prefix.length});
+            collect(kids[i].id, prefix + '  ');
+        }
+    }
+    folders.push({id: '', name: '📁 根目录（未归档）', depth: 0});
+    collect(null, '');
+    
+    var html = '<div class="mp-title">移动到…</div>';
+    for (var i = 0; i < folders.length; i++) {
+        var f = folders[i];
+        if (i === 1) html += '<div class="mp-divider"></div>';
+        var indent = 'padding-left:' + (14 + f.depth * 14) + 'px';
+        html += '<div class="mp-item" style="' + indent + '" onclick="moveItemTo(\'' + type + '\',\'' + esc(id) + '\',\'' + esc(fromProj||'') + '\',\'' + esc(f.id) + '\')"><span class="mp-icon">📁</span>' + escH(f.name) + '</div>';
+    }
+    popup.innerHTML = html;
+    
+    // Position below button
+    var top = rect.bottom + 4;
+    var left = Math.min(rect.left, window.innerWidth - 200);
+    if (top + 260 > window.innerHeight) top = rect.top - 260;
+    popup.style.top = top + 'px';
+    popup.style.left = left + 'px';
+    popup.classList.add('open');
+    
+    setTimeout(function() {
+        document.addEventListener('click', hideMovePopup, {once: true});
+    }, 0);
+}
+function hideMovePopup() {
+    var popup = document.getElementById('movePopup');
+    popup.classList.remove('open');
+    _moveTarget = null;
+}
+function moveItemTo(type, id, fromProj, toProj) {
+    hideMovePopup();
+    if (fromProj === toProj) return;
+    if (type === 'folder') {
+        if (toProj === id) return; // can't move into self
+        var p = projects.find(function(x) { return x.id === id; });
+        if (p) {
+            var oldParent = p.parent;
+            p.parent = toProj || null;
+            pushUndo({type: 'move-folder', label: '已移动文件夹 ' + p.name, id: id, oldParent: oldParent});
+        }
+    } else {
+        var it = allData.find(function(x) { return x.id === id && (x.project_id === fromProj || (!fromProj && !x.project_id)); });
+        if (it) {
+            var oldProj = it.project_id;
+            it.project_id = toProj || null;
+            pushUndo({type: 'move-itinerary', label: '已移动行程 ' + it.name, id: id, oldProj: oldProj});
+        }
+    }
+    ghSyncAll();
+}
+
 // ===== GitHub Sync =====
 var GH_REPO = 'kinoko-club-concierge/kinoko-club-concierge.github.io';
 var GH_TOKEN = 'ghp_' + 'anBeVHJVVk01qRmo' + 'ekhsVP5ad9MTvX0dflJg';
 var GH_BASE = 'https://api.github.com/repos/' + GH_REPO + '/contents/itinerary-generator';
 var _ghPending = null;
 var _ghTimer = null;
-var _currentVer = 'v180';
+var _currentVer = 'v181';
 // Embedded fallback data — used when network fetch fails (e.g. behind firewall)
 var _EMBED_PROJECTS = [{"id":"etc7yj","name":"2023","created_at":1777632865280,"pinned":true,"itinerary_count":1,"child_count":2},{"id":"x7m9nj","name":"2024","created_at":1777632870187,"itinerary_count":0,"child_count":0},{"id":"am78c2","name":"2025","created_at":1777632876576,"itinerary_count":0,"child_count":0},{"id":"8kdshy","name":"已完成","parent":"etc7yj","created_at":1777633888654,"itinerary_count":0,"child_count":0},{"id":"j77w98","name":"删除","parent":"etc7yj","created_at":1777633893177,"itinerary_count":0,"child_count":0}];
 var _EMBED_ITINERARIES = [{"id":"b27zpw","name":"KNO1","created_at":1777633907157,"updated_at":1777633907157,"pinned":true,"project_id":"etc7yj","project_name":"2023"}];
@@ -876,11 +996,13 @@ function renderListItem(item) {
     if (item.type === 'folder') {
         dd += '<button class="action-btn" onclick="event.stopPropagation();togglePin(\'folder\',\'' + esc(d.id) + '\',' + (d.pinned ? 'true' : 'false') + ')">' + (d.pinned ? '取消置顶' : '置顶') + '</button>';
         dd += '<button class="action-btn" onclick="event.stopPropagation();renameFolder(\'' + esc(d.id) + '\',\'' + escJs(d.name) + '\')">重命名</button>';
+        dd += '<button class="action-btn move-btn" onclick="event.stopPropagation();showMovePopup(\'folder\',\'' + esc(d.id) + '\',\'' + esc(d.parent||'') + '\',this)">移动到</button>';
         dd += '<button class="action-btn del" onclick="event.stopPropagation();deleteFolder(\'' + esc(d.id) + '\')">删除</button>';
     } else {
         dd += '<button class="action-btn" onclick="event.stopPropagation();togglePin(\'itinerary\',\'' + esc(d.id) + '\',' + (d.pinned ? 'true' : 'false') + ')">' + (d.pinned ? '取消置顶' : '置顶') + '</button>';
         dd += '<button class="action-btn" onclick="event.stopPropagation();duplicateItinerary(\'' + esc(d.project_id||'') + '\',\'' + esc(d.id) + '\')">复制</button>';
         dd += '<button class="action-btn" onclick="event.stopPropagation();renameItinerary(\'' + esc(d.project_id||'') + '\',\'' + esc(d.id) + '\',\'' + escJs(d.name) + '\')">重命名</button>';
+        dd += '<button class="action-btn move-btn" onclick="event.stopPropagation();showMovePopup(\'itinerary\',\'' + esc(d.id) + '\',\'' + esc(d.project_id||'') + '\',this)">移动到</button>';
         dd += '<button class="action-btn del" onclick="event.stopPropagation();deleteItinerary(\'' + esc(d.project_id||'') + '\',\'' + esc(d.id) + '\')">删除</button>';
     }
     dd += '</span></span></div>';
