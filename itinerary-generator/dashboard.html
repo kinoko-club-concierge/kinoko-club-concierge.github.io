@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v195 toast-zindex + deep-delete-fix -->
+<!DOCTYPE html><!-- v196 qa-popup + preview-card + batch-drag + sync-banner + shortcuts + counts -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="version" content="v195">
+<meta name="version" content="v196">
 <title>Kinoko Club Concierge — 行程管理</title>
 <style>
 :root { --gold: #8a6d3b; --gold-light: #C9A96E; --cream: #FDF8EE; --dark: #534741; --gray: #656565; --border: #DBD4CF; }
@@ -227,6 +227,26 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
     .container { max-width:100%; }
     .item .item-check { margin-right:6px; }
 }
+/* Sync error banner */
+.sync-err-banner { display:none; align-items:center; justify-content:center; gap:8px; padding:8px 16px; background:#fff0f0; border:1px solid #ef9a9a; border-radius:6px; margin-bottom:6px; font-size:12px; color:#c62828; }
+.sync-err-banner.show { display:flex; }
+.sync-err-banner .dismiss-btn { margin-left:8px; padding:2px 8px; border:1px solid #ef9a9a; border-radius:3px; background:#fff; color:#c62828; cursor:pointer; font-size:11px; font-family:inherit; }
+/* Hover preview card */
+.preview-card { display:none; position:fixed; z-index:90; background:#fff; border:1px solid var(--gold-light); border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,0.12); padding:14px 18px; max-width:300px; font-size:13px; pointer-events:none; }
+.preview-card .pc-name { font-size:15px; font-weight:600; color:var(--dark); margin-bottom:6px; }
+.preview-card .pc-row { display:flex; gap:6px; margin-bottom:3px; font-size:12px; color:var(--gray); }
+.preview-card .pc-row .pc-label { color:#aaa; flex-shrink:0; }
+.preview-card .pc-row .pc-val { color:var(--dark); }
+.preview-card .pc-snippet { margin-top:6px; padding-top:6px; border-top:1px solid var(--border); font-size:11px; color:#888; line-height:1.5; }
+/* Quick-actions popup */
+.qa-popup { display:none; position:fixed; z-index:110; background:#fff; border:1px solid var(--border); border-radius:8px; box-shadow:0 6px 20px rgba(0,0,0,0.12); padding:4px 0; min-width:120px; }
+.qa-popup.open { display:block; }
+.qa-popup .qa-item { padding:10px 16px; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:8px; transition:background 0.1s; color:var(--dark); }
+.qa-popup .qa-item:hover { background:var(--cream); }
+.qa-popup .qa-item .qa-icon { font-size:15px; }
+/* Sidebar folder count */
+.ft-count { font-size:10px; color:#aaa; background:#f5f5f5; border-radius:8px; padding:1px 7px; margin-left:6px; flex-shrink:0; }
+.ft-row:hover .ft-count { background:#e8e0d0; color:var(--gray); }
 </style>
 </head>
 <body>
@@ -292,13 +312,20 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 </div>
 
 <div class="ctx-menu" id="ctxMenu"></div>
+<div class="preview-card" id="previewCard"></div>
+<div class="qa-popup" id="qaPopup"></div>
 
 <div class="app-layout">
 <div class="container">
     <div class="header-area">
+    <div class="sync-err-banner" id="syncErrBanner">
+        <span>⚠️ 云端保存失败，数据仅存本地。检查网络后刷新页面重试。</span>
+        <button class="dismiss-btn" onclick="document.getElementById('syncErrBanner').classList.remove('show')">知道了</button>
+    </div>
     <div class="batch-bar" id="batchBar">
         <span>已选 <span class="bb-count" id="batchCount">0</span> 项</span>
         <span class="bb-actions">
+            <button class="bb-btn" onclick="batchMove()">移动到</button>
             <button class="bb-btn danger" onclick="batchDelete()">删除</button>
             <button class="bb-btn" onclick="batchArchive()">归档</button>
             <button class="bb-cancel" onclick="clearBatch()">取消选择</button>
@@ -381,7 +408,7 @@ function renderRecent() {
     for (var i = 0; i < _recentItems.length; i++) {
         var r = _recentItems[i];
         var icon = '<svg><use href="#icon-' + (r.type === 'folder' ? 'folder' : 'itinerary') + '"/></svg>';
-        var onclick = r.type === 'folder' ? 'navTo(\'' + esc(r.id) + '\')' : 'openItinerary(\'' + esc(r.proj) + '\',\'' + esc(r.id) + '\')';
+        var onclick = 'showQAPopup(event,\'' + r.type + '\',\'' + esc(r.id) + '\',\'' + esc(r.proj||'') + '\',\'' + escJs(r.name) + '\')';
         html += '<div class="sidebar-item" draggable="true" data-stype="' + r.type + '" data-sid="' + esc(r.id) + '" data-sproj="' + esc(r.proj||'') + '" onclick="' + onclick + '" oncontextmenu="event.preventDefault();showCtxMenu(event,\'' + r.type + '\',\'' + esc(r.id) + '\',\'' + esc(r.proj||'') + '\')">';
         html += '<span class="si-icon">' + icon + '</span>';
         html += '<span class="si-name" title="' + escH(r.name) + '">' + escH(r.name) + '</span>';
@@ -471,15 +498,16 @@ function renderSidebarTree() {
             var key = 'f_' + c.id;
             var isExpanded = _expanded[key] !== false; // default expanded
             var isActive = currentFolder === c.id;
+            var cCount = projects.filter(function(p) { return p.parent === c.id; }).length + allData.filter(function(it) { return it.project_id === c.id; }).length;
             h += '<div class="ft-node">';
-            h += '<div class="ft-row' + (isActive ? ' active' : '') + '" draggable="true" data-stype="folder" data-sid="' + esc(c.id) + '" data-sproj="' + esc(c.parent||'') + '" style="padding-left:' + (depth * 16 + 8) + 'px" onclick="navTo(\'' + esc(c.id) + '\')" oncontextmenu="event.preventDefault();event.stopPropagation();showCtxMenu(event,\'folder\',\'' + esc(c.id) + '\',\'' + esc(c.parent||'') + '\')">';
+            h += '<div class="ft-row' + (isActive ? ' active' : '') + '" draggable="true" data-stype="folder" data-sid="' + esc(c.id) + '" data-sproj="' + esc(c.parent||'') + '" style="padding-left:' + (depth * 16 + 8) + 'px" onclick="showQAPopup(event,\'folder\',\'' + esc(c.id) + '\',\'' + esc(c.parent||'') + '\',\'' + escJs(c.name) + '\')" oncontextmenu="event.preventDefault();event.stopPropagation();showCtxMenu(event,\'folder\',\'' + esc(c.id) + '\',\'' + esc(c.parent||'') + '\')">';
             if (hasKids) {
                 h += '<span class="ft-arrow' + (isExpanded ? ' expanded' : '') + '" onclick="event.stopPropagation();toggleFTNode(\'' + esc(c.id) + '\',this)">▶</span>';
             } else {
                 h += '<span class="ft-arrow placeholder"></span>';
             }
             h += '<span class="ft-icon"><svg><use href="#icon-folder"/></svg></span>';
-            h += '<span class="ft-name">' + escH(c.name) + (c.pinned ? '<span class="ft-pin"><svg style="width:10px;height:10px"><use href="#icon-pin"/></svg></span>' : '') + '</span>';
+            h += '<span class="ft-name">' + escH(c.name) + (c.pinned ? '<span class="ft-pin"><svg style="width:10px;height:10px"><use href="#icon-pin"/></svg></span>' : '') + (cCount ? '<span class="ft-count">' + cCount + '</span>' : '') + '</span>';
             h += '</div>';
             var childrenHtml = '';
             if (hasKids) {
@@ -490,7 +518,7 @@ function renderSidebarTree() {
                 if (allData[ki].project_id === c.id && !allData[ki]._deleted) its.push(allData[ki]);
             }
             for (var k = 0; k < its.length; k++) {
-                childrenHtml += '<div class="ft-row ft-row-it" draggable="true" data-stype="itinerary" data-sid="' + esc(its[k].id) + '" data-sproj="' + esc(c.id) + '" style="padding-left:' + ((depth+1) * 16 + 8) + 'px" onclick="openItinerary(\'' + esc(c.id) + '\',\'' + esc(its[k].id) + '\')" oncontextmenu="event.preventDefault();event.stopPropagation();showCtxMenu(event,\'itinerary\',\'' + esc(its[k].id) + '\',\'' + esc(c.id) + '\')">';
+                childrenHtml += '<div class="ft-row ft-row-it" draggable="true" data-stype="itinerary" data-sid="' + esc(its[k].id) + '" data-sproj="' + esc(c.id) + '" style="padding-left:' + ((depth+1) * 16 + 8) + 'px" onclick="showQAPopup(event,\'itinerary\',\'' + esc(its[k].id) + '\',\'' + esc(c.id) + '\',\'' + escJs(its[k].title || its[k].name) + '\')" oncontextmenu="event.preventDefault();event.stopPropagation();showCtxMenu(event,\'itinerary\',\'' + esc(its[k].id) + '\',\'' + esc(c.id) + '\')">';
                 childrenHtml += '<span class="ft-arrow placeholder"></span>';
                 childrenHtml += '<span class="ft-icon"><svg><use href="#icon-itinerary"/></svg></span>';
                 childrenHtml += '<span class="ft-name">' + escH(its[k].title || its[k].name) + '</span>';
@@ -513,15 +541,16 @@ function renderSidebarTree() {
         var key = 'f_' + r.id;
         var isExpanded = _expanded[key] !== false;
         var isActive = currentFolder === r.id;
+        var rCount = projects.filter(function(p) { return p.parent === r.id; }).length + allData.filter(function(it) { return it.project_id === r.id; }).length;
         html += '<div class="ft-node">';
-        html += '<div class="ft-row' + (isActive ? ' active' : '') + '" draggable="true" data-stype="folder" data-sid="' + esc(r.id) + '" data-sproj="' + esc(r.parent||'') + '" style="padding-left:8px" onclick="navTo(\'' + esc(r.id) + '\')" oncontextmenu="event.preventDefault();event.stopPropagation();showCtxMenu(event,\'folder\',\'' + esc(r.id) + '\',\'' + esc(r.parent||'') + '\')">';
+        html += '<div class="ft-row' + (isActive ? ' active' : '') + '" draggable="true" data-stype="folder" data-sid="' + esc(r.id) + '" data-sproj="' + esc(r.parent||'') + '" style="padding-left:8px" onclick="showQAPopup(event,\'folder\',\'' + esc(r.id) + '\',\'' + esc(r.parent||'') + '\',\'' + escJs(r.name) + '\')" oncontextmenu="event.preventDefault();event.stopPropagation();showCtxMenu(event,\'folder\',\'' + esc(r.id) + '\',\'' + esc(r.parent||'') + '\')">';
         if (hasKids) {
             html += '<span class="ft-arrow' + (isExpanded ? ' expanded' : '') + '" onclick="event.stopPropagation();toggleFTNode(\'' + esc(r.id) + '\',this)">▶</span>';
         } else {
             html += '<span class="ft-arrow placeholder"></span>';
         }
         html += '<span class="ft-icon"><svg><use href="#icon-folder"/></svg></span>';
-        html += '<span class="ft-name">' + escH(r.name) + (r.pinned ? '<span class="ft-pin"><svg style="width:10px;height:10px"><use href="#icon-pin"/></svg></span>' : '') + '</span>';
+        html += '<span class="ft-name">' + escH(r.name) + (r.pinned ? '<span class="ft-pin"><svg style="width:10px;height:10px"><use href="#icon-pin"/></svg></span>' : '') + (rCount ? '<span class="ft-count">' + rCount + '</span>' : '') + '</span>';
         html += '</div>';
         var childrenHtml = '';
         if (hasKids) {
@@ -675,6 +704,7 @@ var _ctxTarget = null;
 function showCtxMenu(e, type, id, proj) {
     hideCtxMenu();
     _ctxTarget = {type: type, id: id, proj: proj};
+    _lastMouseX = e.clientX; _lastMouseY = e.clientY;
     var menu = document.getElementById('ctxMenu');
     var html = '';
     if (type === 'folder') {
@@ -908,12 +938,32 @@ function batchArchive() {
     _selectedItems = {};
     ghSyncAll();
 }
+// Batch move: select a target folder via the move popup
+function batchMove() {
+    var keys = Object.keys(_selectedItems);
+    if (!keys.length) return;
+    // Collect first item to determine type for popup
+    var parts = keys[0].split('_');
+    var firstType = parts[0];
+    var firstId = parts.slice(1).join('_');
+    var firstIt = firstType === 'folder' ? projects.find(function(x) { return x.id === firstId; }) : allData.find(function(x) { return x.id === firstId; });
+    _batchMoveItems = keys.slice(); // store for moveItemTo to consume
+    _batchMoveType = firstType === 'folder' ? 'folder' : 'itinerary';
+    // Open move popup anchored to batch bar
+    var bar = document.getElementById('batchBar');
+    if (bar) {
+        var r = bar.getBoundingClientRect();
+        _lastMouseX = r.left + r.width / 2;
+        _lastMouseY = r.top;
+    }
+    showMovePopup(_batchMoveType, '_batch_', null, null);
+}
+var _batchMoveItems = null;
+var _batchMoveType = null;
 
-// ===== Move To =====
-var _moveTarget = null;
+var _lastMouseX = 0, _lastMouseY = 0;
 function showMovePopup(type, id, fromProj, btnEl) {
     var popup = document.getElementById('movePopup');
-    var rect = btnEl.getBoundingClientRect();
     _moveTarget = {type: type, id: id, fromProj: fromProj};
     
     var folders = [];
@@ -953,9 +1003,10 @@ function showMovePopup(type, id, fromProj, btnEl) {
     
     // Focus search
     setTimeout(function() { var inp = popup.querySelector('.mp-search'); if (inp) inp.focus(); }, 50);
-    var top = rect.bottom + 4;
-    var left = Math.min(rect.left, window.innerWidth - 200);
-    if (top + 260 > window.innerHeight) top = rect.top - 260;
+    // Use last mouse position for positioning
+    var top = _lastMouseY + 4;
+    var left = Math.min(_lastMouseX, window.innerWidth - 200);
+    if (top + 260 > window.innerHeight) top = _lastMouseY - 260;
     popup.style.top = top + 'px';
     popup.style.left = left + 'px';
     popup.classList.add('open');
@@ -999,6 +1050,34 @@ function hideMovePopup() {
 }
 function moveItemTo(type, id, fromProj, toProj) {
     hideMovePopup();
+    // Batch move: move all selected items
+    if (_batchMoveItems && _batchMoveItems.length) {
+        for (var m = 0; m < _batchMoveItems.length; m++) {
+            var mp = _batchMoveItems[m].split('_');
+            var mtype = mp[0]; var mid = mp.slice(1).join('_');
+            if (mtype === 'folder') {
+                var fp = projects.find(function(x) { return x.id === mid; });
+                if (fp && fp.id !== toProj) {
+                    var oldP = fp.parent;
+                    fp.parent = toProj || null;
+                    pushUndo({type: 'move-folder', label: '已移动 ' + fp.name, id: mid, oldParent: oldP});
+                }
+            } else {
+                var fit = allData.find(function(x) { return x.id === mid; });
+                if (fit && fit.project_id !== toProj) {
+                    var oldPrj = fit.project_id;
+                    fit.project_id = toProj || null;
+                    pushUndo({type: 'move-itinerary', label: '已移动 ' + fit.name, id: mid, oldProj: oldPrj});
+                }
+            }
+        }
+        _selectedItems = {};
+        _batchMoveItems = null;
+        _batchMoveType = null;
+        renderBatchBar();
+        ghSyncAll();
+        return;
+    }
     if (fromProj === toProj) return;
     if (type === 'folder') {
         if (toProj === id) return; // can't move into self
@@ -1025,7 +1104,7 @@ var GH_TOKEN = 'ghp_' + 'anBeVHJVVk01qRmo' + 'ekhsVP5ad9MTvX0dflJg';
 var GH_BASE = 'https://api.github.com/repos/' + GH_REPO + '/contents/itinerary-generator';
 var _ghPending = null;
 var _ghTimer = null;
-var _currentVer = 'v195';
+var _currentVer = 'v196';
 // Embedded fallback data — used when network fetch fails (e.g. behind firewall)
 var _EMBED_PROJECTS = [{"id":"etc7yj","name":"2023","created_at":1777632865280,"pinned":true,"itinerary_count":1,"child_count":2},{"id":"x7m9nj","name":"2024","created_at":1777632870187,"itinerary_count":0,"child_count":0},{"id":"am78c2","name":"2025","created_at":1777632876576,"itinerary_count":0,"child_count":0},{"id":"8kdshy","name":"已完成","parent":"etc7yj","created_at":1777633888654,"itinerary_count":0,"child_count":0},{"id":"j77w98","name":"删除","parent":"etc7yj","created_at":1777633893177,"itinerary_count":0,"child_count":0}];
 var _EMBED_ITINERARIES = [{"id":"b27zpw","name":"KNO1","created_at":1777633907157,"updated_at":1777633907157,"pinned":true,"project_id":"etc7yj","project_name":"2023"}];
@@ -1117,12 +1196,14 @@ function ghSyncAll() {
             _dataFresh = true;
             localStorage.setItem('kinoko_last_sync_ok', '1');
             updateSyncBadge('ok');
+            document.getElementById('syncErrBanner').classList.remove('show');
             refresh();
             showToast('已保存', 'ok');
         }).catch(function(e) {
             console.error('Sync failed:', e);
             localStorage.setItem('kinoko_last_sync_ok', '0');
             updateSyncBadge('err');
+            document.getElementById('syncErrBanner').classList.add('show');
             showToast('云端保存失败，但数据已存本地，刷新不丢', 'err');
         });
     }, 0);
@@ -1338,14 +1419,14 @@ function render() {
 function renderGridCard(item) {
     var d = item.data;
     if (item.type === 'folder') {
-        return '<div class="grid-card" draggable="true" data-type="folder" data-id="' + esc(d.id) + '" onclick="navTo(\'' + esc(d.id) + '\')">' +
+        return '<div class="grid-card" draggable="true" data-type="folder" data-id="' + esc(d.id) + '" onclick="showQAPopup(event,\'folder\',\'' + esc(d.id) + '\',\'' + esc(d.parent||'') + '\',\'' + escJs(d.name) + '\')">' +
             '<div class="gc-icon"></div>' +
             '<div class="gc-name">' + escH(d.name) + '</div>' +
             '<div class="gc-meta">文件夹</div>' +
             '<div class="gc-date">' + timeAgo(d.updated_at) + '</div>' +
             '</div>';
     } else {
-        return '<div class="grid-card" draggable="true" data-type="itinerary" data-id="' + esc(d.id) + '" data-proj="' + esc(d.project_id||'') + '" onclick="openItinerary(\'' + esc(d.project_id||'') + '\', \'' + esc(d.id) + '\')">' +
+        return '<div class="grid-card" draggable="true" data-type="itinerary" data-id="' + esc(d.id) + '" data-proj="' + esc(d.project_id||'') + '" onclick="showQAPopup(event,\'itinerary\',\'' + esc(d.id) + '\',\'' + esc(d.project_id||'') + '\',\'' + escJs(d.name) + '\')">' +
             '<div class="gc-icon"></div>' +
             '<div class="gc-name">' + escH(d.name) + '</div>' +
             '<div class="gc-meta">行程</div>' +
@@ -1358,8 +1439,8 @@ function renderListItem(item) {
     var d = item.data;
     var pinnedClass = d.pinned ? ' pinned' : '';
     var dd = item.type === 'folder'
-        ? '<div class="item' + pinnedClass + '" draggable="true" data-type="folder" data-id="' + esc(d.id) + '" onclick="navTo(\'' + esc(d.id) + '\')">'
-        : '<div class="item' + pinnedClass + '" draggable="true" data-type="itinerary" data-id="' + esc(d.id) + '" data-proj="' + esc(d.project_id||'') + '" onclick="openItinerary(\'' + esc(d.project_id||'') + '\', \'' + esc(d.id) + '\')">';
+        ? '<div class="item' + pinnedClass + '" draggable="true" data-type="folder" data-id="' + esc(d.id) + '" onclick="showQAPopup(event,\'folder\',\'' + esc(d.id) + '\',\'' + esc(d.parent||'') + '\',\'' + escJs(d.name) + '\')" onmouseenter="showPreview(event,\'folder\',' + JSON.stringify({id:d.id,name:d.name,updated:d.updated_at,parent:d.parent||''}).replace(/"/g,'&quot;') + ')" onmouseleave="hidePreview()">'
+        : '<div class="item' + pinnedClass + '" draggable="true" data-type="itinerary" data-id="' + esc(d.id) + '" data-proj="' + esc(d.project_id||'') + '" onclick="showQAPopup(event,\'itinerary\',\'' + esc(d.id) + '\',\'' + esc(d.project_id||'') + '\',\'' + escJs(d.name) + '\')" onmouseenter="showPreview(event,\'itinerary\',' + JSON.stringify({id:d.id,name:d.name,date:dateStr(d),proj:d.project_name||'',content:d.content||'',title:d.title||''}).replace(/"/g,'&quot;') + ')" onmouseleave="hidePreview()">';
     dd += '<span class="item-check" onclick="event.stopPropagation()"><input type="checkbox" onchange="toggleSelect(\'' + item.type + '\',\'' + esc(d.id) + '\',this.checked)" ' + (_selectedItems[item.type + '_' + d.id] ? 'checked' : '') + '></span>';
     dd += '<span class="type-icon"><svg><use href="#' + (item.type === 'folder' ? 'icon-folder' : 'icon-itinerary') + '"/></svg></span>';
     dd += '<span class="name">' + escH(d.name) + '</span>';
@@ -1388,15 +1469,26 @@ function renderListItem(item) {
 }
 
 // === Drag & Drop ===
+var _batchDragIds = [];
 function attachDragListeners() {
     var items = document.querySelectorAll('[draggable="true"]');
     for (var i = 0; i < items.length; i++) {
         items[i].addEventListener('dragstart', function(e) {
             if (e.target.closest('.item-check')) { e.preventDefault(); return; }
+            var selKey = (this.dataset.type||'') + '_' + (this.dataset.id||'');
+            // Batch drag: if item is selected, drag all selected of same type
+            if (_selectedItems[selKey]) {
+                _batchDragIds = Object.keys(_selectedItems).filter(function(k) {
+                    return _selectedItems[k] && k.split('_')[0] === this.dataset.type;
+                }.bind(this)).map(function(k) { return k.split('_')[1]; });
+            } else {
+                _batchDragIds = [];
+            }
             dragItem = {
                 type: this.dataset.type,
                 id: this.dataset.id,
-                proj: this.dataset.proj
+                proj: this.dataset.proj,
+                batchIds: _batchDragIds.length > 1 ? _batchDragIds : null
             };
             this.classList.add('dragging');
             e.dataTransfer.effectAllowed = 'move';
@@ -1427,15 +1519,21 @@ function attachDragListeners() {
             e.preventDefault();
             this.classList.remove('drag-over');
             if (!dragItem) return;
+            var ids = dragItem.batchIds || [dragItem.id];
             if (dragItem.type === 'folder' && this.dataset.type === 'folder') {
-                // Move folder into this folder
-                if (dragItem.id === this.dataset.id) return;
-                moveFolder(dragItem.id, this.dataset.id);
+                for (var bi = 0; bi < ids.length; bi++) {
+                    if (ids[bi] === this.dataset.id) continue;
+                    moveFolder(ids[bi], this.dataset.id);
+                }
             } else if (dragItem.type === 'itinerary' && this.dataset.type === 'folder') {
-                // Move itinerary into this folder
-                if (dragItem.proj === this.dataset.id) return;
-                moveItinerary(dragItem.id, dragItem.proj, this.dataset.id);
+                for (var bj = 0; bj < ids.length; bj++) {
+                    var itToMove = allData.find(function(x) { return x.id === ids[bj]; });
+                    if (!itToMove) continue;
+                    if (itToMove.project_id === this.dataset.id) continue;
+                    moveItinerary(ids[bj], itToMove.project_id, this.dataset.id);
+                }
             }
+            _batchDragIds = [];
         });
     }
 }
@@ -1538,6 +1636,24 @@ function deleteItinerary(pid, iid) {
     if (it) { pushUndo({type: 'delete-itinerary', label: '已删除行程 ' + it.name, before: it}); }
     allData = allData.filter(function(x) { return !(x.id === iid && x.project_id === pid); });
     ghSyncAll();
+}
+// Silent versions for batch/keyboard (no confirm dialog)
+function deleteFolderSilent(pid) {
+    var proj = projects.find(function(p) { return p.id === pid; });
+    var toRemove = [pid];
+    function collectDescendants(p) {
+        var kids = projects.filter(function(x) { return x.parent === p; });
+        for (var j = 0; j < kids.length; j++) { toRemove.push(kids[j].id); collectDescendants(kids[j].id); }
+    }
+    collectDescendants(pid);
+    if (proj) pushUndo({type: 'delete-folder', label: '已删除文件夹 ' + proj.name, before: proj, descendantIds: toRemove.slice(1)});
+    projects = projects.filter(function(p) { return toRemove.indexOf(p.id) === -1; });
+    allData = allData.filter(function(it) { return toRemove.indexOf(it.project_id) === -1; });
+}
+function deleteItinerarySilent(iid) {
+    var it = allData.find(function(x) { return x.id === iid; });
+    if (it) { pushUndo({type: 'delete-itinerary', label: '已删除行程 ' + it.name, before: it}); }
+    allData = allData.filter(function(x) { return x.id !== iid; });
 }
 
 function openItinerary(pid, iid) {
@@ -1654,7 +1770,96 @@ function emptyTrash() {
     showTrash();
 }
 
+// ===== Quick Actions Popup (Preview / Edit) =====
+function showQAPopup(e, type, id, proj, name) {
+    e.stopPropagation();
+    hideQAPopup();
+    _lastMouseX = e.clientX; _lastMouseY = e.clientY;
+    var popup = document.getElementById('qaPopup');
+    var pid = proj||'';
+    var previewUrl = 'index.html#project=' + pid + '&itinerary=' + id;
+    var editUrl = 'index.html#project=' + pid + '&itinerary=' + id + '&edit=1';
+    var html = '';
+    if (type === 'itinerary') {
+        html += '<div class="qa-item" onclick="window.open(\'' + previewUrl + '\',\'_blank\')"><span class="qa-icon">👁️</span> 预览行程</div>';
+        html += '<div class="qa-item" onclick="window.open(\'' + editUrl + '\',\'_blank\')"><span class="qa-icon">✏️</span> 编辑行程</div>';
+    } else {
+        html += '<div class="qa-item" onclick="navTo(\'' + esc(id) + '\')"><span class="qa-icon">📁</span> 打开文件夹</div>';
+    }
+    popup.innerHTML = html;
+    var left = Math.min(e.clientX, window.innerWidth - 140);
+    var top = e.clientY + 4;
+    if (top + 100 > window.innerHeight) top = e.clientY - 100;
+    popup.style.left = left + 'px';
+    popup.style.top = top + 'px';
+    popup.classList.add('open');
+    setTimeout(function() { document.addEventListener('click', hideQAPopup, {once: true}); }, 0);
+}
+function hideQAPopup() {
+    var popup = document.getElementById('qaPopup');
+    if (popup) popup.classList.remove('open');
+}
+// ===== Hover Preview Card =====
+var _previewTimer = null;
+function showPreview(e, type, data) {
+    if (_previewTimer) clearTimeout(_previewTimer);
+    _previewTimer = setTimeout(function() {
+        var card = document.getElementById('previewCard');
+        if (!card) return;
+        var html = '<div class="pc-name">' + escH(data.name) + '</div>';
+        if (type === 'folder') {
+            var kidCount = projects.filter(function(p) { return p.parent === data.id || p.id === data.id; }).length - 1;
+            var itCount = allData.filter(function(it) { return it.project_id === data.id; }).length;
+            html += '<div class="pc-row"><span class="pc-label">内容</span><span class="pc-val">' + kidCount + ' 个子文件夹 · ' + itCount + ' 个行程</span></div>';
+            if (data.updated) html += '<div class="pc-row"><span class="pc-label">更新</span><span class="pc-val">' + timeAgo(data.updated) + '</span></div>';
+        } else {
+            if (data.date) html += '<div class="pc-row"><span class="pc-label">日期</span><span class="pc-val">' + escH(data.date) + '</span></div>';
+            if (data.proj) html += '<div class="pc-row"><span class="pc-label">文件夹</span><span class="pc-val">' + escH(data.proj) + '</span></div>';
+            if (data.title) html += '<div class="pc-row"><span class="pc-label">标题</span><span class="pc-val">' + escH(data.title) + '</span></div>';
+            if (data.content) {
+                var snippet = data.content.replace(/<[^>]+>/g,'').substring(0,100);
+                if (snippet.length >= 100) snippet += '…';
+                if (snippet) html += '<div class="pc-snippet">' + escH(snippet) + '</div>';
+            }
+        }
+        card.innerHTML = html;
+        var left = e.clientX + 16;
+        var top = e.clientY - 10;
+        if (left + 300 > window.innerWidth) left = e.clientX - 316;
+        if (top + 200 > window.innerHeight) top = e.clientY - 200;
+        card.style.left = left + 'px';
+        card.style.top = top + 'px';
+        card.style.display = 'block';
+    }, 300);
+}
+function hidePreview() {
+    if (_previewTimer) clearTimeout(_previewTimer);
+    var card = document.getElementById('previewCard');
+    if (card) card.style.display = 'none';
+}
+
 loadAll();
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
+    if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undoLast(); }
+    if ((e.metaKey || e.ctrlKey) && e.key === 'z' && e.shiftKey) { e.preventDefault(); redoLast(); }
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Z') { e.preventDefault(); redoLast(); }
+    if (e.key === 'Delete' || e.key === 'Backspace') {
+        var sel = Object.keys(_selectedItems).filter(function(k) { return _selectedItems[k]; });
+        if (sel.length && !document.querySelector('.qa-popup.open')) {
+            e.preventDefault();
+            if (confirm('删除选中的 ' + sel.length + ' 项？')) {
+                for (var i = 0; i < sel.length; i++) {
+                    var parts = sel[i].split(':');
+                    if (parts[0] === 'folder') deleteFolderSilent(parts[1]);
+                    else deleteItinerarySilent(parts[1]);
+                }
+                _selectedItems = {}; renderBatchBar(); ghSyncAll();
+            }
+        }
+    }
+});
 // Timeout diagnostic: if data never loads, show what went wrong
 setTimeout(function() {
     var c = document.getElementById('content');
