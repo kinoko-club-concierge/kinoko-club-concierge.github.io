@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v191 fix-itinerary + ctx-zindex -->
+<!DOCTYPE html><!-- v192 tree-sort + pinned + rename -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="version" content="v191">
+<meta name="version" content="v192">
 <title>Kinoko Club Concierge — 行程管理</title>
 <style>
 :root { --gold: #8a6d3b; --gold-light: #C9A96E; --cream: #FDF8EE; --dark: #534741; --gray: #656565; --border: #DBD4CF; }
@@ -146,7 +146,10 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 .sidebar-body::-webkit-scrollbar-track { background:transparent; }
 .sidebar-body::-webkit-scrollbar-thumb { background:#D1C4B0; border-radius:10px; }
 .sidebar-section { padding:0; }
-.sidebar .sidebar-title { font-size:10px; color:var(--gray); letter-spacing:0.1em; padding:10px 16px 4px; font-weight:500; text-transform:uppercase; }
+.sidebar .sidebar-title { font-size:10px; color:var(--gray); letter-spacing:0.1em; padding:10px 16px 4px; font-weight:500; display:flex; align-items:center; justify-content:space-between; }
+.tree-sort { font-size:10px; cursor:pointer; color:var(--gray); padding:2px 6px; border-radius:3px; transition:all 0.12s; }
+.tree-sort:hover { background:var(--cream); color:var(--gold); }
+.ft-pin { font-size:10px; margin-left:4px; opacity:0.6; flex:0 0 auto; }
 .sidebar .sidebar-item { display:flex; align-items:center; gap:8px; padding:7px 16px; cursor:pointer; font-size:12px; color:var(--dark); transition:background 0.12s; }
 .sidebar .sidebar-item:hover { background:rgba(139,105,20,0.06); }
 .sidebar .sidebar-item:active { background:rgba(139,105,20,0.1); }
@@ -272,7 +275,7 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
         </div>
         <div class="sidebar-divider"></div>
         <div class="sidebar-section">
-            <div class="sidebar-title">文件夹</div>
+            <div class="sidebar-title">全部文件 <span class="tree-sort" id="treeSortBtn" title="按名称排序" onclick="toggleTreeSort()">A→Z</span></div>
             <div class="folder-tree" id="sidebarTree"></div>
         </div>
     </div>
@@ -425,7 +428,20 @@ function renderSidebarTree() {
     var el = document.getElementById('sidebarTree');
     if (!el) return;
     var roots = projects.filter(function(p) { return !p.parent; });
-    roots.sort(function(a,b) { return (a.name||'').toLowerCase().localeCompare((b.name||'').toLowerCase()); });
+    if (window._treeSort === undefined) {
+        window._treeSort = localStorage.getItem('kinoko_tree_sort') || 'asc';
+        var btn = document.getElementById('treeSortBtn');
+        if (btn) btn.textContent = window._treeSort === 'asc' ? 'A→Z' : 'Z→A';
+    }
+    var sortDir = window._treeSort;
+    function treeSort(a, b) {
+        var na = (a.name||'').toLowerCase(), nb = (b.name||'').toLowerCase();
+        if (a.pinned && !b.pinned) return -1;
+        if (!a.pinned && b.pinned) return 1;
+        if (sortDir === 'desc') return na > nb ? -1 : na < nb ? 1 : 0;
+        return na < nb ? -1 : na > nb ? 1 : 0;
+    }
+    roots.sort(treeSort);
     
     var _expanded = window._ftExpanded || {};
     
@@ -437,7 +453,7 @@ function renderSidebarTree() {
     
     function buildNode(pid, depth) {
         var children = projects.filter(function(p) { return p.parent === pid; });
-        children.sort(function(a,b) { return (a.name||'').toLowerCase().localeCompare((b.name||'').toLowerCase()); });
+        children.sort(treeSort);
         var h = '';
         for (var i = 0; i < children.length; i++) {
             var c = children[i];
@@ -453,7 +469,7 @@ function renderSidebarTree() {
                 h += '<span class="ft-arrow placeholder"></span>';
             }
             h += '<span class="ft-icon"><svg><use href="#icon-folder"/></svg></span>';
-            h += '<span class="ft-name">' + escH(c.name) + '</span>';
+            h += '<span class="ft-name">' + escH(c.name) + (c.pinned ? '<span class="ft-pin">📌</span>' : '') + '</span>';
             h += '</div>';
             var childrenHtml = '';
             if (hasKids) {
@@ -495,7 +511,7 @@ function renderSidebarTree() {
             html += '<span class="ft-arrow placeholder"></span>';
         }
         html += '<span class="ft-icon"><svg><use href="#icon-folder"/></svg></span>';
-        html += '<span class="ft-name">' + escH(r.name) + '</span>';
+        html += '<span class="ft-name">' + escH(r.name) + (r.pinned ? '<span class="ft-pin">📌</span>' : '') + '</span>';
         html += '</div>';
         var childrenHtml = '';
         if (hasKids) {
@@ -521,6 +537,14 @@ function renderSidebarTree() {
     }
     if (!html) html = '<div class="ft-row" style="color:#aaa;cursor:default;padding:8px;">暂无文件夹</div>';
     el.innerHTML = html;
+}
+function toggleTreeSort() {
+    var cur = window._treeSort || 'asc';
+    window._treeSort = cur === 'asc' ? 'desc' : 'asc';
+    localStorage.setItem('kinoko_tree_sort', window._treeSort);
+    renderSidebarTree();
+    var btn = document.getElementById('treeSortBtn');
+    if (btn) btn.textContent = window._treeSort === 'asc' ? 'A→Z' : 'Z→A';
 }
 function toggleFTNode(id, arrowEl) {
     var key = 'f_' + id;
@@ -985,7 +1009,7 @@ var GH_TOKEN = 'ghp_' + 'anBeVHJVVk01qRmo' + 'ekhsVP5ad9MTvX0dflJg';
 var GH_BASE = 'https://api.github.com/repos/' + GH_REPO + '/contents/itinerary-generator';
 var _ghPending = null;
 var _ghTimer = null;
-var _currentVer = 'v191';
+var _currentVer = 'v192';
 // Embedded fallback data — used when network fetch fails (e.g. behind firewall)
 var _EMBED_PROJECTS = [{"id":"etc7yj","name":"2023","created_at":1777632865280,"pinned":true,"itinerary_count":1,"child_count":2},{"id":"x7m9nj","name":"2024","created_at":1777632870187,"itinerary_count":0,"child_count":0},{"id":"am78c2","name":"2025","created_at":1777632876576,"itinerary_count":0,"child_count":0},{"id":"8kdshy","name":"已完成","parent":"etc7yj","created_at":1777633888654,"itinerary_count":0,"child_count":0},{"id":"j77w98","name":"删除","parent":"etc7yj","created_at":1777633893177,"itinerary_count":0,"child_count":0}];
 var _EMBED_ITINERARIES = [{"id":"b27zpw","name":"KNO1","created_at":1777633907157,"updated_at":1777633907157,"pinned":true,"project_id":"etc7yj","project_name":"2023"}];
