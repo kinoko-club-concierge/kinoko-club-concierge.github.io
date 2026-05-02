@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v190 tree-show-itineraries + ctx-fix -->
+<!DOCTYPE html><!-- v191 fix-itinerary + ctx-zindex -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="version" content="v190">
+<meta name="version" content="v191">
 <title>Kinoko Club Concierge — 行程管理</title>
 <style>
 :root { --gold: #8a6d3b; --gold-light: #C9A96E; --cream: #FDF8EE; --dark: #534741; --gray: #656565; --border: #DBD4CF; }
@@ -179,7 +179,7 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
 .drop-root-indicator { height:3px; background:var(--gold); border-radius:2px; margin:2px 8px; display:none; }
 .drop-root-indicator.show { display:block; }
 /* Context menu */
-.ctx-menu { display:none; position:fixed; z-index:2000; background:#fff; border:1px solid var(--border); border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,0.15); min-width:150px; padding:4px 0; }
+.ctx-menu { display:none; position:fixed; z-index:10000; background:#fff; border:1px solid var(--border); border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,0.15); min-width:150px; padding:4px 0; }
 .ctx-menu.open { display:block; }
 .ctx-menu .ctx-item { padding:8px 16px; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:8px; transition:background 0.1s; color:var(--dark); }
 .ctx-menu .ctx-item:hover { background:var(--cream); }
@@ -277,6 +277,7 @@ body { font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Noto Seri
         </div>
     </div>
 </div>
+
 <div class="ctx-menu" id="ctxMenu"></div>
 
 <div class="app-layout">
@@ -458,7 +459,10 @@ function renderSidebarTree() {
             if (hasKids) {
                 childrenHtml += buildNode(c.id, depth + 1);
             }
-            var its = allData.filter(function(it) { return it.project_id === c.id && !it._deleted; });
+            var its = [];
+            for (var ki = 0; ki < allData.length; ki++) {
+                if (allData[ki].project_id === c.id && !allData[ki]._deleted) its.push(allData[ki]);
+            }
             for (var k = 0; k < its.length; k++) {
                 childrenHtml += '<div class="ft-row ft-row-it" draggable="true" data-stype="itinerary" data-sid="' + esc(its[k].id) + '" data-sproj="' + esc(c.id) + '" style="padding-left:' + ((depth+1) * 16 + 8) + 'px" onclick="openItinerary(\'' + esc(c.id) + '\',\'' + esc(its[k].id) + '\')" oncontextmenu="event.preventDefault();event.stopPropagation();showCtxMenu(event,\'itinerary\',\'' + esc(its[k].id) + '\',\'' + esc(c.id) + '\')">';
                 childrenHtml += '<span class="ft-arrow placeholder"></span>';
@@ -497,7 +501,10 @@ function renderSidebarTree() {
         if (hasKids) {
             childrenHtml += buildNode(r.id, 1);
         }
-        var rits = allData.filter(function(it) { return it.project_id === r.id && !it._deleted; });
+        var rits = [];
+        for (var ki = 0; ki < allData.length; ki++) {
+            if (allData[ki].project_id === r.id && !allData[ki]._deleted) rits.push(allData[ki]);
+        }
         for (var k = 0; k < rits.length; k++) {
             childrenHtml += '<div class="ft-row ft-row-it" draggable="true" data-stype="itinerary" data-sid="' + esc(rits[k].id) + '" data-sproj="' + esc(r.id) + '" style="padding-left:24px" onclick="openItinerary(\'' + esc(r.id) + '\',\'' + esc(rits[k].id) + '\')" oncontextmenu="event.preventDefault();event.stopPropagation();showCtxMenu(event,\'itinerary\',\'' + esc(rits[k].id) + '\',\'' + esc(r.id) + '\')">';
             childrenHtml += '<span class="ft-arrow placeholder"></span>';
@@ -978,7 +985,7 @@ var GH_TOKEN = 'ghp_' + 'anBeVHJVVk01qRmo' + 'ekhsVP5ad9MTvX0dflJg';
 var GH_BASE = 'https://api.github.com/repos/' + GH_REPO + '/contents/itinerary-generator';
 var _ghPending = null;
 var _ghTimer = null;
-var _currentVer = 'v190';
+var _currentVer = 'v191';
 // Embedded fallback data — used when network fetch fails (e.g. behind firewall)
 var _EMBED_PROJECTS = [{"id":"etc7yj","name":"2023","created_at":1777632865280,"pinned":true,"itinerary_count":1,"child_count":2},{"id":"x7m9nj","name":"2024","created_at":1777632870187,"itinerary_count":0,"child_count":0},{"id":"am78c2","name":"2025","created_at":1777632876576,"itinerary_count":0,"child_count":0},{"id":"8kdshy","name":"已完成","parent":"etc7yj","created_at":1777633888654,"itinerary_count":0,"child_count":0},{"id":"j77w98","name":"删除","parent":"etc7yj","created_at":1777633893177,"itinerary_count":0,"child_count":0}];
 var _EMBED_ITINERARIES = [{"id":"b27zpw","name":"KNO1","created_at":1777633907157,"updated_at":1777633907157,"pinned":true,"project_id":"etc7yj","project_name":"2023"}];
