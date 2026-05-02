@@ -32,7 +32,7 @@
   {
     "id": "j77w98",
     "name": "删除",
-    "parent": "fk9agq7",
+    "parent": null,
     "created_at": 1777633893177,
     "itinerary_count": 0,
     "child_count": 0
