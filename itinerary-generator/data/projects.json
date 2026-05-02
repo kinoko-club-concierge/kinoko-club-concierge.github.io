@@ -24,7 +24,7 @@
   {
     "id": "8kdshy",
     "name": "已完成",
-    "parent": "etc7yj",
+    "parent": "fnytsg6",
     "created_at": 1777633888654,
     "itinerary_count": 0,
     "child_count": 0
@@ -32,7 +32,7 @@
   {
     "id": "j77w98",
     "name": "删除",
-    "parent": "etc7yj",
+    "parent": "8kdshy",
     "created_at": 1777633893177,
     "itinerary_count": 0,
     "child_count": 0
