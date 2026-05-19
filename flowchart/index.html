@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kinoko 销售·手配 业务流程导图</title>
+<style>
+:root {
+  --gold: #C9A96E;
+  --gold-light: #F5E6C8;
+  --sales: #1E5A96;
+  --sales-light: #E3F0FA;
+  --tehai: #B84C5C;
+  --tehai-light: #FCE8EC;
+  --bg: #FAF9F6;
+  --text: #2C2416;
+  --border: #E0D8CC;
+  --phase-1: #E8F0FE;
+  --phase-2: #FFF8E7;
+  --phase-3: #E8F5E9;
+  --phase-4: #F3E5F5;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system, 'Noto Sans SC', 'Hiragino Sans GB', sans-serif; background:var(--bg); color:var(--text); line-height:1.6; }
+header { background: #fff; border-bottom:1px solid var(--border); padding:20px 32px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+header .brand { font-size:18px; font-weight:700; color:var(--gold); letter-spacing:0.5px; }
+header .brand span { color:var(--text); font-weight:400; margin-left:8px; font-size:14px; }
+header .tools { display:flex; gap:8px; align-items:center; }
+.btn { padding:6px 16px; border-radius:6px; border:1px solid var(--border); background:#fff; cursor:pointer; font-size:13px; transition:.15s; }
+.btn:hover { background:var(--gold-light); border-color:var(--gold); }
+.btn.active { background:var(--gold); color:#fff; border-color:var(--gold); }
+.legend { display:flex; gap:16px; align-items:center; font-size:12px; color:#888; }
+.legend .dot { width:10px; height:10px; border-radius:3px; display:inline-block; margin-right:4px; }
+.legend .dot.sales-dot { background:var(--sales); }
+.legend .dot.tehai-dot { background:var(--tehai); }
+
+.container { max-width:1100px; margin:0 auto; padding:32px 16px; }
+.phase { margin-bottom: 40px; position:relative; }
+.phase-title { display:flex; align-items:center; gap:10px; margin-bottom:16px; padding-bottom:8px; border-bottom:2px solid var(--border); }
+.phase-title .num { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; color:#fff; }
+.phase:nth-child(1) .num { background: #4A90D9; }
+.phase:nth-child(2) .num { background: #E6A817; }
+.phase:nth-child(3) .num { background: #4CAF50; }
+.phase:nth-child(4) .num { background: #9C27B0; }
+.phase-title h2 { font-size:18px; }
+
+.columns { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+.col { display:flex; flex-direction:column; gap:12px; }
+.col-label { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:1px; padding:4px 10px; border-radius:4px; width:fit-content; }
+.col.sales .col-label { background:var(--sales-light); color:var(--sales); }
+.col.tehai .col-label { background:var(--tehai-light); color:var(--tehai); }
+.col.sales { border-left:3px solid var(--sales); padding-left:16px; }
+.col.tehai { border-left:3px solid var(--tehai); padding-left:16px; }
+
+.node { background:#fff; border:1px solid var(--border); border-radius:8px; padding:12px 16px; cursor:pointer; transition:.15s; position:relative; }
+.node:hover { box-shadow:0 2px 12px rgba(0,0,0,0.08); border-color:var(--gold); }
+.node.expanded { border-color:var(--gold); box-shadow:0 4px 20px rgba(0,0,0,0.1); }
+.node .step-name { font-weight:600; font-size:14px; margin-bottom:4px; }
+.node .step-key { font-size:12px; color:#888; }
+.node .step-detail { display:none; margin-top:10px; padding-top:10px; border-top:1px solid var(--border); font-size:13px; color:#555; line-height:1.7; }
+.node.expanded .step-detail { display:block; }
+
+.phase-arrow { text-align:center; padding:8px 0 20px; }
+.phase-arrow svg { width:32px; height:32px; color:var(--gold); }
+
+/* Edit mode */
+.edit-mode .node .step-name[contenteditable], 
+.edit-mode .node .step-key[contenteditable], 
+.edit-mode .node .step-detail[contenteditable] { outline:2px dashed var(--gold); outline-offset:2px; border-radius:4px; padding:2px 4px; background:#FFFDE7; }
+.edit-mode .node .step-detail { display:block !important; }
+
+/* Mobile */
+@media (max-width:768px) {
+  .columns { grid-template-columns:1fr; gap:16px; }
+  .col.sales, .col.tehai { border-left:none; padding-left:0; border-top:3px solid; padding-top:12px; }
+  .col.sales { border-top-color:var(--sales); }
+  .col.tehai { border-top-color:var(--tehai); }
+  .phase-arrow { padding:4px 0 12px; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">KINOKO<span>销售·手配 业务流程导图</span></div>
+  <div class="tools">
+    <div class="legend">
+      <span><span class="dot sales-dot"></span> 销售</span>
+      <span><span class="dot tehai-dot"></span> 手配</span>
+    </div>
+    <button class="btn" id="editBtn" onclick="toggleEdit()">✏️ 编辑模式</button>
+  </div>
+</header>
+
+<div class="container" id="flowchart"></div>
+
+<script>
+// ----- DATA (edit me directly) -----
+const DATA = {
+  phases: [
+    {
+      id: "quote", title: "📋 报价阶段", num: 1,
+      sales: [
+        { name:"接收询价并回复时效", key:"立刻回复，不可已读不回，当日最晚次日回复", detail:"客人询价后立刻回复预计报价时间，不可已读不回。原则：当日问询最晚次日回复。报价无法及时完成时报告公司更换销售。" },
+        { name:"询问需求与行程推荐", key:"无行程→推荐框架，有行程→检查合理性", detail:"无行程：问清出行日期/天数/人数（男女构成/年龄层/是否有孩子或老人）/出行目的/出行预算/参考航班，进行简易框架推荐。有行程：销售有责任检查客人提供的行程是否合理并提供修改意见。行程确认后进行报价。" },
+        { name:"制定完整报价", key:"车/巴士/导游/酒店/门票/餐厅/体验 逐一报价", detail:"商务车：严格遵循公司价格表，折扣不可高于10%。巴士：按市场价格表报价，特殊款利润率15%以上。导游：使用Lark导游库，成本×2报价。酒店：直采/知行GDS/OTA/DAIEI/其他五渠道。门票：利润率10%以上，报最贵日期普通价。餐厅：预约费5500円/餐起，餐费利润率10%以上。特殊体验：按VIP体验册报价，利润率10%以上。" },
+        { name:"客人确认，视作成团", key:"调整至客人确认，确认出行即视作成团", detail:"根据客人反馈调整行程和报价，直至客人确认无需再调整并确认出行后，视作成团。" }
+      ],
+      tehai: [
+        { name:"查询体验/餐厅/巴士", key:"获取报价信息，提供给销售，不做决策", detail:"根据销售需求查询目标体验项目的预约时间、价格、可预约人数，核实资源方最新成本价（参考Lark文档「体験リスト」）。查询餐厅可预约时段、座位类型、是否接待儿童、取消政策、忌口对应等。向巴士公司询价：车型、日期、可调度情况。将报价反馈给销售，由销售最终核定。" }
+      ]
+    },
+    {
+      id: "prep", title: "📦 行前阶段", num: 2,
+      sales: [
+        { name:"建立团档与团号", key:"建团档、设团号、登记売上管理表", detail:"在Lark对应市场文件夹建立团档，命名格式：年份-出发日期-结束日期-客户名称及描述-社员号，例：2026-0515-0520-FORA关东关西2人-005。建立团号，格式：KNO-出发日期-结束日期-社员号，例：KNO-0515-0520-FORA-005。在「年度売上管理表」内登陆该团信息（收入由销售填写，支出由会计填写）。" },
+        { name:"申请付款 (Invoice)", key:"Money Forward出Invoice，首款≥80%", detail:"根据报价金额使用Money Forward系统制作PDF版Invoice向客人请款。首款最低为团费的80%。客户信息不完整/売上管理表未登陆/客人未入账80%以上→会计有权不支付该团相应出金，特殊情况需找社长报备。" },
+        { name:"客人付款", key:"国际汇款 / 信用卡+3% / 人民币", detail:"国际汇款：手续费由客人承担，索取汇款水单，Invoice+水单反馈会计核对。信用卡链接支付：使用支付链接系统，需将3%银行手续费额外加到Invoice中，客人支付后索取确认截图，登记信用卡链接编号和金额至売上管理表。人民币支付：非正式方式，客户需要时可接受（尤其直客），仅私人账户无公帐账号，只能开日本Invoice，无中国发票。" },
+        { name:"汇总 → Final出团通知书 → 对团", key:"制作Final通知书，与执行人员出团前对团", detail:"汇总所有确认信息制作最终出团通知书。与司机/导游/随团工作人员等出团前对团。" }
+      ],
+      tehai: [
+        { name:"整体行程确认", key:"面对面/电话确认日期/人数/忌口/特殊需求", detail:"根据销售提供的最终行程表及报价单，逐项确认并开始操作预约。确认内容：日期/人数/时间/饮食忌口，是否存在特殊需求（儿童/高龄者/轮椅需求），客人关系（夫妻/家庭/老板员工），饮食偏好，生日/纪念日安排。如报价项目出现日期/时间/休馆等情况，确认是否可以更换。" },
+        { name:"商务车预约", key:"确认日期/人数/行李/路线 → 车型/颜色/车牌/司机 → 备品", detail:"向车公司发送正式预约（日期/时间/人数/行李数量/路线）。车辆确认（车型/年份/颜色/车牌/是否指定VIP司机/是否安排司机住宿）。车内备品：矿泉水/雨伞/垃圾袋/纸巾湿纸巾（标配），零食/充电线/充电宝/WiFi/儿童椅（根据团的需求）。临近出团确认车牌。出团前提供接机牌PDF。" },
+        { name:"巴士预约", key:"确认人数/行李/路线/高速停车/司机住宿/车辆 → 停车场", detail:"联系巴士公司沟通预约（人数/行李数量/路线/高速及停车安排/是否需中途换司机和换车/是否安排司机住宿/司机餐费和茶水费标准）。车辆确认（车型/年份/颜色）。停车场安排（夜间停车场/酒店停车/景点停车限制）。确认是否需提前邮寄水/雨伞/垃圾袋/湿纸巾/礼品等。" },
+        { name:"导游预约与确认", key:"日期/语言/住宿 → 发资料 → 费用确认 → 电话对团", detail:"通过邮件/LINE/微信联系导游预约（日期/工作时间/语言/地区）。确认是否需要安排住宿。出团前发送资料（最终版出团通知书/客人信息/接机牌PDF/注意事项/客人喜好信息）。费用确认（是否需要准备金/是否存在现场支付项目）。最终电话或邮件确认（行程内容/客人特点/饮食忌口/特殊注意事项）。" },
+        { name:"酒店预约确认", key:"客人侧→二次确认 / 公司侧→备注需求→付款→二次确认", detail:"A.客人自行预约：获取酒店确认单/预约号码/入住人姓名/入住日期/房型/人数/早餐/特殊需求，出团前电话二次确认，信息不一致时第一时间反馈销售。B.公司代预约：预约后同步预约号/预约名/人数/房型/是否含餐/价格/返佣/支付方法。向酒店备注（房费保密/VIP对应/饮食限制/纪念日/儿童需求）。入住前完成支付。出团前电话或邮件二次确认（房型/人数/预约名字/支付状态/忌口/特殊需求）。" },
+        { name:"门票/新干线/机票预约", key:"第一时间预约防售罄 → 确认定休日/入场限制 → 支付填表", detail:"客人确认成团后第一时间进行预约，避免售罄/涨价/无法指定时间。确认事项：定休日/入场限制/座位/行李规则。信用卡支付时填写《クレジットカード管理表》，银行汇款时和销售确认后再将请求书交给会计。出票管理（PDF/QR CODE/纸票邮寄）。" },
+        { name:"特殊体验/活动预约", key:"尽早预约 → 同步出团通知书 → 付款确认", detail:"包括茶道/艺伎/相扑/钓鱼/特殊VIP私人体验等。客人确认成团后第一时间预约。在出团通知书记录地址/时间/联系方式/注意事项/取消政策。根据资源方需求确认付款时机（事前/当日/结束后）。" },
+        { name:"餐厅预约", key:"忌口/座位/儿童 → 预约 → 取消政策留存 → 同步通知书", detail:"确认客人需求（忌口/过敏/是否儿童同行/是否VIP安排）。预约（日期/时间/人数/包间或座位形式/套餐或当日点餐/儿童限制）。确认取消政策和No-show费用。留存对接人姓名/电话/邮件记录。同步出团通知书（餐厅地址/预约名/注意事项）。预约服务费5500円/餐起。" },
+        { name:"支出管理与信用卡填表", key:"刷卡后必须填信用卡管理表", detail:"涉及需要信用卡支付的项目（门票/体验/车票等），使用名下信用卡支付。刷卡后必须将明细填入信用卡管理表。公司信用卡分布在不同手配名下，每人持有一张卡，分配给不同销售进行刷卡。刷卡人（手配或实际刷卡人）需负责填写信用卡管理表。" }
+      ]
+    },
+    {
+      id: "ongoing", title: "🚗 团行进中", num: 3,
+      sales: [
+        { name:"应对客人临时需求", key:"随即应对调整，满足合理需求", detail:"根据客人在团行进中突然提出的需求或产生的问题，随即应对调整，尽量满足客人合理需求。" },
+        { name:"额外支出同步", key:"额外支出随时同步客人确认", detail:"有额外支出发生时，需要随时和客人同步取得确认，避免事后产生费用争议。" }
+      ],
+      tehai: [
+        { name:"协助执行临时变更", key:"联系供应商执行变更，反馈销售", detail:"销售提出临时变更需求时（调整用车时间/追加餐厅预约/改票等），手配负责联系供应商执行变更。变更完成后及时反馈给销售。涉及额外费用需记录并同步给销售。" }
+      ]
+    },
+    {
+      id: "settle", title: "📊 结算阶段", num: 4,
+      sales: [
+        { name:"一周内确认最终支出", key:"收集账单→确认→同步会计（1个月内支付）", detail:"团结束后一周内与团相关人员或供应商收集账单，确认团的最终账单。确认无误后同步给会计进行回款结算。所有请求书由会计再审核一次发票；所有支出由会计一人输入売上管理表；会计在收到账单后1个月内进行支付。" },
+        { name:"制作尾款Invoice并回收", key:"制作尾款明细+Invoice，当月回收（月底团14日内）", detail:"根据收集来的账单确认团的最终支出，制作尾款明细和尾款Invoice发给客人。需要当月之内收回尾款（月底的团14日内收回尾款）。" },
+        { name:"结团复盘与利润确认", key:"收集反馈→确认收支→公布业绩", detail:"收集客人意见表/用餐反馈等信息，按需反馈给客人或公司内部。确认「年度売上管理表」中记载的收入和支出是否正确。公司会定期公布销售业绩。" }
+      ],
+      tehai: [
+        { name:"收集供应商账单", key:"收集请求书/账单，核对金额", detail:"团结束后协助销售收集各供应商的请求书/账单。确认各供应商的支付金额与预约内容一致。" },
+        { name:"整理信用卡明细", key:"确认刷卡记录→汇总给销售", detail:"确认「信用卡管理表」中该团的所有刷卡记录完整。将刷卡明细汇总后提供给销售，用于制作尾款Invoice。手配不直接对接会计——所有结算信息经由销售汇总后统一交给会计。" }
+      ]
+    }
+  ]
+};
+
+// Load edits from localStorage
+function loadEdits() {
+  try { return JSON.parse(localStorage.getItem('kinoko_flow_edits') || '{}'); } catch(e) { return {}; }
+}
+function saveEdits(edits) {
+  localStorage.setItem('kinoko_flow_edits', JSON.stringify(edits));
+}
+
+function getNodeData(phaseId, role, idx, field) {
+  const edits = loadEdits();
+  const key = `${phaseId}|${role}|${idx}|${field}`;
+  if (edits[key] !== undefined) return edits[key];
+  return null;
+}
+
+// Render
+function render() {
+  const container = document.getElementById('flowchart');
+  const isEdit = document.body.classList.contains('edit-mode');
+  let html = '';
+
+  DATA.phases.forEach((phase, pi) => {
+    html += `<div class="phase">
+      <div class="phase-title">
+        <div class="num">${phase.num}</div>
+        <h2>${phase.title}</h2>
+      </div>
+      <div class="columns">
+        <div class="col sales">
+          <div class="col-label">💼 销售</div>`;
+    phase.sales.forEach((node, ni) => {
+      const name = getNodeData(phase.id, 'sales', ni, 'name') || node.name;
+      const key = getNodeData(phase.id, 'sales', ni, 'key') || node.key;
+      const detail = getNodeData(phase.id, 'sales', ni, 'detail') || node.detail;
+      html += `<div class="node" data-phase="${phase.id}" data-role="sales" data-idx="${ni}" onclick="toggleNode(this)">
+        <div class="step-name" ${isEdit?'contenteditable="true"':''}>${name}</div>
+        <div class="step-key" ${isEdit?'contenteditable="true"':''}>${key}</div>
+        <div class="step-detail" ${isEdit?'contenteditable="true"':''}>${detail}</div>
+      </div>`;
+    });
+    html += `</div><div class="col tehai">
+      <div class="col-label">🤝 手配</div>`;
+    phase.tehai.forEach((node, ni) => {
+      const name = getNodeData(phase.id, 'tehai', ni, 'name') || node.name;
+      const key = getNodeData(phase.id, 'tehai', ni, 'key') || node.key;
+      const detail = getNodeData(phase.id, 'tehai', ni, 'detail') || node.detail;
+      html += `<div class="node" data-phase="${phase.id}" data-role="tehai" data-idx="${ni}" onclick="toggleNode(this)">
+        <div class="step-name" ${isEdit?'contenteditable="true"':''}>${name}</div>
+        <div class="step-key" ${isEdit?'contenteditable="true"':''}>${key}</div>
+        <div class="step-detail" ${isEdit?'contenteditable="true"':''}>${detail}</div>
+      </div>`;
+    });
+    html += `</div></div>`;
+    if (pi < DATA.phases.length - 1) {
+      html += `<div class="phase-arrow">
+        <svg viewBox="0 0 32 32" fill="none"><path d="M16 4v20m0 0l-6-6m6 6l6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+      </div>`;
+    }
+  });
+
+  container.innerHTML = html;
+}
+
+function toggleNode(el) {
+  if (document.body.classList.contains('edit-mode')) return;
+  el.classList.toggle('expanded');
+}
+
+function toggleEdit() {
+  const btn = document.getElementById('editBtn');
+  const isEdit = !document.body.classList.contains('edit-mode');
+  document.body.classList.toggle('edit-mode');
+  btn.textContent = isEdit ? '✅ 保存并退出' : '✏️ 编辑模式';
+  btn.classList.toggle('active', isEdit);
+  render();
+
+  if (!isEdit) {
+    // Save edits from contenteditable
+    const edits = loadEdits();
+    document.querySelectorAll('.node').forEach(node => {
+      const phase = node.dataset.phase;
+      const role = node.dataset.role;
+      const idx = node.dataset.idx;
+      const nameEl = node.querySelector('.step-name');
+      const keyEl = node.querySelector('.step-key');
+      const detailEl = node.querySelector('.step-detail');
+      if (nameEl) edits[`${phase}|${role}|${idx}|name`] = nameEl.textContent;
+      if (keyEl) edits[`${phase}|${role}|${idx}|key`] = keyEl.textContent;
+      if (detailEl) edits[`${phase}|${role}|${idx}|detail`] = detailEl.textContent;
+    });
+    saveEdits(edits);
+  }
+}
+
+render();
+</script>
+</body>
+</html>
