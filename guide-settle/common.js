@@ -11,7 +11,7 @@ saved:'保存しました',deleted:'削除しました',ck_days:'勤務日を1�
 confirmSubmit:'提出しますか？提出後は編集できません。',confirmDel:'削除しますか？',confirmClear:'この日の入力を消去しますか？',
 needStaff:'担当者から届いたリンクからお開きください。',startNew:'精算を始める',startNote:'団番号と期間を入力すると、入力ページのリンクがメールにも届きます。',
 sentMail:'このツアーは登録済みです。入力ページのリンクをメールでお送りしました。メールのリンクから続けてください。',noToken:'リンクが無効です。担当者のリンクからやり直してください。',
-rangeErr:'終了日は開始日以降にしてください',loading:'読み込み中…',reload:'更新',workCalc:'勤務時間',takePhoto:'撮影する',pickFile:'写真・PDFを選択',selFiles:'選択中',ck_phone:'電話番号',ck_bank:'振込先口座',ck_mail:'ガイドのメール',ck_range:'開始日・終了日',reqMiss:'未入力の必須項目があります',
+rangeErr:'終了日は開始日以降にしてください',loading:'読み込み中…',reload:'更新',workCalc:'勤務時間',ck_sign:'署名入り勤務表（写真または「なし」）',signTitle:'勤務表の署名',signHint:'お客様の署名入りの勤務表はありますか？ある場合は撮影してアップロードしてください。ない場合は写真は不要です。',signYes:'署名あり（写真を登録）',signNo:'署名なし',mailTitle:'原本の郵送について',mailHint:'原本の郵送が必要な場合は、担当者にご確認のうえ、下記の宛先へお送りください。',mailPhone:'（担当者の携帯番号）',takePhoto:'撮影する',pickFile:'写真・PDFを選択',selFiles:'選択中',ck_phone:'電話番号',ck_bank:'振込先口座',ck_mail:'ガイドのメール',ck_range:'開始日・終了日',reqMiss:'未入力の必須項目があります',
 // staff page
 sTitle:'ガイド精算リンク生成（社内用）',sName:'担当者氏名',sMail:'担当者メール',sGen:'リンクを生成',sSend:'以下のリンクをガイドへお送りください：',sCopy:'リンクをコピー',sCopied:'コピーしました',sNeed:'氏名とメールを入力してください',
 // view/admin
@@ -32,7 +32,7 @@ saved:'Saved',deleted:'Deleted',ck_days:'At least one working day',ck_time:'Star
 confirmSubmit:'Submit now? You cannot edit after submitting.',confirmDel:'Delete this?',confirmClear:'Clear this day?',
 needStaff:'Please open the link sent by your staff in charge.',startNew:'Start',startNote:'Enter the tour code and dates. We will also email you a link to continue.',
 sentMail:'This tour is already registered. We emailed you the entry link; please continue from the email.',noToken:'This link is not valid. Please start again from your staff link.',
-rangeErr:'End date must be on or after start date',loading:'Loading…',reload:'Refresh',workCalc:'Worked',takePhoto:'Take photo',pickFile:'Choose photo or PDF',selFiles:'selected',ck_phone:'Phone number',ck_bank:'Bank account',ck_mail:'Guide email',ck_range:'Start and end dates',reqMiss:'Some required fields are empty',
+rangeErr:'End date must be on or after start date',loading:'Loading…',reload:'Refresh',workCalc:'Worked',ck_sign:'Signed work sheet (photo, or “none”)',signTitle:'Signed work sheet',signHint:'Do you have a work sheet signed by the client? If yes, take a photo and upload it. If not, no photo is needed.',signYes:'Signed (add photo)',signNo:'No signature',mailTitle:'Mailing originals',mailHint:'If you need to mail the originals, please confirm with your staff contact first and send them to the address below.',mailPhone:'(staff mobile number)',takePhoto:'Take photo',pickFile:'Choose photo or PDF',selFiles:'selected',ck_phone:'Phone number',ck_bank:'Bank account',ck_mail:'Guide email',ck_range:'Start and end dates',reqMiss:'Some required fields are empty',
 sTitle:'Guide settlement link (internal)',sName:'Staff name',sMail:'Staff email',sGen:'Generate link',sSend:'Send this link to the guide:',sCopy:'Copy link',sCopied:'Copied',sNeed:'Enter name and email',
 vTitle:'Settlement details',dlXlsx:'Download Excel',dlZip:'Download originals (ZIP)',ret:'Return',retNote:'Reason for return (sent to the guide)',retDo:'Send return',confirmRet:'Return to the guide? They will get an email to edit again.',
 st_draft:'In progress',st_submitted:'Submitted',bankL:'Bank account',invL:'Invoice no.',
@@ -98,6 +98,7 @@ function renderDetail(d){
  ${kv(T('staff'),esc(s.staff_name)+'（'+esc(s.staff_email)+'）')}${kv(T('bankL'),esc(s.bank).replace(/\n/g,'<br>'))}${kv(T('invL'),esc(s.invoice_no))}${kv(T('x_sub'),s.submitted_at?esc(new Date(s.submitted_at).toLocaleString(L==='ja'?'ja-JP':'en-GB')):'')}</div></div>
  <div class="cd"><h3>${T('tabHours')}</h3>${d.days.length?`<div class="tw"><table class="t"><tr><th>${T('date')}</th><th>${T('from')}</th><th>${T('to')}</th><th>${T('workCalc')}</th><th>${T('note')}</th></tr>${d.days.map(x=>`<tr><td>${dayLabel(x.date)}</td><td>${x.startTime||''}</td><td>${x.endTime||''}</td><td>${hmT(x.minutes)}</td><td>${esc(x.note)}</td></tr>`).join('')}</table></div>`:`<div class="empty">—</div>`}
  <div class="tot"><span>${T('totalWork')}</span><span>${hmT(d.totalMinutes)}</span></div></div>
+ <div class="cd"><h3>${T('signTitle')}</h3>${(d.sheets||[]).length?d.sheets.map(f=>thumb(f)).join(''):`<div class="empty">${T('signNo')}</div>`}</div>
  <div class="cd"><h3>${T('tabExp')}</h3>${d.expenses.length?d.expenses.map(e=>`<div class="ex"><div class="l1"><span>${dayLabel(e.date)} ${esc(catName(e.category))}</span><span>${yen(e.amount)}</span></div><div class="l2">${esc(e.description)} ${esc(e.note)}</div>${e.files.map(f=>thumb(f)).join('')}</div>`).join(''):`<div class="empty">—</div>`}
  <div class="tot"><span>${T('totalExp')}</span><span>${yen(d.totalExpense)}</span></div></div>`;
 }
@@ -130,6 +131,7 @@ async function exportZip(list,name,tokenFor){
    const r=await api('/g/file/'+f.id,{token:tokenFor(d),raw:true});
    z.file(`${safe(s.tour_code)}/${safe(s.guide_name)}/${safe(e.date+'_'+catName(e.category)+'_'+e.amount+'円_'+String(i).padStart(2,'0'))}.${ext}`,await r.blob());n++;
   }}}
+ for(const d of list){let i=0;for(const f of (d.sheets||[])){i++;const ext=f.ct==='application/pdf'?'pdf':f.ct==='image/png'?'png':f.ct==='image/webp'?'webp':f.ct==='image/heic'?'heic':'jpg';const r=await api('/g/file/'+f.id,{token:tokenFor(d),raw:true});z.file(`${safe(d.sub.tour_code)}/${safe(d.sub.guide_name)}/${safe('勤務表_署名_'+String(i).padStart(2,'0'))}.${ext}`,await r.blob());n++}}
  if(!n)throw new Error(L==='ja'?'原本ファイルがありません':'No original files');
  const b=await z.generateAsync({type:'blob',compression:'STORE'});
  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name+'.zip';a.click();

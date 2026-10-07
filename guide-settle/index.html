@@ -38,6 +38,14 @@ async function load(){
  try{DATA=await api('/g/me',{token:TOKEN});render()}
  catch(e){if(e.status===401){localStorage.removeItem('gs-token');TOKEN=null;app.innerHTML=`<div class="cd"><div class="empty">${T('noToken')}</div></div>`}else{app.innerHTML=`<div class="cd"><div class="empty">${esc(e.message)}</div><div class="acts"><button class="bs" onclick="load()">${T('reload')}</button></div></div>`}}
 }
+const signKey=()=>'gs-sign-'+(DATA?DATA.sub.tour_code+DATA.sub.guide_email:'');
+const getSign=()=>(DATA.sheets&&DATA.sheets.length)?'y':(localStorage.getItem(signKey())||'');
+function signCard(){
+ const sg=getSign(),dis=locked();
+ return `<div class="cd"><h3>${T('signTitle')}<span class="req">*</span></h3><div class="muted" style="margin-bottom:8px">${T('signHint')}</div>
+ <div class="acts"><button class="${sg==='y'?'bp':'bs'}" data-sign="y" ${dis?'disabled':''}>${T('signYes')}</button><button class="${sg==='n'?'bp':'bs'}" data-sign="n" ${dis||(DATA.sheets&&DATA.sheets.length)?'disabled':''}>${T('signNo')}</button></div>
+ ${sg==='y'?`<div style="margin-top:10px"><div id="w_th">${(DATA.sheets||[]).map(x=>thumb(x,!dis)).join('')}</div>${dis?'':`<div class="acts" style="margin-top:6px"><button type="button" class="bs" data-wcam>📷 ${T('takePhoto')}</button><button type="button" class="bs" data-wpick>🖼 ${T('pickFile')}</button></div><input id="w_cam" type="file" accept="image/*" capture="environment" hidden><input id="w_f" type="file" accept="image/*,application/pdf" multiple hidden>`}</div>`:''}</div>`;
+}
 const locked=()=>DATA.sub.status==='submitted';
 function blockers(){
  const d=DATA,o=[];
@@ -64,7 +72,7 @@ function hoursView(){
   <div class="bd2"><div class="row" style="margin-top:10px"><div class="fg"><label>${T('from')}</label><input type="time" id="s_${dt}" data-calc="${dt}" value="${x?.startTime||''}"></div><div class="fg"><label>${T('to')}</label><input type="time" id="e_${dt}" data-calc="${dt}" value="${x?.endTime||''}"></div></div><div class="fg" style="color:var(--c);font-weight:600">${T('workCalc')}：<span id="c_${dt}">${x&&x.minutes!=null?hmT(x.minutes):'—'}</span></div>
   <div class="fg"><label>${T('note')}</label><input id="n_${dt}" value="${esc(x?.note||'')}"></div><div class="acts"><button class="bp" data-saveday="${dt}">${T('save')}</button>${x?`<button class="bs" data-clearday="${dt}">${T('clear')}</button>`:''}</div></div></div>`;
  }
- return h+`<div class="tot"><span>${T('totalWork')}</span><span>${hmT(DATA.totalMinutes)}</span></div>`;
+ return h+`<div class="tot"><span>${T('totalWork')}</span><span>${hmT(DATA.totalMinutes)}</span></div>`+signCard();
 }
 function expView(){
  let h='';
@@ -87,7 +95,7 @@ function expView(){
 const val=(id,k)=>{const e=$('#'+id);return (e?e.value:DATA.sub[k]||'').trim()};
 function checks(){
  const d=DATA;
- return [[T('ck_days'),d.days.length>0],[T('ck_time'),d.days.length>0&&!d.days.some(x=>x.minutes==null)],[T('ck_rcpt'),!d.expenses.some(e=>!e.files.length)],
+ return [[T('ck_days'),d.days.length>0],[T('ck_time'),d.days.length>0&&!d.days.some(x=>x.minutes==null)],[T('ck_rcpt'),!d.expenses.some(e=>!e.files.length)],[T('ck_sign'),getSign()==='n'||(getSign()==='y'&&d.sheets.length>0)],
  [T('ck_name'),!!val('p_n','guide_name')],[T('ck_mail'),!!DATA.sub.guide_email],[T('ck_phone'),!!val('p_p','guide_phone')],[T('ck_range'),!!val('p_s','start_date')&&!!val('p_e','end_date')],[T('ck_bank'),!!val('p_b','bank')]];
 }
 function checksHtml(){return checks().map(([t,ok])=>`<div class="chk ${ok?'ok':'no'}">${ok?'✓':'✗'} ${t}</div>`).join('')}
@@ -101,6 +109,7 @@ function subView(){
  <div class="row"><div class="fg"><label>${T('start')}${R}</label><input type="date" id="p_s" value="${s.start_date}" ${dis}></div><div class="fg"><label>${T('end')}${R}</label><input type="date" id="p_e" value="${s.end_date}" ${dis}></div></div>
  <div class="fg"><label>${T('bank')}${R}</label><textarea id="p_b" placeholder="${esc(T('bankPh'))}" ${dis}>${esc(s.bank)}</textarea></div>
  <div class="fg"><label>${T('inv')}</label><input id="p_i" value="${esc(s.invoice_no)}" placeholder="${T('invPh')}" ${dis}></div></div>
+ <div class="cd"><h3>${T('mailTitle')}</h3><div class="muted" style="margin-bottom:8px">${T('mailHint')}</div><div style="background:#F7F6F5;border:1px solid var(--b,#E8E0D4);border-radius:10px;padding:12px 14px;line-height:1.8;font-size:.92rem">Kinoko Club Concierge<br>${esc(s.staff_name)} ${T('mailPhone')}<br>サクセス銀座東ビル<br>〒104-0045 東京都中央区築地１丁目１３−１０ 6F<br>Tel：03-6868-4007</div></div>
  <div class="cd"><h3>${T('tabSubmit')}</h3><div id="chks">${checksHtml()}</div>
  <div class="acts"><button class="bp" data-submit ${locked()||checks().some(x=>!x[1])?'disabled':''}>${T('submit')}</button></div></div>`;
 }
@@ -120,6 +129,9 @@ app.addEventListener('click',async ev=>{
   OPEN.delete(d);toast(T('saved'));await load();return}
  if(t.dataset.clearday){if(!confirm(T('confirmClear')))return;await api('/g/days/'+t.dataset.clearday,{method:'DELETE',token:TOKEN});OPEN.delete(t.dataset.clearday);await load();return}
  if('addexp' in t.dataset){EXPFORM={date:DATA.sub.start_date,category:'transport'};PEND=[];render();return}
+ if(t.dataset.sign){localStorage.setItem(signKey(),t.dataset.sign);render();return}
+ if('wcam' in t.dataset){$('#w_cam').click();return}
+ if('wpick' in t.dataset){$('#w_f').click();return}
  if('cam' in t.dataset){$('#x_cam').click();return}
  if('pick' in t.dataset){$('#x_f').click();return}
  if(t.dataset.editexp){const e=DATA.expenses.find(x=>x.id===t.dataset.editexp);EXPFORM={...e};PEND=[];render();return}
@@ -145,7 +157,8 @@ app.addEventListener('click',async ev=>{
 app.addEventListener('input',ev=>{const e=ev.target;
  if(e.dataset&&e.dataset.calc){const d=e.dataset.calc,a=$('#s_'+d).value,b=$('#e_'+d).value;$('#c_'+d).textContent=a&&b?hmT(pm(a,b)):'—'}
  if(e.id&&e.id.startsWith('p_'))refreshChecks()});
-app.addEventListener('change',ev=>{const e=ev.target;
+app.addEventListener('change',async ev=>{const e=ev.target;
+ if(e.id==='w_cam'||e.id==='w_f'){const fl=[...e.files];e.value='';if(!fl.length)return;toast(T('busy'));try{for(const f of fl){const fd=new FormData();fd.append('expId','sheet');fd.append('file',await compress(f));await api('/g/upload',{method:'POST',token:TOKEN,form:fd})}}catch(er){toast(er.message,1)}await load();toast(T('saved'));return}
  if(e.id==='x_cam'||e.id==='x_f'){PEND.push(...e.files);e.value='';$('#x_sel').innerHTML=pendHtml();return}
  if(e.id&&e.id.startsWith('p_')&&!locked()){if(!val('p_n','guide_name')||!$('#p_s').value||!$('#p_e').value){refreshChecks();return}saveProfile().then(()=>{toast(T('saved'));refreshChecks()}).catch(e=>toast(e.message,1))}});
 if(TOKEN){app.innerHTML=`<div class="empty">${T('loading')}</div>`;load()}else startView();
