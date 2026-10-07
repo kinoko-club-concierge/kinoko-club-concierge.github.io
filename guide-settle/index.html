@@ -56,7 +56,7 @@ function blockers(){
 }
 function render(){
  if(!DATA)return;const s=DATA.sub;
- let h=`<div class="cd" style="padding:14px 18px"><b style="color:var(--c);font-size:1.05rem">${esc(s.tour_code)}</b> <span class="badge ${locked()?'s':''}">${T('st_'+s.status)}</span><div class="muted">${esc(s.start_date)} 〜 ${esc(s.end_date)} ・ ${esc(s.guide_name)} ・ ${T('staff')}: ${esc(s.staff_name)}</div></div>`;
+ let h=`<div class="cd" style="padding:14px 18px"><b style="color:var(--c);font-size:1.05rem">${esc(s.tour_code)}</b> <span class="badge ${locked()?'s':''}">${T('st_'+s.status)}</span><div class="muted">${esc(s.start_date)} 〜 ${esc(s.end_date)} ・ ${T('nameL')}：${esc(s.guide_name)} ・ ${T('staff')}：${esc(s.staff_name)}</div></div>`;
  if(s.return_note)h+=`<div class="banner warn"><b>${T('returned')}</b><br>${esc(s.return_note)}</div>`;
  if(locked())h+=`<div class="banner ok">${T('submitted')}</div>`;
  h+=`<div class="tabs"><button data-t="hours" class="${TAB==='hours'?'on':''}">${T('tabHours')}</button><button data-t="exp" class="${TAB==='exp'?'on':''}">${T('tabExp')}</button><button data-t="sub" class="${TAB==='sub'?'on':''}">${T('tabSubmit')}</button></div>`;
@@ -115,16 +115,21 @@ function subView(){
  <div class="fg"><label>${T('inv')}</label><input id="p_i" value="${esc(s.invoice_no)}" placeholder="${T('invPh')}" ${dis}></div></div>
  <div class="cd"><h3>${T('invT')}<span class="req">*</span></h3><div class="muted" style="margin-bottom:8px">${T('invH')}</div>
  <div class="fg"><label>${T('dailyRate')}${R}</label><input id="p_dr" type="number" inputmode="numeric" min="0" step="1" value="${s.daily_rate||''}" placeholder="20000" ${dis}></div>
- <div class="row"><div class="fg"><label>${T('otHours')}</label><input id="p_oh" type="number" inputmode="decimal" min="0" step="0.25" value="${s.ot_min?Math.round(s.ot_min/60*100)/100:''}" placeholder="0" ${dis}></div><div class="fg"><label>${T('otRate')}</label><input id="p_or" type="number" inputmode="numeric" min="0" step="1" value="${s.ot_rate||''}" placeholder="2000" ${dis}></div></div></div>
+ <div class="row"><div class="fg"><label>${T('otHours')}</label><input id="p_oh" type="number" inputmode="decimal" min="0" step="0.25" value="${s.ot_min?Math.round(s.ot_min/60*100)/100:''}" placeholder="0" ${dis}></div><div class="fg"><label>${T('otRate')}</label><input id="p_or" type="number" inputmode="numeric" min="0" step="1" value="${s.ot_rate||''}" placeholder="2000" ${dis}></div></div>
+ <div class="row"><div class="fg"><label>${T('mealRate')}</label><input id="p_mr" type="number" inputmode="numeric" min="0" step="1" value="${s.meal_rate||''}" placeholder="0" ${dis}></div><div class="fg"><label>${T('mealDays')}</label><input id="p_md" type="number" inputmode="numeric" min="0" step="1" value="${s.meal_days||''}" placeholder="${esc(T('mealDaysPh'))}" ${dis}></div></div>
+ <h3 style="margin:14px 0 4px;font-size:.95rem">${T('extraT')}</h3><div class="muted" style="margin-bottom:8px">${T('extraH')}</div>
+ ${[0,1,2,3].map(i=>{const x=exList()[i]||{};return `<div class="row"><div class="fg"><label>${T('extraName')}</label><input id="p_xn${i}" maxlength="40" value="${esc(x.name||'')}" ${dis}></div><div class="fg"><label>${T('extraAmt')}</label><input id="p_xa${i}" type="number" inputmode="numeric" min="0" step="1" value="${x.amount||''}" ${dis}></div></div>`}).join('')}</div>
  <div class="cd"><h3>${T('mailTitle')}</h3><div class="muted" style="margin-bottom:8px">${T('mailHint')}</div><div style="background:#F7F6F5;border:1px solid var(--b,#E8E0D4);border-radius:10px;padding:12px 14px;line-height:1.8;font-size:.92rem">Kinoko Club Concierge<br>${esc(s.staff_name)} ${T('mailPhone')}<br>サクセス銀座東ビル<br>〒104-0045 東京都中央区築地１丁目１３−１０ 6F<br>Tel：03-6868-4007</div></div>
  <div class="cd"><h3>${T('tabSubmit')}</h3><div id="chks">${checksHtml()}</div>
  <div class="acts"><button class="bp" data-submit ${locked()||checks().some(x=>!x[1])?'disabled':''}>${T('submit')}</button></div></div>`;
 }
+const exList=()=>{try{return JSON.parse(DATA.sub.extras||'[]')}catch{return []}};
+const readEx=()=>[0,1,2,3].map(i=>({name:($('#p_xn'+i)?.value||'').trim(),amount:Math.max(0,Math.round(parseFloat($('#p_xa'+i)?.value)||0))})).filter(x=>x.name||x.amount);
 const iv=id=>Math.max(0,Math.round(parseFloat($('#'+id).value)||0));
 async function saveProfile(){
  const s=DATA.sub;
- await api('/g/me',{method:'PUT',token:TOKEN,body:{guideName:$('#p_n').value,guidePhone:$('#p_p').value,startDate:$('#p_s').value,endDate:$('#p_e').value,bank:$('#p_b').value,invoiceNo:$('#p_i').value,dailyRate:iv('p_dr'),otMin:Math.round((parseFloat($('#p_oh').value)||0)*60),otRate:iv('p_or'),lang:L}});
- Object.assign(DATA.sub,{guide_name:$('#p_n').value.trim(),guide_phone:$('#p_p').value.trim(),start_date:$('#p_s').value,end_date:$('#p_e').value,bank:$('#p_b').value.trim(),invoice_no:$('#p_i').value.trim(),daily_rate:iv('p_dr'),ot_min:Math.round((parseFloat($('#p_oh').value)||0)*60),ot_rate:iv('p_or')});
+ await api('/g/me',{method:'PUT',token:TOKEN,body:{guideName:$('#p_n').value,guidePhone:$('#p_p').value,startDate:$('#p_s').value,endDate:$('#p_e').value,bank:$('#p_b').value,invoiceNo:$('#p_i').value,dailyRate:iv('p_dr'),otMin:Math.round((parseFloat($('#p_oh').value)||0)*60),otRate:iv('p_or'),mealRate:iv('p_mr'),mealDays:iv('p_md'),extras:readEx().map(x=>({name:x.name,amount:x.amount})),lang:L}});
+ Object.assign(DATA.sub,{guide_name:$('#p_n').value.trim(),guide_phone:$('#p_p').value.trim(),start_date:$('#p_s').value,end_date:$('#p_e').value,bank:$('#p_b').value.trim(),invoice_no:$('#p_i').value.trim(),daily_rate:iv('p_dr'),ot_min:Math.round((parseFloat($('#p_oh').value)||0)*60),ot_rate:iv('p_or'),meal_rate:iv('p_mr'),meal_days:iv('p_md'),extras:JSON.stringify(readEx())});
 }
 app.addEventListener('click',async ev=>{
  const t=ev.target.closest('button,[data-tog],[data-editexp]');if(!t)return;

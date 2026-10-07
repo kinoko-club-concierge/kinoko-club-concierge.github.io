@@ -7,8 +7,8 @@ mountBar('<span id="who" class="muted"></span><button class="bs" id="lo" style="
 let TOKEN=localStorage.getItem('gs-p'),SUBS=[],SEL=new Set(),DETAIL=null,F={q:'',staff:'',st:'',a:'',b:''};
 const app=$('#app');
 window.rerender=()=>TOKEN&&ME?(DETAIL?showDetail():list()):login();
-const P={ja:{pTitle:'精算ポータル',email:'会社のメール',pw:'パスワード',pw8:'パスワード（8文字以上）',name:'お名前',code:'認証コード（6桁）',sendCode:'認証コードを送る',sent:'認証コードをメールで送りました',login:'ログイン',reg:'新規登録',regGo:'登録する',forgot:'パスワードを忘れた方',reset:'パスワードを再設定',resetGo:'再設定してログイン',back:'ログインに戻る',admin:'管理者ログイン',need:'すべて入力してください',domain:'@kinoko-group.co.jp のメールを入力してください',hello:'ようこそ',linkT:'ガイド用リンク',linkH:'このリンクをガイドに送ってください。担当者として自動で設定されています。',copy:'リンクをコピー',copied:'コピーしました',open:'開く',mine:'自分の担当分のみ表示されます'},
-en:{pTitle:'Settlement portal',email:'Company email',pw:'Password',pw8:'Password (8+ characters)',name:'Your name',code:'Verification code (6 digits)',sendCode:'Send code',sent:'Code sent by email',login:'Log in',reg:'Register',regGo:'Register',forgot:'Forgot password',reset:'Reset password',resetGo:'Reset and log in',back:'Back to login',admin:'Admin login',need:'Please fill in everything',domain:'Enter your @kinoko-group.co.jp email',hello:'Welcome',linkT:'Guide link',linkH:'Send this link to the guide. You are set as the staff in charge automatically.',copy:'Copy link',copied:'Copied',open:'Open',mine:'Only your own tours are shown'}};
+const P={ja:{pTitle:'Kinoko Club Concierge ガイド精算システム',email:'会社のメール',pw:'パスワード',pw8:'パスワード（8文字以上）',name:'お名前',code:'認証コード（6桁）',sendCode:'認証コードを送る',sent:'認証コードをメールで送りました',login:'ログイン',reg:'新規登録',regGo:'登録する',forgot:'パスワードを忘れた方',reset:'パスワードを再設定',resetGo:'再設定してログイン',back:'ログインに戻る',admin:'管理者ログイン',need:'すべて入力してください',domain:'@kinoko-group.co.jp のメールを入力してください',hello:'ようこそ',linkT:'ガイド用リンク',linkH:'このリンクをガイドに送ってください。担当者として自動で設定されています。',copy:'リンクをコピー',copied:'コピーしました',open:'開く',mine:'自分の担当分のみ表示されます'},
+en:{pTitle:'Kinoko Club Concierge Guide Settlement System',email:'Company email',pw:'Password',pw8:'Password (8+ characters)',name:'Your name',code:'Verification code (6 digits)',sendCode:'Send code',sent:'Code sent by email',login:'Log in',reg:'Register',regGo:'Register',forgot:'Forgot password',reset:'Reset password',resetGo:'Reset and log in',back:'Back to login',admin:'Admin login',need:'Please fill in everything',domain:'Enter your @kinoko-group.co.jp email',hello:'Welcome',linkT:'Guide link',linkH:'Send this link to the guide. You are set as the staff in charge automatically.',copy:'Copy link',copied:'Copied',open:'Open',mine:'Only your own tours are shown'}};
 const PT=k=>(P[L]||P.ja)[k]||T(k);
 let MODE='in',ME=null;
 const okMail=e=>/^[^\s@]+@kinoko-group\.co\.jp$/i.test(e);
@@ -45,25 +45,23 @@ function list(){
  <div class="filters"><input id="fq" placeholder="${esc(T('search'))}" value="${esc(F.q)}"><select id="fs"><option value="">${T('allStaff')}</option>${staffs.map(([e,n])=>`<option value="${esc(e)}" ${F.staff===e?'selected':''}>${esc(n)}</option>`).join('')}</select>
  <select id="ft"><option value="">${T('allSt')}</option><option value="submitted" ${F.st==='submitted'?'selected':''}>${T('st_submitted')}</option><option value="draft" ${F.st==='draft'?'selected':''}>${T('st_draft')}</option></select>
  <input id="fa" type="date" title="${esc(T('from_'))}" value="${F.a}"><input id="fb" type="date" title="${esc(T('to_'))}" value="${F.b}"></div>
- <div class="acts" style="margin:0 0 10px"><button class="bp" id="e1">${T('dlSel')}</button><button class="bs" id="e2">${T('dlSelZip')}</button><button class="bs" id="e3">${T('dlAll')}</button><button class="bs" id="rf">${T('reload')}</button></div>
+ <div class="acts" style="margin:0 0 10px"><button class="bp" id="e2">${T('dlSelZip')}</button><button class="bs" id="rf">${T('reload')}</button></div>
  <div class="tw"><table class="t lst" id="tb"></table></div></div>`;
  const draw=()=>{const rows=shown();$('#cnt').textContent=`${rows.length} / ${SUBS.length}`;
   $('#tb').innerHTML=`<tr><th class="c"><input type="checkbox" id="sa" style="width:auto"></th><th>${T('tour')}</th><th>${T('guide')}</th><th class="hide-s">${T('dates')}</th><th class="hide-s">${T('staff')}</th><th>${T('workCalc')}</th><th>${T('totalExp')}</th><th>${T('x_status')}</th></tr>`+
   (rows.length?rows.map(s=>`<tr data-id="${s.id}"><td class="c"><input type="checkbox" class="ck" data-id="${s.id}" ${SEL.has(s.id)?'checked':''} style="width:auto"></td><td><b>${esc(s.tour_code)}</b></td><td>${esc(s.guide_name)}</td><td class="hide-s">${s.start_date}〜${s.end_date}</td><td class="hide-s">${esc(s.staff_name)}</td><td>${hmT(s.minutes)}</td><td>${yen(s.expense)}</td><td><span class="badge ${s.status==='submitted'?'s':''}">${T('st_'+s.status)}</span></td></tr>`).join(''):`<tr><td colspan="8" class="empty">${T('none')}</td></tr>`);
   $('#sa').onchange=e=>{rows.forEach(s=>e.target.checked?SEL.add(s.id):SEL.delete(s.id));draw()};
-  $('#e1').textContent=T('dlSel')+(SEL.size?` (${SEL.size})`:'');
+  $('#e2').textContent=T('dlSelZip')+(SEL.size?` (${SEL.size})`:'');
  };
  draw();
  for(const [id,k] of [['fq','q'],['fs','staff'],['ft','st'],['fa','a'],['fb','b']])$('#'+id).oninput=e=>{F[k]=e.target.value;draw()};
- $('#tb').onclick=e=>{const ck=e.target.closest('.ck');if(ck){ck.checked?SEL.add(ck.dataset.id):SEL.delete(ck.dataset.id);$('#e1').textContent=T('dlSel')+(SEL.size?` (${SEL.size})`:'');return}
+ $('#tb').onclick=e=>{const ck=e.target.closest('.ck');if(ck){ck.checked?SEL.add(ck.dataset.id):SEL.delete(ck.dataset.id);$('#e2').textContent=T('dlSelZip')+(SEL.size?` (${SEL.size})`:'');return}
   if(e.target.closest('.c'))return;const tr=e.target.closest('tr[data-id]');if(tr)openDetail(tr.dataset.id)};
  $('#rf').onclick=fetchList;
  $('#lkc').onclick=async()=>{try{await navigator.clipboard.writeText(lk);toast(PT('copied'))}catch{toast(lk)}};
  const batch=async(ids,btn,fn)=>{if(!ids.length){toast(T('none'),1);return}btn.disabled=true;const old=btn.textContent;btn.textContent=T('busy');
   try{const out=[];for(let i=0;i<ids.length;i+=4){out.push(...await Promise.all(ids.slice(i,i+4).map(id=>api('/admin/sub/'+id,{token:TOKEN}))))}await fn(out)}catch(e){toast(e.message,1)}btn.disabled=false;btn.textContent=old};
  const stamp=new Date().toISOString().slice(0,10);
- $('#e1').onclick=ev=>batch([...SEL],ev.target,d=>exportXlsx(d,'settlement_'+stamp));
- $('#e3').onclick=ev=>batch(shown().map(s=>s.id),ev.target,d=>exportXlsx(d,'settlement_'+stamp));
  $('#e2').onclick=ev=>batch([...SEL],ev.target,d=>exportZip(d,'originals_'+stamp,()=>TOKEN));
 }
 async function openDetail(id){
@@ -72,11 +70,10 @@ async function openDetail(id){
 }
 function showDetail(){
  const D=DETAIL,nm=`${safe(D.sub.tour_code)}_${safe(D.sub.guide_name)}`;
- app.innerHTML=`<div class="acts" style="margin:0 0 12px"><button class="bs" id="bk" style="flex:0 0 auto">← ${T('aTours')}</button><button class="bp" id="bx">${T('dlXlsx')}</button><button class="bs" id="bi">${T('dlInv')}</button><button class="bs" id="bz">${T('dlZip')}</button>${D.sub.status==='submitted'?`<button class="bd" id="br">${T('ret')}</button>`:''}<button class="bd" id="bdel">${T('rowDel')}</button></div>`+renderDetail(D)+
+ app.innerHTML=`<div class="acts" style="margin:0 0 12px"><button class="bs" id="bk" style="flex:0 0 auto">← ${T('aTours')}</button><button class="bp" id="bi">${T('dlInv')}</button><button class="bs" id="bz">${T('dlZip')}</button>${D.sub.status==='submitted'?`<button class="bd" id="br">${T('ret')}</button>`:''}<button class="bd" id="bdel">${T('rowDel')}</button></div>`+renderDetail(D)+
  `<div class="cd" id="rbox" style="display:none"><div class="fg"><label>${T('retNote')}</label><textarea id="rn"></textarea></div><div class="acts"><button class="bd" id="rgo">${T('retDo')}</button></div></div>`;
  hydrate(app,TOKEN);
  $('#bk').onclick=()=>fetchList();
- $('#bx').onclick=async()=>{try{await exportXlsx([D],nm)}catch(e){toast(e.message,1)}};
  $('#bi').onclick=async()=>{const b=$('#bi');b.disabled=true;try{await exportInvoice(D)}catch(e){toast(e.message,1)}b.disabled=false};
  $('#bz').onclick=async()=>{const b=$('#bz');b.disabled=true;try{await exportZip([D],nm,()=>TOKEN)}catch(e){toast(e.message,1)}b.disabled=false};
  if($('#br'))$('#br').onclick=()=>{$('#rbox').style.display='block';$('#rn').focus()};
