@@ -11,7 +11,7 @@ saved:'保存しました',deleted:'削除しました',ck_days:'勤務日を1�
 confirmSubmit:'提出しますか？提出後は編集できません。',confirmDel:'削除しますか？',confirmClear:'この日の入力を消去しますか？',
 needStaff:'担当者から届いたリンクからお開きください。',startNew:'精算を始める',startNote:'団番号と期間を入力すると、入力ページのリンクがメールにも届きます。',
 sentMail:'このツアーは登録済みです。入力ページのリンクをメールでお送りしました。メールのリンクから続けてください。',noToken:'リンクが無効です。担当者のリンクからやり直してください。',
-rangeErr:'終了日は開始日以降にしてください',loading:'読み込み中…',reload:'更新',
+rangeErr:'終了日は開始日以降にしてください',loading:'読み込み中…',reload:'更新',workCalc:'勤務時間',takePhoto:'撮影する',pickFile:'写真・PDFを選択',selFiles:'選択中',ck_phone:'電話番号',ck_bank:'振込先口座',ck_mail:'ガイドのメール',ck_range:'開始日・終了日',reqMiss:'未入力の必須項目があります',
 // staff page
 sTitle:'ガイド精算リンク生成（社内用）',sName:'担当者氏名',sMail:'担当者メール',sGen:'リンクを生成',sSend:'以下のリンクをガイドへお送りください：',sCopy:'リンクをコピー',sCopied:'コピーしました',sNeed:'氏名とメールを入力してください',
 // view/admin
@@ -32,7 +32,7 @@ saved:'Saved',deleted:'Deleted',ck_days:'At least one working day',ck_time:'Star
 confirmSubmit:'Submit now? You cannot edit after submitting.',confirmDel:'Delete this?',confirmClear:'Clear this day?',
 needStaff:'Please open the link sent by your staff in charge.',startNew:'Start',startNote:'Enter the tour code and dates. We will also email you a link to continue.',
 sentMail:'This tour is already registered. We emailed you the entry link; please continue from the email.',noToken:'This link is not valid. Please start again from your staff link.',
-rangeErr:'End date must be on or after start date',loading:'Loading…',reload:'Refresh',
+rangeErr:'End date must be on or after start date',loading:'Loading…',reload:'Refresh',workCalc:'Worked',takePhoto:'Take photo',pickFile:'Choose photo or PDF',selFiles:'selected',ck_phone:'Phone number',ck_bank:'Bank account',ck_mail:'Guide email',ck_range:'Start and end dates',reqMiss:'Some required fields are empty',
 sTitle:'Guide settlement link (internal)',sName:'Staff name',sMail:'Staff email',sGen:'Generate link',sSend:'Send this link to the guide:',sCopy:'Copy link',sCopied:'Copied',sNeed:'Enter name and email',
 vTitle:'Settlement details',dlXlsx:'Download Excel',dlZip:'Download originals (ZIP)',ret:'Return',retNote:'Reason for return (sent to the guide)',retDo:'Send return',confirmRet:'Return to the guide? They will get an email to edit again.',
 st_draft:'In progress',st_submitted:'Submitted',bankL:'Bank account',invL:'Invoice no.',
@@ -48,6 +48,7 @@ const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const yen=n=>'¥'+Number(n||0).toLocaleString('en-US');
 const hm=m=>m==null?'':Math.floor(m/60)+':'+String(m%60).padStart(2,'0');
+const hmT=m=>m==null?'':(L==='ja'?`${Math.floor(m/60)}時間${m%60}分`:`${Math.floor(m/60)}h ${m%60}m`);
 const wdOf=d=>new Date(d+'T00:00:00Z').getUTCDay();
 const dayLabel=d=>d.slice(5).replace('-','/')+'（'+T('wd')[wdOf(d)]+'）';
 function eachDay(a,b){const o=[];for(let t=Date.parse(a+'T00:00:00Z');t<=Date.parse(b+'T00:00:00Z');t+=864e5)o.push(new Date(t).toISOString().slice(0,10));return o}
@@ -95,8 +96,8 @@ function renderDetail(d){
  return `<div class="cd"><h2>${esc(s.tour_code)} <span class="badge ${s.status==='submitted'?'s':''}">${T('st_'+s.status)}</span></h2><div class="kv">
  ${kv(T('dates'),esc(s.start_date)+' 〜 '+esc(s.end_date))}${kv(T('guide'),esc(s.guide_name))}${kv(T('gmail'),esc(s.guide_email))}${kv(T('phone'),esc(s.guide_phone))}
  ${kv(T('staff'),esc(s.staff_name)+'（'+esc(s.staff_email)+'）')}${kv(T('bankL'),esc(s.bank).replace(/\n/g,'<br>'))}${kv(T('invL'),esc(s.invoice_no))}${kv(T('x_sub'),s.submitted_at?esc(new Date(s.submitted_at).toLocaleString(L==='ja'?'ja-JP':'en-GB')):'')}</div></div>
- <div class="cd"><h3>${T('tabHours')}</h3>${d.days.length?`<div class="tw"><table class="t"><tr><th>${T('date')}</th><th>${T('from')}</th><th>${T('to')}</th><th>${T('brk')}</th><th>${T('work')}</th><th>${T('note')}</th></tr>${d.days.map(x=>`<tr><td>${dayLabel(x.date)}</td><td>${x.startTime||''}</td><td>${x.endTime||''}</td><td>${x.breakMin||0}</td><td>${hm(x.minutes)}</td><td>${esc(x.note)}</td></tr>`).join('')}</table></div>`:`<div class="empty">—</div>`}
- <div class="tot"><span>${T('totalWork')}</span><span>${hm(d.totalMinutes)}</span></div></div>
+ <div class="cd"><h3>${T('tabHours')}</h3>${d.days.length?`<div class="tw"><table class="t"><tr><th>${T('date')}</th><th>${T('from')}</th><th>${T('to')}</th><th>${T('workCalc')}</th><th>${T('note')}</th></tr>${d.days.map(x=>`<tr><td>${dayLabel(x.date)}</td><td>${x.startTime||''}</td><td>${x.endTime||''}</td><td>${hmT(x.minutes)}</td><td>${esc(x.note)}</td></tr>`).join('')}</table></div>`:`<div class="empty">—</div>`}
+ <div class="tot"><span>${T('totalWork')}</span><span>${hmT(d.totalMinutes)}</span></div></div>
  <div class="cd"><h3>${T('tabExp')}</h3>${d.expenses.length?d.expenses.map(e=>`<div class="ex"><div class="l1"><span>${dayLabel(e.date)} ${esc(catName(e.category))}</span><span>${yen(e.amount)}</span></div><div class="l2">${esc(e.description)} ${esc(e.note)}</div>${e.files.map(f=>thumb(f)).join('')}</div>`).join(''):`<div class="empty">—</div>`}
  <div class="tot"><span>${T('totalExp')}</span><span>${yen(d.totalExpense)}</span></div></div>`;
 }
@@ -108,16 +109,16 @@ async function exportXlsx(list,name){
  await loadScript('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js');
  const S=[],H=[],E=[];
  S.push([T('tour'),T('start'),T('end'),T('gname'),T('gmail'),T('phone'),T('staff'),T('staffMail'),T('x_hm'),T('x_min'),T('totalExp'),T('bankL'),T('invL'),T('x_status'),T('x_sub')]);
- H.push([T('tour'),T('gname'),T('date'),T('from'),T('to'),T('brk'),T('x_hm'),T('x_min'),T('note')]);
+ H.push([T('tour'),T('gname'),T('date'),T('from'),T('to'),T('x_hm'),T('x_min'),T('note')]);
  E.push([T('tour'),T('gname'),T('date'),T('cat'),T('desc'),T('amount'),T('note'),T('x_rcpt')]);
  for(const d of list){const s=d.sub;
   S.push([s.tour_code,s.start_date,s.end_date,s.guide_name,s.guide_email,s.guide_phone,s.staff_name,s.staff_email,hm(d.totalMinutes),d.totalMinutes,d.totalExpense,s.bank,s.invoice_no,T('st_'+s.status),s.submitted_at?new Date(s.submitted_at).toLocaleString(L==='ja'?'ja-JP':'en-GB'):''].map(cell));
-  for(const x of d.days)H.push([s.tour_code,s.guide_name,x.date,x.startTime||'',x.endTime||'',x.breakMin||0,hm(x.minutes),x.minutes,x.note].map(cell));
+  for(const x of d.days)H.push([s.tour_code,s.guide_name,x.date,x.startTime||'',x.endTime||'',hm(x.minutes),x.minutes,x.note].map(cell));
   for(const e of d.expenses)E.push([s.tour_code,s.guide_name,e.date,catName(e.category),e.description,e.amount,e.note,e.files.map(f=>f.name).join(' / ')].map(cell));
  }
  if(list.length>1){S.push([]);S.push([T('x_total'),'','','','','','','',hm(list.reduce((a,d)=>a+d.totalMinutes,0)),list.reduce((a,d)=>a+d.totalMinutes,0),list.reduce((a,d)=>a+d.totalExpense,0)])}
  const wb=XLSX.utils.book_new();
- for(const [n,rows,w] of [[T('x_sum'),S,[14,12,12,16,24,14,14,24,12,10,12,30,16,10,18]],[T('x_hours'),H,[14,16,12,8,8,10,12,10,30]],[T('x_exp'),E,[14,16,12,14,26,12,24,30]]]){const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=w.map(x=>({wch:x}));XLSX.utils.book_append_sheet(wb,ws,n)}
+ for(const [n,rows,w] of [[T('x_sum'),S,[14,12,12,16,24,14,14,24,12,10,12,30,16,10,18]],[T('x_hours'),H,[14,16,12,8,8,12,10,30]],[T('x_exp'),E,[14,16,12,14,26,12,24,30]]]){const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=w.map(x=>({wch:x}));XLSX.utils.book_append_sheet(wb,ws,n)}
  XLSX.writeFile(wb,name+'.xlsx');
 }
 async function exportZip(list,name,tokenFor){

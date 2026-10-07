@@ -7,7 +7,9 @@ const qs=new URLSearchParams(location.search),hs=/[#&]s=([a-f0-9g]+)/.exec(locat
 let TOKEN=hs?hs[1]:null;if(TOKEN){localStorage.setItem('gs-token',TOKEN)}
 const STAFF={name:qs.get('staff_name')||'',email:qs.get('staff_email')||''};
 if(!TOKEN&&!STAFF.email)TOKEN=localStorage.getItem('gs-token');
-let DATA=null,TAB='hours',OPEN=new Set(),EXPFORM=null;
+let DATA=null,TAB='hours',OPEN=new Set(),EXPFORM=null,PEND=[];
+const pendHtml=()=>PEND.length?PEND.map(f=>'📎 '+esc(f.name)).join('<br>'):'';
+const pm=(a,b)=>{const m=v=>+v.slice(0,2)*60+ +v.slice(3);let d=m(b)-m(a);if(d<=0)d+=1440;return d};
 const app=$('#app');
 window.rerender=()=>TOKEN?render():startView();
 const CATS=['transport','parking','meal','ticket','hotel','other'];
@@ -58,11 +60,11 @@ function hoursView(){
  let h='';
  for(const dt of eachDay(DATA.sub.start_date,DATA.sub.end_date)){
   const x=map[dt],w=wdOf(dt),open=OPEN.has(dt)&&!locked();
-  h+=`<div class="day ${x?'done':''} ${open?'open':''}" data-d="${dt}"><div class="hd" data-tog="${dt}"><b class="${w===6?'sat':w===0?'sun':''}">${dayLabel(dt)}</b><span class="v">${x?`${x.startTime||''}${x.startTime?' → ':''}${x.endTime||''}${x.breakMin?' ・ '+T('brk').replace(/（.*/,'')+x.breakMin:''}`:''}</span><span class="m">${x&&x.minutes!=null?hm(x.minutes):''}</span></div>
-  <div class="bd2"><div class="row3" style="margin-top:10px"><div class="fg"><label>${T('from')}</label><input type="time" id="s_${dt}" value="${x?.startTime||''}"></div><div class="fg"><label>${T('to')}</label><input type="time" id="e_${dt}" value="${x?.endTime||''}"></div><div class="fg"><label>${T('brk')}</label><input type="number" inputmode="numeric" min="0" id="b_${dt}" value="${x?.breakMin||0}"></div></div>
+  h+=`<div class="day ${x?'done':''} ${open?'open':''}" data-d="${dt}"><div class="hd" data-tog="${dt}"><b class="${w===6?'sat':w===0?'sun':''}">${dayLabel(dt)}</b><span class="v">${x?`${x.startTime||''}${x.startTime?' → ':''}${x.endTime||''}`:''}</span><span class="m">${x&&x.minutes!=null?hmT(x.minutes):''}</span></div>
+  <div class="bd2"><div class="row" style="margin-top:10px"><div class="fg"><label>${T('from')}</label><input type="time" id="s_${dt}" data-calc="${dt}" value="${x?.startTime||''}"></div><div class="fg"><label>${T('to')}</label><input type="time" id="e_${dt}" data-calc="${dt}" value="${x?.endTime||''}"></div></div><div class="fg" style="color:var(--c);font-weight:600">${T('workCalc')}：<span id="c_${dt}">${x&&x.minutes!=null?hmT(x.minutes):'—'}</span></div>
   <div class="fg"><label>${T('note')}</label><input id="n_${dt}" value="${esc(x?.note||'')}"></div><div class="acts"><button class="bp" data-saveday="${dt}">${T('save')}</button>${x?`<button class="bs" data-clearday="${dt}">${T('clear')}</button>`:''}</div></div></div>`;
  }
- return h+`<div class="tot"><span>${T('totalWork')}</span><span>${hm(DATA.totalMinutes)}</span></div>`;
+ return h+`<div class="tot"><span>${T('totalWork')}</span><span>${hmT(DATA.totalMinutes)}</span></div>`;
 }
 function expView(){
  let h='';
@@ -73,7 +75,7 @@ function expView(){
   <div class="fg"><label>${T('amount')}<span class="req">*</span></label><input id="x_a" type="number" inputmode="numeric" min="0" value="${f.amount??''}"></div>
   <div class="fg"><label>${T('desc')}</label><input id="x_x" value="${esc(f.description||'')}"></div>
   <div class="fg"><label>${T('note')}</label><input id="x_n" value="${esc(f.note||'')}"></div>
-  <div class="fg"><label>${T('photo')}<span class="req">*</span></label><div id="x_th">${(f.files||[]).map(x=>thumb(x,true)).join('')}</div><input id="x_f" type="file" accept="image/*,application/pdf" multiple style="margin-top:6px"></div>
+  <div class="fg"><label>${T('photo')}<span class="req">*</span></label><div id="x_th">${(f.files||[]).map(x=>thumb(x,true)).join('')}</div><div class="acts" style="margin-top:6px"><button type="button" class="bs" data-cam>📷 ${T('takePhoto')}</button><button type="button" class="bs" data-pick>🖼 ${T('pickFile')}</button></div><input id="x_cam" type="file" accept="image/*" capture="environment" hidden><input id="x_f" type="file" accept="image/*,application/pdf" multiple hidden><div id="x_sel" class="muted" style="margin-top:6px">${pendHtml()}</div></div>
   <div class="acts"><button class="bp" data-saveexp>${T('save')}</button><button class="bs" data-cancelexp>${T('cancel')}</button>${f.id?`<button class="bd" data-delexp="${f.id}">${T('del')}</button>`:''}</div></div>`;}
  for(const e of DATA.expenses){
   if(EXPFORM&&EXPFORM.id===e.id)continue;
@@ -82,21 +84,30 @@ function expView(){
  if(!DATA.expenses.length&&!EXPFORM)h+=`<div class="empty">—</div>`;
  return h+`<div class="tot"><span>${T('totalExp')}</span><span>${yen(DATA.totalExpense)}</span></div>`;
 }
+const val=(id,k)=>{const e=$('#'+id);return (e?e.value:DATA.sub[k]||'').trim()};
+function checks(){
+ const d=DATA;
+ return [[T('ck_days'),d.days.length>0],[T('ck_time'),d.days.length>0&&!d.days.some(x=>x.minutes==null)],[T('ck_rcpt'),!d.expenses.some(e=>!e.files.length)],
+ [T('ck_name'),!!val('p_n','guide_name')],[T('ck_mail'),!!DATA.sub.guide_email],[T('ck_phone'),!!val('p_p','guide_phone')],[T('ck_range'),!!val('p_s','start_date')&&!!val('p_e','end_date')],[T('ck_bank'),!!val('p_b','bank')]];
+}
+function checksHtml(){return checks().map(([t,ok])=>`<div class="chk ${ok?'ok':'no'}">${ok?'✓':'✗'} ${t}</div>`).join('')}
+function refreshChecks(){const c=$('#chks');if(!c)return;c.innerHTML=checksHtml();const b=document.querySelector('[data-submit]');if(b)b.disabled=locked()||checks().some(x=>!x[1])}
 function subView(){
- const s=DATA.sub,b=blockers(),dis=locked()?'disabled':'';
+ const s=DATA.sub,dis=locked()?'disabled':'',R='<span class="req">*</span>';
  return `<div class="cd"><h3>${T('guide')}</h3>
- <div class="fg"><label>${T('gname')}<span class="req">*</span></label><input id="p_n" value="${esc(s.guide_name)}" ${dis}></div>
- <div class="fg"><label>${T('phone')}</label><input id="p_p" value="${esc(s.guide_phone)}" inputmode="tel" ${dis}></div>
- <div class="row"><div class="fg"><label>${T('start')}</label><input type="date" id="p_s" value="${s.start_date}" ${dis}></div><div class="fg"><label>${T('end')}</label><input type="date" id="p_e" value="${s.end_date}" ${dis}></div></div>
- <div class="fg"><label>${T('bank')}</label><textarea id="p_b" placeholder="${esc(T('bankPh'))}" ${dis}>${esc(s.bank)}</textarea></div>
+ <div class="fg"><label>${T('gname')}${R}</label><input id="p_n" value="${esc(s.guide_name)}" ${dis}></div>
+ <div class="fg"><label>${T('gmail')}${R}</label><input id="p_m" value="${esc(s.guide_email)}" disabled></div>
+ <div class="fg"><label>${T('phone')}${R}</label><input id="p_p" value="${esc(s.guide_phone)}" inputmode="tel" autocomplete="tel" ${dis}></div>
+ <div class="row"><div class="fg"><label>${T('start')}${R}</label><input type="date" id="p_s" value="${s.start_date}" ${dis}></div><div class="fg"><label>${T('end')}${R}</label><input type="date" id="p_e" value="${s.end_date}" ${dis}></div></div>
+ <div class="fg"><label>${T('bank')}${R}</label><textarea id="p_b" placeholder="${esc(T('bankPh'))}" ${dis}>${esc(s.bank)}</textarea></div>
  <div class="fg"><label>${T('inv')}</label><input id="p_i" value="${esc(s.invoice_no)}" placeholder="${T('invPh')}" ${dis}></div></div>
- <div class="cd"><h3>${T('tabSubmit')}</h3>
- ${[[T('ck_days'),DATA.days.length>0],[T('ck_time'),DATA.days.length>0&&!DATA.days.some(x=>x.minutes==null)],[T('ck_rcpt'),!DATA.expenses.some(e=>!e.files.length)]].map(([t,ok])=>`<div class="chk ${ok?'ok':'no'}">${ok?'✓':'✗'} ${t}</div>`).join('')}
- <div class="acts"><button class="bp" data-submit ${locked()||b.length?'disabled':''}>${T('submit')}</button></div></div>`;
+ <div class="cd"><h3>${T('tabSubmit')}</h3><div id="chks">${checksHtml()}</div>
+ <div class="acts"><button class="bp" data-submit ${locked()||checks().some(x=>!x[1])?'disabled':''}>${T('submit')}</button></div></div>`;
 }
 async function saveProfile(){
  const s=DATA.sub;
  await api('/g/me',{method:'PUT',token:TOKEN,body:{guideName:$('#p_n').value,guidePhone:$('#p_p').value,startDate:$('#p_s').value,endDate:$('#p_e').value,bank:$('#p_b').value,invoiceNo:$('#p_i').value,lang:L}});
+ Object.assign(DATA.sub,{guide_name:$('#p_n').value.trim(),guide_phone:$('#p_p').value.trim(),start_date:$('#p_s').value,end_date:$('#p_e').value,bank:$('#p_b').value.trim(),invoice_no:$('#p_i').value.trim()});
 }
 app.addEventListener('click',async ev=>{
  const t=ev.target.closest('button,[data-tog],[data-editexp]');if(!t)return;
@@ -105,29 +116,37 @@ app.addEventListener('click',async ev=>{
  if(t.dataset.tog){const d=t.dataset.tog;OPEN.has(d)?OPEN.delete(d):OPEN.add(d);render();return}
  if(t.dataset.saveday){const d=t.dataset.saveday,st=$('#s_'+d).value,en=$('#e_'+d).value;
   if(!!st!==!!en){toast(L==='ja'?'開始と終了の両方を入力してください':'Enter both start and end',1);return}
-  await api('/g/days',{method:'PUT',token:TOKEN,body:{date:d,startTime:st,endTime:en,breakMin:parseInt($('#b_'+d).value||'0',10)||0,note:$('#n_'+d).value}});
+  await api('/g/days',{method:'PUT',token:TOKEN,body:{date:d,startTime:st,endTime:en,breakMin:0,note:$('#n_'+d).value}});
   OPEN.delete(d);toast(T('saved'));await load();return}
  if(t.dataset.clearday){if(!confirm(T('confirmClear')))return;await api('/g/days/'+t.dataset.clearday,{method:'DELETE',token:TOKEN});OPEN.delete(t.dataset.clearday);await load();return}
- if('addexp' in t.dataset){EXPFORM={date:DATA.sub.start_date,category:'transport'};render();return}
- if(t.dataset.editexp){const e=DATA.expenses.find(x=>x.id===t.dataset.editexp);EXPFORM={...e};render();return}
- if('cancelexp' in t.dataset){EXPFORM=null;render();return}
+ if('addexp' in t.dataset){EXPFORM={date:DATA.sub.start_date,category:'transport'};PEND=[];render();return}
+ if('cam' in t.dataset){$('#x_cam').click();return}
+ if('pick' in t.dataset){$('#x_f').click();return}
+ if(t.dataset.editexp){const e=DATA.expenses.find(x=>x.id===t.dataset.editexp);EXPFORM={...e};PEND=[];render();return}
+ if('cancelexp' in t.dataset){EXPFORM=null;PEND=[];render();return}
  if(t.dataset.delexp){if(!confirm(T('confirmDel')))return;await api('/g/exp/'+t.dataset.delexp,{method:'DELETE',token:TOKEN});EXPFORM=null;toast(T('deleted'));await load();return}
  if(t.dataset.del){if(!confirm(T('confirmDel')))return;await api('/g/file/'+t.dataset.del,{method:'DELETE',token:TOKEN});const f=EXPFORM;await load();if(f){EXPFORM=DATA.expenses.find(x=>x.id===f.id)||null;render()}return}
  if('saveexp' in t.dataset){
   const body={date:$('#x_d').value,category:$('#x_c').value,amount:parseInt($('#x_a').value,10),description:$('#x_x').value,note:$('#x_n').value};
   if(!Number.isInteger(body.amount)||body.amount<0){toast(L==='ja'?'金額を入力してください':'Enter the amount',1);return}
-  const files=[...$('#x_f').files];if(!files.length&&!(EXPFORM.files||[]).length){toast(T('ck_rcpt'),1);return}
+  const files=PEND.slice();if(!files.length&&!(EXPFORM.files||[]).length){toast(T('ck_rcpt'),1);return}
   t.disabled=true;t.textContent=T('busy');
   let id=EXPFORM.id;
   if(id)await api('/g/exp/'+id,{method:'PUT',token:TOKEN,body});else id=(await api('/g/exp',{method:'POST',token:TOKEN,body})).id;
   try{for(const f of files){const fd=new FormData();fd.append('expId',id);fd.append('file',await compress(f));await api('/g/upload',{method:'POST',token:TOKEN,form:fd})}}
   catch(e){toast(e.message,1);await load();EXPFORM=DATA.expenses.find(x=>x.id===id)||null;render();return}
-  EXPFORM=null;toast(T('saved'));await load();return}
+  EXPFORM=null;PEND=[];toast(T('saved'));await load();return}
  if('submit' in t.dataset){
+  if(checks().some(x=>!x[1])){toast(T('reqMiss'),1);return}
   if(!confirm(T('confirmSubmit')))return;t.disabled=true;
   await saveProfile();await api('/g/submit',{method:'POST',token:TOKEN});toast(T('saved'));await load();scrollTo(0,0);return}
  }catch(e){toast(e.message,1);if(t.tagName==='BUTTON')t.disabled=false}
 });
-app.addEventListener('change',ev=>{if(ev.target.id&&ev.target.id.startsWith('p_')&&!locked()){saveProfile().then(()=>toast(T('saved'))).catch(e=>toast(e.message,1))}});
+app.addEventListener('input',ev=>{const e=ev.target;
+ if(e.dataset&&e.dataset.calc){const d=e.dataset.calc,a=$('#s_'+d).value,b=$('#e_'+d).value;$('#c_'+d).textContent=a&&b?hmT(pm(a,b)):'—'}
+ if(e.id&&e.id.startsWith('p_'))refreshChecks()});
+app.addEventListener('change',ev=>{const e=ev.target;
+ if(e.id==='x_cam'||e.id==='x_f'){PEND.push(...e.files);e.value='';$('#x_sel').innerHTML=pendHtml();return}
+ if(e.id&&e.id.startsWith('p_')&&!locked()){if(!val('p_n','guide_name')||!$('#p_s').value||!$('#p_e').value){refreshChecks();return}saveProfile().then(()=>{toast(T('saved'));refreshChecks()}).catch(e=>toast(e.message,1))}});
 if(TOKEN){app.innerHTML=`<div class="empty">${T('loading')}</div>`;load()}else startView();
 </script></body></html>
