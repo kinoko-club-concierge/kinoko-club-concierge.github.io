@@ -129,5 +129,5 @@ app.addEventListener('click',async ev=>{
  }catch(e){toast(e.message,1);if(t.tagName==='BUTTON')t.disabled=false}
 });
 app.addEventListener('change',ev=>{if(ev.target.id&&ev.target.id.startsWith('p_')&&!locked()){saveProfile().then(()=>toast(T('saved'))).catch(e=>toast(e.message,1))}});
-if(TOKEN)load();else startView();
+if(TOKEN){app.innerHTML=`<div class="empty">${T('loading')}</div>`;load()}else startView();
 </script></body></html>
