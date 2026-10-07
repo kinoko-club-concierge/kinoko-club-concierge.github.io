@@ -8,7 +8,7 @@ let TOKEN=hs?hs[1]:null;if(TOKEN){localStorage.setItem('gs-token',TOKEN)}
 const STAFF={name:qs.get('staff_name')||'',email:qs.get('staff_email')||''};
 if(!TOKEN&&!STAFF.email)TOKEN=localStorage.getItem('gs-token');
 let DATA=null,TAB='hours',OPEN=new Set(),EXPFORM=null,PEND=[];
-const pendHtml=()=>PEND.length?PEND.map(f=>'📎 '+esc(f.name)).join('<br>'):'';
+const pendHtml=()=>PEND.length?PEND.map(f=>''+esc(f.name)).join('<br>'):'';
 const pm=(a,b)=>{const m=v=>+v.slice(0,2)*60+ +v.slice(3);let d=m(b)-m(a);if(d<=0)d+=1440;return d};
 const app=$('#app');
 window.rerender=()=>TOKEN?render():startView();
@@ -44,7 +44,7 @@ function signCard(){
  const sg=getSign(),dis=locked();
  return `<div class="cd"><h3>${T('signTitle')}<span class="req">*</span></h3><div class="muted" style="margin-bottom:8px">${T('signHint')}</div>
  <div class="acts"><button class="${sg==='y'?'bp':'bs'}" data-sign="y" ${dis?'disabled':''}>${T('signYes')}</button><button class="${sg==='n'?'bp':'bs'}" data-sign="n" ${dis||(DATA.sheets&&DATA.sheets.length)?'disabled':''}>${T('signNo')}</button></div>
- ${sg==='y'?`<div style="margin-top:10px"><div id="w_th">${(DATA.sheets||[]).map(x=>thumb(x,!dis)).join('')}</div>${dis?'':`<div class="acts" style="margin-top:6px"><button type="button" class="bs" data-wcam>📷 ${T('takePhoto')}</button><button type="button" class="bs" data-wpick>🖼 ${T('pickFile')}</button></div><input id="w_cam" type="file" accept="image/*" capture="environment" hidden><input id="w_f" type="file" accept="image/*,application/pdf" multiple hidden>`}</div>`:''}</div>`;
+ ${sg==='y'?`<div style="margin-top:10px"><div id="w_th">${(DATA.sheets||[]).map(x=>thumb(x,!dis)).join('')}</div>${dis?'':`<div class="acts" style="margin-top:6px"><button type="button" class="bs" data-wcam>${T('takePhoto')}</button><button type="button" class="bs" data-wpick>${T('pickFile')}</button></div><input id="w_cam" type="file" accept="image/*" capture="environment" hidden><input id="w_f" type="file" accept="image/*,application/pdf" multiple hidden>`}</div>`:''}</div>`;
 }
 const locked=()=>DATA.sub.status==='submitted';
 function blockers(){
@@ -83,7 +83,7 @@ function expView(){
   <div class="fg"><label>${T('amount')}<span class="req">*</span></label><input id="x_a" type="number" inputmode="numeric" min="0" value="${f.amount??''}"></div>
   <div class="fg"><label>${T('desc')}</label><input id="x_x" value="${esc(f.description||'')}"></div>
   <div class="fg"><label>${T('note')}</label><input id="x_n" value="${esc(f.note||'')}"></div>
-  <div class="fg"><label>${T('photo')}<span class="req">*</span></label><div id="x_th">${(f.files||[]).map(x=>thumb(x,true)).join('')}</div><div class="acts" style="margin-top:6px"><button type="button" class="bs" data-cam>📷 ${T('takePhoto')}</button><button type="button" class="bs" data-pick>🖼 ${T('pickFile')}</button></div><input id="x_cam" type="file" accept="image/*" capture="environment" hidden><input id="x_f" type="file" accept="image/*,application/pdf" multiple hidden><div id="x_sel" class="muted" style="margin-top:6px">${pendHtml()}</div></div>
+  <div class="fg"><label>${T('photo')}<span class="req">*</span></label><div id="x_th">${(f.files||[]).map(x=>thumb(x,true)).join('')}</div><div class="acts" style="margin-top:6px"><button type="button" class="bs" data-cam>${T('takePhoto')}</button><button type="button" class="bs" data-pick>${T('pickFile')}</button></div><input id="x_cam" type="file" accept="image/*" capture="environment" hidden><input id="x_f" type="file" accept="image/*,application/pdf" multiple hidden><div id="x_sel" class="muted" style="margin-top:6px">${pendHtml()}</div></div>
   <div class="acts"><button class="bp" data-saveexp>${T('save')}</button><button class="bs" data-cancelexp>${T('cancel')}</button>${f.id?`<button class="bd" data-delexp="${f.id}">${T('del')}</button>`:''}</div></div>`;}
  for(const e of DATA.expenses){
   if(EXPFORM&&EXPFORM.id===e.id)continue;
