@@ -63,33 +63,72 @@ function render(){
  h+=TAB==='hours'?hoursView():TAB==='exp'?expView():subView();
  app.innerHTML=h;hydrate(app,TOKEN);
 }
+const dayBase=x=>x?x.baseMin:DATA.sub.base_min,hrs=m=>m?Math.round(m/6)/10:'';
+function dayCalc(dt,st,en,bm){
+ if(!st||!en)return '—';const m=pm(st,en);let t=hmT(m);
+ if(bm>0&&m>bm)t+=` ／ ${L==='ja'?'基準を超える時間':'Over standard'}：${hmT(m-bm)}`;return t;
+}
+function ratesCard(){
+ const s=DATA.sub,dis=locked()?'disabled':'',R='<span class="req">*</span>';
+ return `<div class="cd"><h3>${T('ratesT')}</h3><div class="muted" style="margin-bottom:8px">${T('ratesH')}</div>
+ <div class="row"><div class="fg"><label>${T('dailyRate')}${R}</label><input id="r_dr" type="number" inputmode="numeric" min="0" step="1" value="${s.daily_rate||''}" placeholder="20000" ${dis}></div><div class="fg"><label>${T('baseH')}</label><input id="r_bh" type="number" inputmode="decimal" min="0" step="0.5" value="${s.base_min?s.base_min/60:''}" placeholder="10" ${dis}></div></div>
+ <div class="row"><div class="fg"><label>${T('otRate')}</label><input id="r_or" type="number" inputmode="numeric" min="0" step="1" value="${s.ot_rate||''}" placeholder="2500" ${dis}></div><div class="fg"><label>${T('otUnit')}</label><select id="r_ou" ${dis}><option value="60" ${s.ot_unit!==30?'selected':''}>${T('otU60')}</option><option value="30" ${s.ot_unit===30?'selected':''}>${T('otU30')}</option></select></div></div>
+ <div class="muted" style="margin:-4px 0 8px">${T('otUnitH')}</div>
+ <div class="fg"><label>${T('mealRate')}</label><input id="r_mr" type="number" inputmode="numeric" min="0" step="1" value="${s.meal_rate||''}" placeholder="3000" ${dis}></div></div>`;
+}
+function exCard(){
+ const dis=locked()?'disabled':'';
+ return `<div class="cd"><h3>${T('extraT')}</h3><div class="muted" style="margin-bottom:8px">${T('extraH')}</div>
+ ${[0,1,2,3].map(i=>{const x=exList()[i]||{};return `<div class="row"><div class="fg"><label>${T('extraName')}</label><input id="r_xn${i}" maxlength="40" value="${esc(x.name||'')}" ${dis}></div><div class="fg"><label>${T('extraAmt')}</label><input id="r_xa${i}" type="number" inputmode="numeric" min="0" step="1" value="${x.amount||''}" ${dis}></div></div>`}).join('')}</div>`;
+}
+function barHtml(){
+ const t=totals(DATA),r=(k,v,al)=>(v||al)?`<span class="k">${k}</span><span class="v">${yen(v)}</span>`:'';
+ return `<div class="sumbar">${r(T('sumDay'),t.day,1)}${r(T('sumOt'),t.ot,1)}${r(T('sumTr'),t.co,1)}${r(T('sumMeal'),t.meal,1)}${r(T('sumExp'),t.gu)}${r(T('sumEx'),t.exT)}<div class="all"><span>${T('sumAll')}</span><b>${yen(t.total)}</b></div></div>`;
+}
+function updateBar(){const e=$('#sumw');if(e)e.innerHTML=barHtml()}
+function dayPreview(dt){
+ const e=$('#dp_'+dt);if(!e)return;const g=id=>parseFloat($(id+dt)?.value)||0;
+ const ot=otAmtOf(Math.round(g('#d_oh_')*60),DATA.sub);e.textContent=yen(Math.round(g('#d_dr_'))+ot+Math.round(g('#d_ml_')));
+ const c=$('#c_'+dt);if(c)c.textContent=dayCalc(dt,$('#s_'+dt).value,$('#e_'+dt).value,Math.round(g('#d_bh_')*60));
+}
 function hoursView(){
- const map=Object.fromEntries(DATA.days.map(d=>[d.date,d]));
- let h=`<div class="muted" style="margin:0 2px 10px">${T('gapHint')}</div>`;
- for(const dt of eachDay(DATA.sub.start_date,DATA.sub.end_date)){
+ if(EXPFORM&&EXPFORM.payer==='company'&&!locked())return expForm(EXPFORM);
+ const map=Object.fromEntries(DATA.days.map(d=>[d.date,d])),dis=locked()?'disabled':'',s=DATA.sub;
+ let h=ratesCard()+`<div class="muted" style="margin:0 2px 10px">${T('gapHint')}</div>`;
+ for(const dt of eachDay(s.start_date,s.end_date)){
   const x=map[dt],w=wdOf(dt),open=OPEN.has(dt)&&!locked();
-  h+=`<div class="day ${x?'done':''} ${open?'open':''}" data-d="${dt}"><div class="hd" data-tog="${dt}"><b class="${w===6?'sat':w===0?'sun':''}">${dayLabel(dt)}</b><span class="v">${x?`${x.startTime||''}${x.startTime?' → ':''}${x.endTime||''}`:''}</span><span class="m">${x&&x.minutes!=null?hmT(x.minutes):''}</span></div>
-  <div class="bd2"><div class="row" style="margin-top:10px"><div class="fg"><label>${T('from')}</label><input type="time" id="s_${dt}" data-calc="${dt}" value="${x?.startTime||''}"></div><div class="fg"><label>${T('to')}</label><input type="time" id="e_${dt}" data-calc="${dt}" value="${x?.endTime||''}"></div></div><div class="fg" style="color:var(--c);font-weight:600">${T('workCalc')}：<span id="c_${dt}">${x&&x.minutes!=null?hmT(x.minutes):'—'}</span></div>
+  const dr=x?x.dayRate:s.daily_rate||0,bm=dayBase(x)||0,oh=x?x.otMin:0,ml=x?x.meal:s.meal_rate||0;
+  const trs=DATA.expenses.filter(e=>e.payer==='company'&&e.date===dt);
+  h+=`<div class="day ${x?'done':''} ${open?'open':''}" data-d="${dt}"><div class="hd" data-tog="${dt}"><b class="${w===6?'sat':w===0?'sun':''}">${dayLabel(dt)}</b><span class="v">${x?`${x.startTime||''}${x.startTime?' → ':''}${x.endTime||''}`:''}</span><span class="m">${x?yen((x.dayRate||0)+otAmtOf(x.otMin,s)+(x.meal||0)):''}</span></div>
+  <div class="bd2"><div class="row" style="margin-top:10px"><div class="fg"><label>${T('from')}</label><input type="time" id="s_${dt}" data-pv="${dt}" value="${x?.startTime||''}"></div><div class="fg"><label>${T('to')}</label><input type="time" id="e_${dt}" data-pv="${dt}" value="${x?.endTime||''}"></div></div>
+  <div class="muted" style="margin:-2px 0 10px" id="c_${dt}">${dayCalc(dt,x?.startTime,x?.endTime,bm)}</div>
+  <div class="row"><div class="fg"><label>${T('dRate')}</label><input type="number" inputmode="numeric" min="0" step="1" id="d_dr_${dt}" data-pv="${dt}" value="${dr}"></div><div class="fg"><label>${T('dBase')}</label><input type="number" inputmode="decimal" min="0" step="0.5" id="d_bh_${dt}" data-pv="${dt}" value="${bm?bm/60:''}"></div></div>
+  <div class="row"><div class="fg"><label>${T('dOt')}</label><input type="number" inputmode="decimal" min="0" step="0.5" id="d_oh_${dt}" data-pv="${dt}" value="${oh?oh/60:''}" placeholder="0"></div><div class="fg"><label>${T('dMeal')}</label><input type="number" inputmode="numeric" min="0" step="1" id="d_ml_${dt}" data-pv="${dt}" value="${ml}"></div></div>
+  <div class="fg" style="color:var(--c);font-weight:600">${T('dayPrev')}：<span id="dp_${dt}">${yen(dr+otAmtOf(oh,s)+ml)}</span></div>
+  <div class="fg"><label>${T('trT')}</label><div class="muted" style="margin-bottom:6px">${T('trH')}</div>${trs.map(e=>`<div class="ex" data-editexp="${e.id}" style="cursor:pointer"><div class="l1"><span>${esc(e.description)||T('c_transport')}</span><span>${yen(e.amount)}</span></div>${e.files.map(f=>thumb(f)).join('')}${e.files.length?'':`<div class="l2" style="color:var(--no)">${T('ck_rcpt')}</div>`}</div>`).join('')}<button type="button" class="bs" data-addtr="${dt}">${T('trAdd')}</button></div>
   <div class="fg"><label>${T('note')}</label><input id="n_${dt}" value="${esc(x?.note||'')}"></div><div class="acts"><button class="bp" data-saveday="${dt}">${T('save')}</button>${x?`<button class="bs" data-clearday="${dt}">${T('clear')}</button>`:''}</div></div></div>`;
  }
- return h+`<div class="tot"><span>${T('totalWork')}</span><span>${hmT(DATA.totalMinutes)}</span></div>`+signCard();
+ return h+exCard()+signCard()+`<div id="sumw">${barHtml()}</div>`;
+}
+function expForm(f){
+ const days=eachDay(DATA.sub.start_date,DATA.sub.end_date),co=f.payer==='company';
+ return `<div class="cd">${co?`<h3>${T('trTitle')}</h3><div class="muted" style="margin-bottom:8px">${T('trH')}</div>`:''}<div class="row"><div class="fg"><label>${T('date')}<span class="req">*</span></label><select id="x_d">${days.map(d=>`<option value="${d}" ${d===f.date?'selected':''}>${dayLabel(d)}</option>`).join('')}</select></div>
+  ${co?'':`<div class="fg"><label>${T('cat')}<span class="req">*</span></label><select id="x_c">${CATS.map(c=>`<option value="${c}" ${c===f.category?'selected':''}>${catName(c)}</option>`).join('')}</select></div>`}</div>
+  <div class="fg"><label>${T('amount')}<span class="req">*</span></label><input id="x_a" type="number" inputmode="numeric" min="0" value="${f.amount??''}"></div>
+  <div class="fg"><label>${co?T('trDesc'):T('desc')}${co?'<span class="req">*</span>':''}</label><input id="x_x" value="${esc(f.description||'')}"></div>
+  <div class="fg"><label>${T('note')}</label><input id="x_n" value="${esc(f.note||'')}"></div>
+  <div class="fg"><label>${T('photo')}<span class="req">*</span></label><div id="x_th">${(f.files||[]).map(x=>thumb(x,true)).join('')}</div><div class="acts" style="margin-top:6px"><button type="button" class="bs" data-cam>${T('takePhoto')}</button><button type="button" class="bs" data-pick>${T('pickFile')}</button></div><input id="x_cam" type="file" accept="image/*" capture="environment" hidden><input id="x_f" type="file" accept="image/*,application/pdf" multiple hidden><div id="x_sel" class="muted" style="margin-top:6px">${pendHtml()}</div></div>
+  <div class="acts"><button class="bp" data-saveexp>${T('save')}</button><button class="bs" data-cancelexp>${T('cancel')}</button>${f.id?`<button class="bd" data-delexp="${f.id}">${T('del')}</button>`:''}</div></div>`;
 }
 function expView(){
  let h='';
  if(!locked()&&!EXPFORM)h+=`<button class="bp full" data-addexp style="margin-bottom:12px">${T('addExp')}</button>`;
- if(EXPFORM&&!locked()){const f=EXPFORM,days=eachDay(DATA.sub.start_date,DATA.sub.end_date);
-  h+=`<div class="cd"><div class="row"><div class="fg"><label>${T('date')}<span class="req">*</span></label><select id="x_d">${days.map(d=>`<option value="${d}" ${d===f.date?'selected':''}>${dayLabel(d)}</option>`).join('')}</select></div>
-  <div class="fg"><label>${T('cat')}<span class="req">*</span></label><select id="x_c">${CATS.map(c=>`<option value="${c}" ${c===f.category?'selected':''}>${catName(c)}</option>`).join('')}</select></div></div>
-  <div class="fg"><label>${T('amount')}<span class="req">*</span></label><input id="x_a" type="number" inputmode="numeric" min="0" value="${f.amount??''}"></div>
-  <div class="fg"><label>${T('desc')}</label><input id="x_x" value="${esc(f.description||'')}"></div>
-  <div class="fg"><label>${T('note')}</label><input id="x_n" value="${esc(f.note||'')}"></div>
-  <div class="fg"><label>${T('photo')}<span class="req">*</span></label><div id="x_th">${(f.files||[]).map(x=>thumb(x,true)).join('')}</div><div class="acts" style="margin-top:6px"><button type="button" class="bs" data-cam>${T('takePhoto')}</button><button type="button" class="bs" data-pick>${T('pickFile')}</button></div><input id="x_cam" type="file" accept="image/*" capture="environment" hidden><input id="x_f" type="file" accept="image/*,application/pdf" multiple hidden><div id="x_sel" class="muted" style="margin-top:6px">${pendHtml()}</div></div>
-  <div class="acts"><button class="bp" data-saveexp>${T('save')}</button><button class="bs" data-cancelexp>${T('cancel')}</button>${f.id?`<button class="bd" data-delexp="${f.id}">${T('del')}</button>`:''}</div></div>`;}
- for(const e of DATA.expenses){
+ if(EXPFORM&&!locked())h+=expForm(EXPFORM);
+ for(const e of DATA.expenses.filter(e=>e.payer!=='company')){
   if(EXPFORM&&EXPFORM.id===e.id)continue;
   h+=`<div class="ex" ${locked()?'':`data-editexp="${e.id}" style="cursor:pointer"`}><div class="l1"><span>${dayLabel(e.date)} ${esc(catName(e.category))}</span><span>${yen(e.amount)}</span></div><div class="l2">${esc(e.description)} ${esc(e.note)}</div>${e.files.map(f=>thumb(f)).join('')}${e.files.length?'':`<div class="l2" style="color:var(--no)">${T('ck_rcpt')}</div>`}</div>`;
  }
- if(!DATA.expenses.length&&!EXPFORM)h+=`<div class="empty">—</div>`;
+ if(!DATA.expenses.some(e=>e.payer!=='company')&&!EXPFORM)h+=`<div class="empty">—</div>`;
  return h+`<div class="tot"><span>${T('totalExp')}</span><span>${yen(DATA.totalExpense)}</span></div>`;
 }
 const fmtTel=v=>{v=v.trim();if(/^\+/.test(v)||/[^\d\-\s()]/.test(v))return v;const d=v.replace(/\D/g,'');
@@ -100,7 +139,7 @@ const val=(id,k)=>{const e=$('#'+id);return (e?e.value:DATA.sub[k]||'').trim()};
 function checks(){
  const d=DATA;
  return [[T('ck_days'),d.days.length>0],[T('ck_time'),d.days.length>0&&!d.days.some(x=>x.minutes==null)],[T('ck_rcpt'),!d.expenses.some(e=>!e.files.length)],[T('ck_sign'),getSign()==='n'||(getSign()==='y'&&d.sheets.length>0)],
- [T('ck_name'),!!val('p_n','guide_name')],[T('ck_mail'),!!DATA.sub.guide_email],[T('ck_phone'),!!val('p_p','guide_phone')],[T('ck_range'),!!val('p_s','start_date')&&!!val('p_e','end_date')],[T('ck_bank'),!!val('p_b','bank')],[T('ck_rate'),(()=>{const e=$('#p_dr');return (e?iv('p_dr'):DATA.sub.daily_rate)>0})()],[T('ck_ot'),(()=>{const e=$('#p_oh');const m=e?Math.round((parseFloat(e.value)||0)*60):DATA.sub.ot_min,r=e?iv('p_or'):DATA.sub.ot_rate;return m===0||r>0})()]];
+ [T('ck_name'),!!val('p_n','guide_name')],[T('ck_mail'),!!DATA.sub.guide_email],[T('ck_phone'),!!val('p_p','guide_phone')],[T('ck_range'),!!val('p_s','start_date')&&!!val('p_e','end_date')],[T('ck_bank'),!!val('p_b','bank')],[T('ck_rate'),d.days.some(x=>x.dayRate>0)],[T('ck_ot'),!d.days.some(x=>x.otMin>0)||(d.sub.ot_rate||0)>0]];
 }
 function checksHtml(){return checks().map(([t,ok])=>`<div class="chk ${ok?'ok':'no'}">${ok?'✓':'✗'} ${t}</div>`).join('')}
 function refreshChecks(){const c=$('#chks');if(!c)return;c.innerHTML=checksHtml();const b=document.querySelector('[data-submit]');if(b)b.disabled=locked()||checks().some(x=>!x[1])}
@@ -113,12 +152,6 @@ function subView(){
  <div class="row"><div class="fg"><label>${T('start')}${R}</label><input type="date" id="p_s" value="${s.start_date}" ${dis}></div><div class="fg"><label>${T('end')}${R}</label><input type="date" id="p_e" value="${s.end_date}" ${dis}></div></div>
  <div class="fg"><label>${T('bank')}${R}</label><textarea id="p_b" placeholder="${esc(T('bankPh'))}" ${dis}>${esc(s.bank)}</textarea></div>
  <div class="fg"><label>${T('inv')}</label><input id="p_i" value="${esc(s.invoice_no)}" placeholder="${T('invPh')}" ${dis}></div></div>
- <div class="cd"><h3>${T('invT')}<span class="req">*</span></h3><div class="muted" style="margin-bottom:8px">${T('invH')}</div>
- <div class="fg"><label>${T('dailyRate')}${R}</label><input id="p_dr" type="number" inputmode="numeric" min="0" step="1" value="${s.daily_rate||''}" placeholder="20000" ${dis}></div>
- <div class="row"><div class="fg"><label>${T('otHours')}</label><input id="p_oh" type="number" inputmode="decimal" min="0" step="0.25" value="${s.ot_min?Math.round(s.ot_min/60*100)/100:''}" placeholder="0" ${dis}></div><div class="fg"><label>${T('otRate')}</label><input id="p_or" type="number" inputmode="numeric" min="0" step="1" value="${s.ot_rate||''}" placeholder="2000" ${dis}></div></div>
- <div class="row"><div class="fg"><label>${T('mealRate')}</label><input id="p_mr" type="number" inputmode="numeric" min="0" step="1" value="${s.meal_rate||''}" placeholder="0" ${dis}></div><div class="fg"><label>${T('mealDays')}</label><input id="p_md" type="number" inputmode="numeric" min="0" step="1" value="${s.meal_days||''}" placeholder="${esc(T('mealDaysPh'))}" ${dis}></div></div>
- <h3 style="margin:14px 0 4px;font-size:.95rem">${T('extraT')}</h3><div class="muted" style="margin-bottom:8px">${T('extraH')}</div>
- ${[0,1,2,3].map(i=>{const x=exList()[i]||{};return `<div class="row"><div class="fg"><label>${T('extraName')}</label><input id="p_xn${i}" maxlength="40" value="${esc(x.name||'')}" ${dis}></div><div class="fg"><label>${T('extraAmt')}</label><input id="p_xa${i}" type="number" inputmode="numeric" min="0" step="1" value="${x.amount||''}" ${dis}></div></div>`}).join('')}</div>
  <div class="cd"><h3>${T('mailTitle')}</h3><div class="muted" style="margin-bottom:8px">${T('mailHint')}</div><div style="background:#F7F6F5;border:1px solid var(--b,#E8E0D4);border-radius:10px;padding:12px 14px;line-height:1.8;font-size:.92rem">Kinoko Club Concierge<br>${esc(s.staff_name)} ${T('mailPhone')}<br>サクセス銀座東ビル<br>〒104-0045 東京都中央区築地１丁目１３−１０ 6F<br>Tel：03-6868-4007</div></div>
  <div class="cd"><h3>${T('tabSubmit')}</h3><div id="chks">${checksHtml()}</div>
  <div class="acts"><button class="bp" data-submit ${locked()||checks().some(x=>!x[1])?'disabled':''}>${T('submit')}</button></div></div>`;
@@ -126,11 +159,14 @@ function subView(){
 const exList=()=>{try{return JSON.parse(DATA.sub.extras||'[]')}catch{return []}};
 const readEx=()=>[0,1,2,3].map(i=>({name:($('#p_xn'+i)?.value||'').trim(),amount:Math.max(0,Math.round(parseFloat($('#p_xa'+i)?.value)||0))})).filter(x=>x.name||x.amount);
 const iv=id=>Math.max(0,Math.round(parseFloat($('#'+id).value)||0));
+const readRates=()=>({dailyRate:iv('r_dr'),baseMin:Math.round((parseFloat($('#r_bh').value)||0)*60),otRate:iv('r_or'),otUnit:+$('#r_ou').value===30?30:60,mealRate:iv('r_mr'),extras:[0,1,2,3].map(i=>({name:($('#r_xn'+i)?.value||'').trim(),amount:Math.max(0,Math.round(parseFloat($('#r_xa'+i)?.value)||0))})).filter(x=>x.name||x.amount)});
+function applyRates(r){Object.assign(DATA.sub,{daily_rate:r.dailyRate,base_min:r.baseMin,ot_rate:r.otRate,ot_unit:r.otUnit,meal_rate:r.mealRate,extras:JSON.stringify(r.extras)})}
+async function saveRates(){const r=readRates();await api('/g/rates',{method:'PUT',token:TOKEN,body:r});applyRates(r)}
 async function saveProfile(){
- const s=DATA.sub;
- await api('/g/me',{method:'PUT',token:TOKEN,body:{guideName:$('#p_n').value,guidePhone:$('#p_p').value,startDate:$('#p_s').value,endDate:$('#p_e').value,bank:$('#p_b').value,invoiceNo:$('#p_i').value,dailyRate:iv('p_dr'),otMin:Math.round((parseFloat($('#p_oh').value)||0)*60),otRate:iv('p_or'),mealRate:iv('p_mr'),mealDays:iv('p_md'),extras:readEx().map(x=>({name:x.name,amount:x.amount})),lang:L}});
- Object.assign(DATA.sub,{guide_name:$('#p_n').value.trim(),guide_phone:$('#p_p').value.trim(),start_date:$('#p_s').value,end_date:$('#p_e').value,bank:$('#p_b').value.trim(),invoice_no:$('#p_i').value.trim(),daily_rate:iv('p_dr'),ot_min:Math.round((parseFloat($('#p_oh').value)||0)*60),ot_rate:iv('p_or'),meal_rate:iv('p_mr'),meal_days:iv('p_md'),extras:JSON.stringify(readEx())});
+ await api('/g/me',{method:'PUT',token:TOKEN,body:{guideName:$('#p_n').value,guidePhone:$('#p_p').value,startDate:$('#p_s').value,endDate:$('#p_e').value,bank:$('#p_b').value,invoiceNo:$('#p_i').value,lang:L}});
+ Object.assign(DATA.sub,{guide_name:$('#p_n').value.trim(),guide_phone:$('#p_p').value.trim(),start_date:$('#p_s').value,end_date:$('#p_e').value,bank:$('#p_b').value.trim(),invoice_no:$('#p_i').value.trim()});
 }
+const dayBody=d=>({date:d,startTime:$('#s_'+d).value,endTime:$('#e_'+d).value,breakMin:0,note:$('#n_'+d).value,dayRate:Math.max(0,Math.round(parseFloat($('#d_dr_'+d).value)||0)),baseMin:Math.max(0,Math.round((parseFloat($('#d_bh_'+d).value)||0)*60)),otMin:Math.max(0,Math.round((parseFloat($('#d_oh_'+d).value)||0)*60)),meal:Math.max(0,Math.round(parseFloat($('#d_ml_'+d).value)||0))});
 app.addEventListener('click',async ev=>{
  const t=ev.target.closest('button,[data-tog],[data-editexp]');if(!t)return;
  try{
@@ -138,42 +174,47 @@ app.addEventListener('click',async ev=>{
  if(t.dataset.tog){const d=t.dataset.tog;OPEN.has(d)?OPEN.delete(d):OPEN.add(d);render();return}
  if(t.dataset.saveday){const d=t.dataset.saveday,st=$('#s_'+d).value,en=$('#e_'+d).value;
   if(!!st!==!!en){toast(L==='ja'?'開始と終了の両方を入力してください':'Enter both start and end',1);return}
-  await api('/g/days',{method:'PUT',token:TOKEN,body:{date:d,startTime:st,endTime:en,breakMin:0,note:$('#n_'+d).value}});
+  const bd=dayBody(d);if(bd.otMin>0&&!(DATA.sub.ot_rate>0)){toast(L==='ja'?'残業単価を入力してください（料金設定）':'Enter the overtime rate (Rates) first',1);return}
+  await api('/g/days',{method:'PUT',token:TOKEN,body:bd});
   OPEN.delete(d);toast(T('saved'));await load();return}
  if(t.dataset.clearday){if(!confirm(T('confirmClear')))return;await api('/g/days/'+t.dataset.clearday,{method:'DELETE',token:TOKEN});OPEN.delete(t.dataset.clearday);await load();return}
- if('addexp' in t.dataset){EXPFORM={date:DATA.sub.start_date,category:'transport'};PEND=[];render();return}
+ if('addexp' in t.dataset){EXPFORM={date:DATA.sub.start_date,category:'transport',payer:'guest'};PEND=[];render();return}
+ if(t.dataset.addtr){const d=t.dataset.addtr;if($('#s_'+d).value&&$('#e_'+d).value)await api('/g/days',{method:'PUT',token:TOKEN,body:dayBody(d)});await load();EXPFORM={date:d,category:'transport',payer:'company'};PEND=[];OPEN.add(d);render();scrollTo(0,0);return}
  if(t.dataset.sign){localStorage.setItem(signKey(),t.dataset.sign);render();return}
  if('wcam' in t.dataset){$('#w_cam').click();return}
  if('wpick' in t.dataset){$('#w_f').click();return}
  if('cam' in t.dataset){$('#x_cam').click();return}
  if('pick' in t.dataset){$('#x_f').click();return}
  if(t.dataset.editexp){const e=DATA.expenses.find(x=>x.id===t.dataset.editexp);EXPFORM={...e};PEND=[];render();return}
- if('cancelexp' in t.dataset){EXPFORM=null;PEND=[];render();return}
+ if('cancelexp' in t.dataset){if(EXPFORM&&EXPFORM.payer==='company')OPEN.add(EXPFORM.date);EXPFORM=null;PEND=[];render();return}
  if(t.dataset.delexp){if(!confirm(T('confirmDel')))return;await api('/g/exp/'+t.dataset.delexp,{method:'DELETE',token:TOKEN});EXPFORM=null;toast(T('deleted'));await load();return}
  if(t.dataset.del){if(!confirm(T('confirmDel')))return;await api('/g/file/'+t.dataset.del,{method:'DELETE',token:TOKEN});const f=EXPFORM;await load();if(f){EXPFORM=DATA.expenses.find(x=>x.id===f.id)||null;render()}return}
  if('saveexp' in t.dataset){
-  const body={date:$('#x_d').value,category:$('#x_c').value,amount:parseInt($('#x_a').value,10),description:$('#x_x').value,note:$('#x_n').value};
+  const co=EXPFORM.payer==='company',body={payer:co?'company':'guest',date:$('#x_d').value,category:co?'transport':$('#x_c').value,amount:parseInt($('#x_a').value,10),description:$('#x_x').value,note:$('#x_n').value};
   if(!Number.isInteger(body.amount)||body.amount<0){toast(L==='ja'?'金額を入力してください':'Enter the amount',1);return}
+  if(co&&!$('#x_x').value.trim()){toast(L==='ja'?'区間・内容を入力してください':'Enter the route / details',1);return}
   const files=PEND.slice();if(!files.length&&!(EXPFORM.files||[]).length){toast(T('ck_rcpt'),1);return}
   t.disabled=true;t.textContent=T('busy');
   let id=EXPFORM.id;
   if(id)await api('/g/exp/'+id,{method:'PUT',token:TOKEN,body});else id=(await api('/g/exp',{method:'POST',token:TOKEN,body})).id;
   try{for(const f of files){const fd=new FormData();fd.append('expId',id);fd.append('file',await compress(f));await api('/g/upload',{method:'POST',token:TOKEN,form:fd})}}
   catch(e){toast(e.message,1);await load();EXPFORM=DATA.expenses.find(x=>x.id===id)||null;render();return}
-  EXPFORM=null;PEND=[];toast(T('saved'));await load();return}
+  if(co)OPEN.add(body.date);EXPFORM=null;PEND=[];toast(T('saved'));await load();return}
  if('submit' in t.dataset){
   if(checks().some(x=>!x[1])){toast(T('reqMiss'),1);return}
-  if(!confirm(T('confirmSubmit')))return;t.disabled=true;
+  if(!confirm(T('confirmSubmit')+'\n\n'+T('sumAll')+'：'+yen(totals(DATA).total)))return;t.disabled=true;
   await saveProfile();await api('/g/submit',{method:'POST',token:TOKEN});toast(T('saved'));await load();scrollTo(0,0);return}
  }catch(e){toast(e.message,1);if(t.tagName==='BUTTON')t.disabled=false}
 });
 app.addEventListener('input',ev=>{const e=ev.target;
- if(e.dataset&&e.dataset.calc){const d=e.dataset.calc,a=$('#s_'+d).value,b=$('#e_'+d).value;$('#c_'+d).textContent=a&&b?hmT(pm(a,b)):'—'}
+ if(e.dataset&&e.dataset.pv)dayPreview(e.dataset.pv);
+ if(e.id&&e.id.startsWith('r_')){applyRates(readRates());updateBar()}
  if(e.id&&e.id.startsWith('p_'))refreshChecks()});
 app.addEventListener('change',async ev=>{const e=ev.target;
  if(e.id==='w_cam'||e.id==='w_f'){const fl=[...e.files];e.value='';if(!fl.length)return;toast(T('busy'));try{for(const f of fl){const fd=new FormData();fd.append('expId','sheet');fd.append('file',await compress(f));await api('/g/upload',{method:'POST',token:TOKEN,form:fd})}}catch(er){toast(er.message,1)}await load();toast(T('saved'));return}
  if(e.id==='x_cam'||e.id==='x_f'){PEND.push(...e.files);e.value='';$('#x_sel').innerHTML=pendHtml();return}
  if(e.id==='p_p')e.value=fmtTel(e.value);
+ if(e.id&&e.id.startsWith('r_')&&!locked()){saveRates().then(()=>{toast(T('saved'));updateBar()}).catch(er=>toast(er.message,1));return}
  if(e.id&&e.id.startsWith('p_')&&!locked()){if(!val('p_n','guide_name')||!$('#p_s').value||!$('#p_e').value){refreshChecks();return}saveProfile().then(()=>{toast(T('saved'));refreshChecks()}).catch(e=>toast(e.message,1))}});
 if(TOKEN){app.innerHTML=`<div class="empty">${T('loading')}</div>`;load()}else startView();
 </script></body></html>

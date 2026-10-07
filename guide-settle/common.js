@@ -11,7 +11,7 @@ saved:'保存しました',deleted:'削除しました',ck_days:'勤務日を1�
 confirmSubmit:'提出しますか？提出後は編集できません。',confirmDel:'削除しますか？',confirmClear:'この日の入力を消去しますか？',
 needStaff:'担当者から届いたリンクからお開きください。',startNew:'精算を始める',startNote:'団番号と期間を入力すると、入力ページのリンクがメールにも届きます。',
 sentMail:'このツアーは登録済みです。入力ページのリンクをメールでお送りしました。メールのリンクから続けてください。',noToken:'リンクが無効です。担当者のリンクからやり直してください。',
-rangeErr:'終了日は開始日以降にしてください',loading:'読み込み中…',reload:'更新',workCalc:'勤務時間',gapHint:'働いた日だけ入力してください。ガイドを使わなかった日は空欄のままで構わず、日当にも請求書にも含まれません。',dlInv:'請求書PDF',invT:'請求書の金額',mealRate:'食事代の単価（1日あたり・税込）',mealDays:'食事代の日数',mealDaysPh:'空欄＝勤務日数',extraT:'その他の請求項目',extraH:'通訳費、空港・駅の送迎費など、上記以外に請求する項目があれば入力してください（税込）。',extraName:'項目名',extraAmt:'金額（税込）',sysTitle:'Kinoko Club Concierge ガイド精算システム',invH:'請求書に載せる金額です（すべて税込）。',dailyRate:'日当（1日あたり・税込）',otHours:'残業時間の合計（時間）',otRate:'残業代の単価（1時間あたり・税込）',ck_rate:'日当の金額',ck_ot:'残業代の単価',ck_sign:'署名入り勤務表（写真または「なし」）',signTitle:'勤務表の署名',signHint:'お客様の署名入りの勤務表はありますか？ある場合は撮影してアップロードしてください。ない場合は写真は不要です。',signYes:'署名あり（写真を登録）',signNo:'署名なし',mailTitle:'原本の郵送について',mailHint:'原本の郵送が必要な場合は、担当者にご確認のうえ、下記の宛先へお送りください。',mailPhone:'（担当者の携帯番号）',takePhoto:'撮影する',pickFile:'写真・PDFを選択',selFiles:'選択中',ck_phone:'電話番号',ck_bank:'振込先口座',ck_mail:'ガイドのメール',ck_range:'開始日・終了日',reqMiss:'未入力の必須項目があります',
+rangeErr:'終了日は開始日以降にしてください',loading:'読み込み中…',reload:'更新',workCalc:'勤務時間',gapHint:'働いた日だけ入力してください。ガイドを使わなかった日は空欄のままで構わず、日当にも請求書にも含まれません。',dlInv:'請求書PDF',invT:'請求書の金額',mealRate:'食事代の定額（円／日・税込）',mealDays:'食事代の日数',mealDaysPh:'空欄＝勤務日数',extraT:'その他の請求項目',extraH:'通訳費、空港・駅の送迎費など、上記以外に請求する項目があれば入力してください（税込）。',extraName:'項目名',extraAmt:'金額（円・税込）',sysTitle:'Kinoko Club Concierge ガイド精算システム',invH:'請求書に載せる金額です（すべて税込）。',dailyRate:'日当（円／日・税込）',otHours:'残業時間の合計（時間）',otRate:'残業単価（円／時間・税込）',ck_rate:'日当の金額',ck_ot:'残業代の単価',ck_sign:'署名入り勤務表（写真または「なし」）',signTitle:'勤務表の署名',signHint:'お客様の署名入りの勤務表はありますか？ある場合は撮影してアップロードしてください。ない場合は写真は不要です。',signYes:'署名あり（写真を登録）',signNo:'署名なし',mailTitle:'原本の郵送について',mailHint:'原本の郵送が必要な場合は、担当者にご確認のうえ、下記の宛先へお送りください。',mailPhone:'（担当者の携帯番号）',takePhoto:'撮影する',pickFile:'写真・PDFを選択',selFiles:'選択中',ck_phone:'電話番号',ck_bank:'振込先口座',ck_mail:'ガイドのメール',ck_range:'開始日・終了日',reqMiss:'未入力の必須項目があります',
 // staff page
 sTitle:'ガイド精算リンク生成（社内用）',sName:'担当者氏名',sMail:'担当者メール',sGen:'リンクを生成',sSend:'以下のリンクをガイドへお送りください：',sCopy:'リンクをコピー',sCopied:'コピーしました',sNeed:'氏名とメールを入力してください',
 // view/admin
@@ -20,6 +20,9 @@ st_draft:'入力中',st_submitted:'提出済み',bankL:'振込先',invL:'適格�
 aLogin:'管理者ログイン',aWho:'管理者',aPw:'パスワード',aGo:'ログイン',aTours:'精算一覧',search:'団番号・ガイド名で検索',allStaff:'すべての担当',allSt:'すべての状態',from_:'開始日（から）',to_:'開始日（まで）',selAll:'全選択',
 selected:'選択中',none:'該当なし',dlSel:'選択をExcelに',dlSelZip:'選択の原本ZIP',dlAll:'表示中をExcelに',rowDel:'このデータを削除',confirmRowDel:'この精算データを完全に削除しますか？元に戻せません。',logout:'ログアウト',busy:'処理中…',
 x_sum:'概要',x_hours:'勤務時間',x_exp:'立替',x_rcpt:'領収書ファイル',x_min:'分',x_status:'状態',x_sub:'提出日時',x_hm:'勤務時間(h:mm)',x_total:'合計',
+ratesT:'料金設定',ratesH:'標準の金額を入力すると、各日の初期値として入ります。日ごとに変更もできます（すでに保存した日は変わりません）。',baseH:'基準時間（時間）',otUnit:'残業の計算単位',otU60:'1時間単位',otU30:'30分単位',otUnitH:'端数は切り捨てて計算します。',dRate:'日当（円）',dBase:'基準時間（時間）',dOt:'残業時間（時間）',dMeal:'食事代（円・定額）',dayPrev:'この日の金額',
+trT:'交通費（会社負担）',trAdd:'＋ 交通費を追加',trH:'ガイドが立て替えた交通費は会社が精算します。領収書の写真が必要です。',trDesc:'区間・内容',trTitle:'交通費の入力',
+sumDay:'日当',sumOt:'残業代',sumTr:'交通費',sumMeal:'食事代',sumExp:'立替金',sumEx:'その他',sumAll:'請求金額 合計（税込）',basis:'基準',
 wd:['日','月','火','水','木','金','土'],
 },
 en:{lang:'en',title:'Expense entry',tour:'Tour code',dates:'Dates',start:'Start date',end:'End date',guide:'Guide',gname:'Guide name',gmail:'Guide email',phone:'Phone',staff:'Kinoko staff',nameL:'Name',staffMail:'Staff email',
@@ -32,13 +35,16 @@ saved:'Saved',deleted:'Deleted',ck_days:'At least one working day',ck_time:'Star
 confirmSubmit:'Submit now? You cannot edit after submitting.',confirmDel:'Delete this?',confirmClear:'Clear this day?',
 needStaff:'Please open the link sent by your staff in charge.',startNew:'Start',startNote:'Enter the tour code and dates. We will also email you a link to continue.',
 sentMail:'This tour is already registered. We emailed you the entry link; please continue from the email.',noToken:'This link is not valid. Please start again from your staff link.',
-rangeErr:'End date must be on or after start date',loading:'Loading…',reload:'Refresh',workCalc:'Worked',gapHint:'Enter only the days you worked. Leave days without a guide blank; they are not counted in the daily fee or on the invoice.',dlInv:'Invoice PDF',invT:'Invoice amounts',mealRate:'Meal fee per day (tax incl.)',mealDays:'Meal fee days',mealDaysPh:'Blank = working days',extraT:'Other charges',extraH:'Enter any other charges, such as interpreting or airport / station transfers (tax incl.).',extraName:'Item name',extraAmt:'Amount (tax incl.)',sysTitle:'Kinoko Club Concierge Guide Settlement System',invH:'Amounts shown on the invoice (all tax included).',dailyRate:'Daily fee (per day, tax incl.)',otHours:'Total overtime (hours)',otRate:'Overtime rate (per hour, tax incl.)',ck_rate:'Daily fee amount',ck_ot:'Overtime rate',ck_sign:'Signed work sheet (photo, or “none”)',signTitle:'Signed work sheet',signHint:'Do you have a work sheet signed by the client? If yes, take a photo and upload it. If not, no photo is needed.',signYes:'Signed (add photo)',signNo:'No signature',mailTitle:'Mailing originals',mailHint:'If you need to mail the originals, please confirm with your staff contact first and send them to the address below.',mailPhone:'(staff mobile number)',takePhoto:'Take photo',pickFile:'Choose photo or PDF',selFiles:'selected',ck_phone:'Phone number',ck_bank:'Bank account',ck_mail:'Guide email',ck_range:'Start and end dates',reqMiss:'Some required fields are empty',
+rangeErr:'End date must be on or after start date',loading:'Loading…',reload:'Refresh',workCalc:'Worked',gapHint:'Enter only the days you worked. Leave days without a guide blank; they are not counted in the daily fee or on the invoice.',dlInv:'Invoice PDF',invT:'Invoice amounts',mealRate:'Meal fee (JPY per day, tax incl.)',mealDays:'Meal fee days',mealDaysPh:'Blank = working days',extraT:'Other charges',extraH:'Enter any other charges, such as interpreting or airport / station transfers (tax incl.).',extraName:'Item name',extraAmt:'Amount (JPY, tax incl.)',sysTitle:'Kinoko Club Concierge Guide Settlement System',invH:'Amounts shown on the invoice (all tax included).',dailyRate:'Daily fee (JPY per day, tax incl.)',otHours:'Total overtime (hours)',otRate:'Overtime rate (JPY per hour, tax incl.)',ck_rate:'Daily fee amount',ck_ot:'Overtime rate',ck_sign:'Signed work sheet (photo, or “none”)',signTitle:'Signed work sheet',signHint:'Do you have a work sheet signed by the client? If yes, take a photo and upload it. If not, no photo is needed.',signYes:'Signed (add photo)',signNo:'No signature',mailTitle:'Mailing originals',mailHint:'If you need to mail the originals, please confirm with your staff contact first and send them to the address below.',mailPhone:'(staff mobile number)',takePhoto:'Take photo',pickFile:'Choose photo or PDF',selFiles:'selected',ck_phone:'Phone number',ck_bank:'Bank account',ck_mail:'Guide email',ck_range:'Start and end dates',reqMiss:'Some required fields are empty',
 sTitle:'Guide settlement link (internal)',sName:'Staff name',sMail:'Staff email',sGen:'Generate link',sSend:'Send this link to the guide:',sCopy:'Copy link',sCopied:'Copied',sNeed:'Enter name and email',
 vTitle:'Settlement details',dlXlsx:'Download Excel',dlZip:'Download originals (ZIP)',ret:'Return',retNote:'Reason for return (sent to the guide)',retDo:'Send return',confirmRet:'Return to the guide? They will get an email to edit again.',
 st_draft:'In progress',st_submitted:'Submitted',bankL:'Bank account',invL:'Invoice no.',
 aLogin:'Admin login',aWho:'Admin',aPw:'Password',aGo:'Log in',aTours:'Settlements',search:'Search tour code / guide',allStaff:'All staff',allSt:'All statuses',from_:'Start date from',to_:'Start date to',selAll:'Select all',
 selected:'selected',none:'No results',dlSel:'Excel of selected',dlSelZip:'ZIP of selected',dlAll:'Excel of shown',rowDel:'Delete this record',confirmRowDel:'Permanently delete this settlement? This cannot be undone.',logout:'Log out',busy:'Working…',
 x_sum:'Summary',x_hours:'Hours',x_exp:'Expenses',x_rcpt:'Receipt files',x_min:'min',x_status:'Status',x_sub:'Submitted at',x_hm:'Hours (h:mm)',x_total:'Total',
+ratesT:'Rates',ratesH:'Enter your standard amounts; they are used as the default for each day. You can change them per day (days already saved are not changed).',baseH:'Standard hours (h)',otUnit:'Overtime counted in',otU60:'1-hour units',otU30:'30-minute units',otUnitH:'Partial units are rounded down.',dRate:'Daily fee (JPY)',dBase:'Standard hours (h)',dOt:'Overtime (hours)',dMeal:'Meal fee (JPY, fixed)',dayPrev:'Amount for this day',
+trT:'Transportation (paid by company)',trAdd:'+ Add transportation',trH:'Transportation you paid will be reimbursed by the company. A receipt photo is required.',trDesc:'Route / details',trTitle:'Transportation entry',
+sumDay:'Daily fee',sumOt:'Overtime',sumTr:'Transport',sumMeal:'Meals',sumExp:'Advances',sumEx:'Other',sumAll:'Total (tax incl.)',basis:'Std',
 wd:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
 }};
 let L=(new URLSearchParams(location.search).get('l'))||localStorage.getItem('gs-lang')||((navigator.language||'').startsWith('ja')?'ja':(navigator.language||'').startsWith('en')?'en':'ja');
@@ -46,7 +52,16 @@ if(!D[L])L='ja';
 const T=k=>D[L][k]??k;
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const yen=n=>'¥'+Number(n||0).toLocaleString('en-US');
+const yen=n=>Number(n||0).toLocaleString('en-US')+'円';
+const otCount=(min,unit)=>Math.floor((min||0)/(unit||60))*(unit||60);
+const otAmtOf=(min,s)=>Math.round(otCount(min,s.ot_unit)/60*(s.ot_rate||0));
+function totals(d){
+ const s=d.sub;let day=0,ot=0,meal=0,otMin=0;
+ for(const x of d.days){day+=x.dayRate||0;ot+=otAmtOf(x.otMin,s);meal+=x.meal||0;otMin+=otCount(x.otMin,s.ot_unit)}
+ let ex=[];try{ex=JSON.parse(s.extras||'[]')}catch{}ex=ex.filter(x=>x&&x.name&&x.amount>0);
+ const co=d.expenses.filter(e=>e.payer==='company').reduce((a,e)=>a+e.amount,0),gu=d.expenses.filter(e=>e.payer!=='company').reduce((a,e)=>a+e.amount,0),exT=ex.reduce((a,x)=>a+x.amount,0);
+ return {day,ot,otMin,meal,co,gu,ex,exT,total:day+ot+meal+co+gu+exT};
+}
 const hm=m=>m==null?'':Math.floor(m/60)+':'+String(m%60).padStart(2,'0');
 const hmT=m=>m==null?'':(L==='ja'?`${Math.floor(m/60)}時間${m%60}分`:`${Math.floor(m/60)}h ${m%60}m`);
 const wdOf=d=>new Date(d+'T00:00:00Z').getUTCDay();
@@ -97,10 +112,11 @@ function renderDetail(d){
  return `<div class="cd"><h2>${esc(s.tour_code)} <span class="badge ${s.status==='submitted'?'s':''}">${T('st_'+s.status)}</span></h2><div class="kv">
  ${kv(T('dates'),esc(s.start_date)+' 〜 '+esc(s.end_date))}${kv(T('guide'),esc(s.guide_name))}${kv(T('gmail'),esc(s.guide_email))}${kv(T('phone'),esc(s.guide_phone))}
  ${kv(T('staff'),esc(s.staff_name)+'（'+esc(s.staff_email)+'）')}${kv(T('bankL'),esc(s.bank).replace(/\n/g,'<br>'))}${kv(T('invL'),esc(s.invoice_no))}${kv(T('x_sub'),s.submitted_at?esc(new Date(s.submitted_at).toLocaleString(L==='ja'?'ja-JP':'en-GB')):'')}</div></div>
- <div class="cd"><h3>${T('tabHours')}</h3>${d.days.length?`<div class="tw"><table class="t"><tr><th>${T('date')}</th><th>${T('from')}</th><th>${T('to')}</th><th>${T('workCalc')}</th><th>${T('note')}</th></tr>${d.days.map(x=>`<tr><td>${dayLabel(x.date)}</td><td>${x.startTime||''}</td><td>${x.endTime||''}</td><td>${hmT(x.minutes)}</td><td>${esc(x.note)}</td></tr>`).join('')}</table></div>`:`<div class="empty">—</div>`}
- <div class="tot"><span>${T('totalWork')}</span><span>${hmT(d.totalMinutes)}</span></div></div>
+ <div class="cd"><h3>${T('tabHours')}</h3>${d.days.length?`<div class="tw"><table class="t"><tr><th>${T('date')}</th><th>${T('from')}</th><th>${T('to')}</th><th>${T('dRate')}</th><th>${T('dBase')}</th><th>${T('dOt')}</th><th>${T('dMeal')}</th><th>${T('note')}</th></tr>${d.days.map(x=>`<tr><td>${dayLabel(x.date)}</td><td>${x.startTime||''}</td><td>${x.endTime||''}</td><td>${yen(x.dayRate)}</td><td>${Math.round((x.baseMin||0)/6)/10}</td><td>${Math.round((x.otMin||0)/6)/10}</td><td>${yen(x.meal)}</td><td>${esc(x.note)}</td></tr>`).join('')}</table></div>`:`<div class="empty">—</div>`}</div>
+ <div class="cd"><h3>${T('trT')}</h3>${d.expenses.filter(e=>e.payer==='company').length?d.expenses.filter(e=>e.payer==='company').map(e=>`<div class="ex"><div class="l1"><span>${dayLabel(e.date)} ${esc(e.description)}</span><span>${yen(e.amount)}</span></div>${e.files.map(f=>thumb(f)).join('')}</div>`).join(''):`<div class="empty">—</div>`}</div>
+ <div class="cd"><h3>${T('sumAll')}</h3>${(()=>{const t=totals(d),r=(k,v)=>v?`<div class="l1" style="display:flex;justify-content:space-between;padding:3px 0"><span>${k}</span><span>${yen(v)}</span></div>`:'';return r(T('sumDay'),t.day)+r(T('sumOt'),t.ot)+r(T('sumMeal'),t.meal)+r(T('sumTr'),t.co)+r(T('sumExp'),t.gu)+t.ex.map(x=>r(esc(x.name),x.amount)).join('')+`<div class="tot"><span>${T('sumAll')}</span><span>${yen(t.total)}</span></div>`})()}</div>
  <div class="cd"><h3>${T('signTitle')}</h3>${(d.sheets||[]).length?d.sheets.map(f=>thumb(f)).join(''):`<div class="empty">${T('signNo')}</div>`}</div>
- <div class="cd"><h3>${T('tabExp')}</h3>${d.expenses.length?d.expenses.map(e=>`<div class="ex"><div class="l1"><span>${dayLabel(e.date)} ${esc(catName(e.category))}</span><span>${yen(e.amount)}</span></div><div class="l2">${esc(e.description)} ${esc(e.note)}</div>${e.files.map(f=>thumb(f)).join('')}</div>`).join(''):`<div class="empty">—</div>`}
+ <div class="cd"><h3>${T('tabExp')}</h3>${d.expenses.filter(e=>e.payer!=='company').length?d.expenses.filter(e=>e.payer!=='company').map(e=>`<div class="ex"><div class="l1"><span>${dayLabel(e.date)} ${esc(catName(e.category))}</span><span>${yen(e.amount)}</span></div><div class="l2">${esc(e.description)} ${esc(e.note)}</div>${e.files.map(f=>thumb(f)).join('')}</div>`).join(''):`<div class="empty">—</div>`}
  <div class="tot"><span>${T('totalExp')}</span><span>${yen(d.totalExpense)}</span></div></div>`;
 }
 // ---------- exports ----------
@@ -111,16 +127,16 @@ async function exportXlsx(list,name){
  await loadScript('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js');
  const S=[],H=[],E=[];
  S.push([T('tour'),T('start'),T('end'),T('gname'),T('gmail'),T('phone'),T('staff'),T('staffMail'),T('x_hm'),T('x_min'),T('totalExp'),T('bankL'),T('invL'),T('x_status'),T('x_sub')]);
- H.push([T('tour'),T('gname'),T('date'),T('from'),T('to'),T('x_hm'),T('x_min'),T('note')]);
+ H.push([T('tour'),T('gname'),T('date'),T('from'),T('to'),T('dRate'),T('dBase'),T('dOt'),T('dMeal'),T('note')]);
  E.push([T('tour'),T('gname'),T('date'),T('cat'),T('desc'),T('amount'),T('note'),T('x_rcpt')]);
  for(const d of list){const s=d.sub;
   S.push([s.tour_code,s.start_date,s.end_date,s.guide_name,s.guide_email,s.guide_phone,s.staff_name,s.staff_email,hm(d.totalMinutes),d.totalMinutes,d.totalExpense,s.bank,s.invoice_no,T('st_'+s.status),s.submitted_at?new Date(s.submitted_at).toLocaleString(L==='ja'?'ja-JP':'en-GB'):''].map(cell));
-  for(const x of d.days)H.push([s.tour_code,s.guide_name,x.date,x.startTime||'',x.endTime||'',hm(x.minutes),x.minutes,x.note].map(cell));
-  for(const e of d.expenses)E.push([s.tour_code,s.guide_name,e.date,catName(e.category),e.description,e.amount,e.note,e.files.map(f=>f.name).join(' / ')].map(cell));
+  for(const x of d.days)H.push([s.tour_code,s.guide_name,x.date,x.startTime||'',x.endTime||'',x.dayRate,Math.round((x.baseMin||0)/6)/10,Math.round((x.otMin||0)/6)/10,x.meal,x.note].map(cell));
+  for(const e of d.expenses)E.push([s.tour_code,s.guide_name,e.date,(e.payer==='company'?T('trT'):catName(e.category)),e.description,e.amount,e.note,e.files.map(f=>f.name).join(' / ')].map(cell));
  }
  if(list.length>1){S.push([]);S.push([T('x_total'),'','','','','','','',hm(list.reduce((a,d)=>a+d.totalMinutes,0)),list.reduce((a,d)=>a+d.totalMinutes,0),list.reduce((a,d)=>a+d.totalExpense,0)])}
  const wb=XLSX.utils.book_new();
- for(const [n,rows,w] of [[T('x_sum'),S,[14,12,12,16,24,14,14,24,12,10,12,30,16,10,18]],[T('x_hours'),H,[14,16,12,8,8,12,10,30]],[T('x_exp'),E,[14,16,12,14,26,12,24,30]]]){const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=w.map(x=>({wch:x}));XLSX.utils.book_append_sheet(wb,ws,n)}
+ for(const [n,rows,w] of [[T('x_sum'),S,[14,12,12,16,24,14,14,24,12,10,12,30,16,10,18]],[T('x_hours'),H,[14,16,12,8,8,12,10,10,12,30]],[T('x_exp'),E,[14,16,12,14,26,12,24,30]]]){const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=w.map(x=>({wch:x}));XLSX.utils.book_append_sheet(wb,ws,n)}
  XLSX.writeFile(wb,name+'.xlsx');
 }
 async function exportZip(list,name,tokenFor){
@@ -130,7 +146,7 @@ async function exportZip(list,name,tokenFor){
   for(const e of d.expenses){let i=0;for(const f of e.files){i++;
    const ext=f.ct==='application/pdf'?'pdf':f.ct==='image/png'?'png':f.ct==='image/webp'?'webp':f.ct==='image/heic'?'heic':'jpg';
    const r=await api('/g/file/'+f.id,{token:tokenFor(d),raw:true});
-   z.file(`${safe(s.tour_code)}/${safe(s.guide_name)}/${safe(e.date+'_'+catName(e.category)+'_'+e.amount+'円_'+String(i).padStart(2,'0'))}.${ext}`,await r.blob());n++;
+   z.file(`${safe(s.tour_code)}/${safe(s.guide_name)}/${safe(e.date+'_'+(e.payer==='company'?'交通費(会社負担)':catName(e.category))+'_'+e.amount+'円_'+String(i).padStart(2,'0'))}.${ext}`,await r.blob());n++;
   }}}
  for(const d of list){let i=0;for(const f of (d.sheets||[])){i++;const ext=f.ct==='application/pdf'?'pdf':f.ct==='image/png'?'png':f.ct==='image/webp'?'webp':f.ct==='image/heic'?'heic':'jpg';const r=await api('/g/file/'+f.id,{token:tokenFor(d),raw:true});z.file(`${safe(d.sub.tour_code)}/${safe(d.sub.guide_name)}/${safe('勤務表_署名_'+String(i).padStart(2,'0'))}.${ext}`,await r.blob());n++}}
  if(!n)throw new Error(L==='ja'?'原本ファイルがありません':'No original files');
@@ -141,25 +157,28 @@ async function exportZip(list,name,tokenFor){
 async function exportInvoice(d){
  await loadScript('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js');
  await loadScript('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js');
- const s=d.sub,y=n=>'¥'+Math.round(n).toLocaleString('en-US');
- const days=d.days.length,rate=s.daily_rate||0,dayAmt=days*rate,otH=(s.ot_min||0)/60,otRate=s.ot_rate||0,otAmt=Math.round(otH*otRate);
- const mealDays=s.meal_days||days,mealRate=s.meal_rate||0,mealAmt=mealDays*mealRate;
- let extras=[];try{extras=JSON.parse(s.extras||'[]')}catch{}
- extras=extras.filter(x=>x&&x.name&&x.amount>0);
- const exTotal=extras.reduce((a,x)=>a+x.amount,0);
+ const s=d.sub,y=n=>Math.round(n).toLocaleString('en-US')+'円';
+ const t=totals(d),days=d.days.length,otRate=s.ot_rate||0,unitMin=s.ot_unit||60;
+ const extras=t.ex,exTotal=t.exT;
  const grp={transport:['交通費','Transportation'],hotel:['宿泊費','Accommodation'],ticket:['入場料','Admission / Tickets'],meal:['食事（立替）','Meals (advance)'],other:['その他（立替）','Other (advance)']};
  const sum={};for(const k in grp)sum[k]={n:0,a:0,ds:new Set()};
- for(const e of d.expenses){const k=e.category==='parking'?'other':(grp[e.category]?e.category:'other');sum[k].n++;sum[k].a+=e.amount;sum[k].ds.add(e.date)}
- const expTotal=d.expenses.reduce((a,e)=>a+e.amount,0),total=dayAmt+otAmt+mealAmt+expTotal+exTotal;
+ for(const e of d.expenses.filter(e=>e.payer!=='company')){const k=e.category==='parking'?'other':(grp[e.category]?e.category:'other');sum[k].n++;sum[k].a+=e.amount;sum[k].ds.add(e.date)}
+ const expTotal=t.gu,total=t.total;
  const wd=x=>{const dt=new Date(x+'T00:00:00');return (dt.getMonth()+1)+'/'+dt.getDate()+'('+['日','月','火','水','木','金','土'][dt.getDay()]+')'};
  const jst=new Date(Date.now()+9*3600e3).toISOString().slice(0,10);
  let no=0,rows='';
  const head=(ja,en)=>`<tr class="hd"><td colspan="4">${++no}．${ja}<small>${en}</small></td></tr>`;
  const det=(ja,en,qty,unit,amt)=>`<tr><td class="it">${ja}${en?`<small>${en}</small>`:''}</td><td class="r">${qty}</td><td class="r">${unit}</td><td class="r">${amt}</td></tr>`;
  const subt=a=>`<tr class="st"><td colspan="3" class="r">小計 / Subtotal</td><td class="r">${y(a)}</td></tr>`;
- rows+=head('日当','Daily fee')+det(`日当　<span class="dts">${d.days.map(x=>wd(x.date)).join('、')}</span>`,'Daily fee',days+' 日',rate?y(rate):'—',y(dayAmt))+subt(dayAmt);
- if(otAmt>0)rows+=head('残業代','Overtime')+det('残業代','Overtime',(Math.round(otH*100)/100)+' 時間',y(otRate),y(otAmt))+subt(otAmt);
- if(mealAmt>0)rows+=head('食事代','Meal fee')+det('食事代','Meal fee',mealDays+' 日',y(mealRate),y(mealAmt))+subt(mealAmt);
+const dayGroups={};
+ for(const x of d.days){const k=(x.dayRate||0)+'|'+(x.baseMin||0);(dayGroups[k]=dayGroups[k]||{rate:x.dayRate||0,base:x.baseMin||0,dts:[]}).dts.push(x.date)}
+ rows+=head('日当','Daily fee');
+ for(const g of Object.values(dayGroups)){const bs=g.base?`（基準${Math.round(g.base/6)/10}時間）`:'';rows+=det(`日当${bs}　<span class="dts">${g.dts.map(wd).join('、')}</span>`,'Daily fee',g.dts.length+' 日',y(g.rate),y(g.rate*g.dts.length))}
+ rows+=subt(t.day);
+ if(t.ot>0)rows+=head('残業代','Overtime')+det(`残業代（${unitMin===30?'30分単位':'1時間単位'}・端数切捨て）`,'Overtime',(Math.round(t.otMin/6)/10)+' 時間',y(otRate),y(t.ot))+subt(t.ot);
+ if(t.meal>0){rows+=head('食事代','Meal fee');const mg={};for(const x of d.days)if(x.meal>0)(mg[x.meal]=mg[x.meal]||[]).push(x.date);for(const [amt,ds] of Object.entries(mg))rows+=det('食事代（定額）','Meal fee (fixed)',ds.length+' 日',y(+amt),y(+amt*ds.length));rows+=subt(t.meal)}
+ const cos=d.expenses.filter(e=>e.payer==='company');
+ if(t.co>0){rows+=head('交通費','Transportation');for(const e of cos)rows+=det(`${wd(e.date)} ${esc(e.description||'交通費')}`,'','1 件','',y(e.amount));rows+=subt(t.co)}
  if(expTotal>0){rows+=head('立替金','Advance payments (expenses)');
   for(const k of ['transport','hotel','ticket','meal','other']){const v=sum[k];if(!v.n)continue;rows+=det(grp[k][0],grp[k][1],k==='hotel'?v.ds.size+' 日':v.n+' 件','',y(v.a))}
   rows+=subt(expTotal)}
