@@ -11,7 +11,7 @@ saved:'保存しました',deleted:'削除しました',ck_days:'勤務日を1�
 confirmSubmit:'提出しますか？提出後は編集できません。',confirmDel:'削除しますか？',confirmClear:'この日の入力を消去しますか？',
 needStaff:'担当者から届いたリンクからお開きください。',startNew:'精算を始める',startNote:'団番号と期間を入力すると、入力ページのリンクがメールにも届きます。',
 sentMail:'このツアーは登録済みです。入力ページのリンクをメールでお送りしました。メールのリンクから続けてください。',noToken:'リンクが無効です。担当者のリンクからやり直してください。',
-rangeErr:'終了日は開始日以降にしてください',loading:'読み込み中…',reload:'更新',workCalc:'勤務時間',gapHint:'働いた日だけ入力してください。ガイドを使わなかった日は空欄のままで構わず、日当にも請求書にも含まれません。',dlInv:'請求書PDF',invT:'請求書の金額',mealRate:'食事代の単価（1日あたり・税込）',mealDays:'食事代の日数',mealDaysPh:'空欄＝勤務日数',extraT:'その他の請求項目',extraH:'通訳費、空港・駅の送迎費など、上記以外に請求する項目があれば入力してください（税込）。',extraName:'項目名',extraAmt:'金額（税込）',sysTitle:'Kinoko Club Concierge ガイド精算システム',invH:'請求書に載せる金額です（すべて税込）。',dailyRate:'日当（1日あたり・税込）',otHours:'超過勤務の合計時間（時間）',otRate:'超過勤務の単価（1時間あたり・税込）',ck_rate:'日当の金額',ck_ot:'超過勤務の単価',ck_sign:'署名入り勤務表（写真または「なし」）',signTitle:'勤務表の署名',signHint:'お客様の署名入りの勤務表はありますか？ある場合は撮影してアップロードしてください。ない場合は写真は不要です。',signYes:'署名あり（写真を登録）',signNo:'署名なし',mailTitle:'原本の郵送について',mailHint:'原本の郵送が必要な場合は、担当者にご確認のうえ、下記の宛先へお送りください。',mailPhone:'（担当者の携帯番号）',takePhoto:'撮影する',pickFile:'写真・PDFを選択',selFiles:'選択中',ck_phone:'電話番号',ck_bank:'振込先口座',ck_mail:'ガイドのメール',ck_range:'開始日・終了日',reqMiss:'未入力の必須項目があります',
+rangeErr:'終了日は開始日以降にしてください',loading:'読み込み中…',reload:'更新',workCalc:'勤務時間',gapHint:'働いた日だけ入力してください。ガイドを使わなかった日は空欄のままで構わず、日当にも請求書にも含まれません。',dlInv:'請求書PDF',invT:'請求書の金額',mealRate:'食事代の単価（1日あたり・税込）',mealDays:'食事代の日数',mealDaysPh:'空欄＝勤務日数',extraT:'その他の請求項目',extraH:'通訳費、空港・駅の送迎費など、上記以外に請求する項目があれば入力してください（税込）。',extraName:'項目名',extraAmt:'金額（税込）',sysTitle:'Kinoko Club Concierge ガイド精算システム',invH:'請求書に載せる金額です（すべて税込）。',dailyRate:'日当（1日あたり・税込）',otHours:'残業代の合計時間（時間）',otRate:'残業代の単価（1時間あたり・税込）',ck_rate:'日当の金額',ck_ot:'残業代の単価',ck_sign:'署名入り勤務表（写真または「なし」）',signTitle:'勤務表の署名',signHint:'お客様の署名入りの勤務表はありますか？ある場合は撮影してアップロードしてください。ない場合は写真は不要です。',signYes:'署名あり（写真を登録）',signNo:'署名なし',mailTitle:'原本の郵送について',mailHint:'原本の郵送が必要な場合は、担当者にご確認のうえ、下記の宛先へお送りください。',mailPhone:'（担当者の携帯番号）',takePhoto:'撮影する',pickFile:'写真・PDFを選択',selFiles:'選択中',ck_phone:'電話番号',ck_bank:'振込先口座',ck_mail:'ガイドのメール',ck_range:'開始日・終了日',reqMiss:'未入力の必須項目があります',
 // staff page
 sTitle:'ガイド精算リンク生成（社内用）',sName:'担当者氏名',sMail:'担当者メール',sGen:'リンクを生成',sSend:'以下のリンクをガイドへお送りください：',sCopy:'リンクをコピー',sCopied:'コピーしました',sNeed:'氏名とメールを入力してください',
 // view/admin
@@ -158,7 +158,7 @@ async function exportInvoice(d){
  const det=(ja,en,qty,unit,amt)=>`<tr><td class="it">${ja}${en?`<small>${en}</small>`:''}</td><td class="r">${qty}</td><td class="r">${unit}</td><td class="r">${amt}</td></tr>`;
  const subt=a=>`<tr class="st"><td colspan="3" class="r">小計 / Subtotal</td><td class="r">${y(a)}</td></tr>`;
  rows+=head('日当','Daily fee')+det(`日当　<span class="dts">${d.days.map(x=>wd(x.date)).join('、')}</span>`,'Daily fee',days+' 日',rate?y(rate):'—',y(dayAmt))+subt(dayAmt);
- if(otAmt>0)rows+=head('超過勤務','Overtime')+det('超過勤務','Overtime',(Math.round(otH*100)/100)+' 時間',y(otRate),y(otAmt))+subt(otAmt);
+ if(otAmt>0)rows+=head('残業代','Overtime')+det('残業代','Overtime',(Math.round(otH*100)/100)+' 時間',y(otRate),y(otAmt))+subt(otAmt);
  if(mealAmt>0)rows+=head('食事代','Meal fee')+det('食事代','Meal fee',mealDays+' 日',y(mealRate),y(mealAmt))+subt(mealAmt);
  if(expTotal>0){rows+=head('立替金','Advance payments (expenses)');
   for(const k of ['transport','hotel','ticket','meal','other']){const v=sum[k];if(!v.n)continue;rows+=det(grp[k][0],grp[k][1],k==='hotel'?v.ds.size+' 日':v.n+' 件','',y(v.a))}
