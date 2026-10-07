@@ -11,10 +11,11 @@ async function load(){
  try{DATA=await api('/d/sub',{token:TOKEN});render()}catch(e){app.innerHTML=`<div class="cd"><div class="empty">${e.status===401?T('noToken'):esc(e.message)}</div></div>`}
 }
 function render(){
- app.innerHTML=`<div class="acts" style="margin:0 0 12px"><button class="bp" id="bx">${T('dlXlsx')}</button><button class="bs" id="bz">${T('dlZip')}</button><button class="bd" id="br">${T('ret')}</button></div>`+renderDetail(DATA)+`<div class="cd" id="rbox" style="display:none"><div class="fg"><label>${T('retNote')}</label><textarea id="rn"></textarea></div><div class="acts"><button class="bd" id="rgo">${T('retDo')}</button></div></div>`;
+ app.innerHTML=`<div class="acts" style="margin:0 0 12px"><button class="bp" id="bx">${T('dlXlsx')}</button><button class="bs" id="bi">${T('dlInv')}</button><button class="bs" id="bz">${T('dlZip')}</button><button class="bd" id="br">${T('ret')}</button></div>`+renderDetail(DATA)+`<div class="cd" id="rbox" style="display:none"><div class="fg"><label>${T('retNote')}</label><textarea id="rn"></textarea></div><div class="acts"><button class="bd" id="rgo">${T('retDo')}</button></div></div>`;
  hydrate(app,TOKEN);
  const nm=`${safe(DATA.sub.tour_code)}_${safe(DATA.sub.guide_name)}`;
  $('#bx').onclick=async()=>{try{await exportXlsx([DATA],nm)}catch(e){toast(e.message,1)}};
+ $('#bi').onclick=async()=>{const b=$('#bi');b.disabled=true;try{await exportInvoice(DATA)}catch(e){toast(e.message,1)}b.disabled=false};
  $('#bz').onclick=async()=>{const b=$('#bz');b.disabled=true;try{await exportZip([DATA],nm,()=>TOKEN)}catch(e){toast(e.message,1)}b.disabled=false};
  $('#br').onclick=()=>{$('#rbox').style.display='block';$('#rn').focus()};
  $('#rgo').onclick=async()=>{if(!confirm(T('confirmRet')))return;try{await api('/d/return',{method:'POST',token:TOKEN,body:{note:$('#rn').value}});toast(T('saved'));await load()}catch(e){toast(e.message,1)}};

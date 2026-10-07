@@ -72,11 +72,12 @@ async function openDetail(id){
 }
 function showDetail(){
  const D=DETAIL,nm=`${safe(D.sub.tour_code)}_${safe(D.sub.guide_name)}`;
- app.innerHTML=`<div class="acts" style="margin:0 0 12px"><button class="bs" id="bk" style="flex:0 0 auto">← ${T('aTours')}</button><button class="bp" id="bx">${T('dlXlsx')}</button><button class="bs" id="bz">${T('dlZip')}</button>${D.sub.status==='submitted'?`<button class="bd" id="br">${T('ret')}</button>`:''}<button class="bd" id="bdel">${T('rowDel')}</button></div>`+renderDetail(D)+
+ app.innerHTML=`<div class="acts" style="margin:0 0 12px"><button class="bs" id="bk" style="flex:0 0 auto">← ${T('aTours')}</button><button class="bp" id="bx">${T('dlXlsx')}</button><button class="bs" id="bi">${T('dlInv')}</button><button class="bs" id="bz">${T('dlZip')}</button>${D.sub.status==='submitted'?`<button class="bd" id="br">${T('ret')}</button>`:''}<button class="bd" id="bdel">${T('rowDel')}</button></div>`+renderDetail(D)+
  `<div class="cd" id="rbox" style="display:none"><div class="fg"><label>${T('retNote')}</label><textarea id="rn"></textarea></div><div class="acts"><button class="bd" id="rgo">${T('retDo')}</button></div></div>`;
  hydrate(app,TOKEN);
  $('#bk').onclick=()=>fetchList();
  $('#bx').onclick=async()=>{try{await exportXlsx([D],nm)}catch(e){toast(e.message,1)}};
+ $('#bi').onclick=async()=>{const b=$('#bi');b.disabled=true;try{await exportInvoice(D)}catch(e){toast(e.message,1)}b.disabled=false};
  $('#bz').onclick=async()=>{const b=$('#bz');b.disabled=true;try{await exportZip([D],nm,()=>TOKEN)}catch(e){toast(e.message,1)}b.disabled=false};
  if($('#br'))$('#br').onclick=()=>{$('#rbox').style.display='block';$('#rn').focus()};
  $('#rgo').onclick=async()=>{if(!confirm(T('confirmRet')))return;try{await api('/admin/return',{method:'POST',token:TOKEN,body:{id:D.sub.id,note:$('#rn').value}});toast(T('saved'));openDetail(D.sub.id)}catch(e){toast(e.message,1)}};

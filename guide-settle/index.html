@@ -100,7 +100,7 @@ const val=(id,k)=>{const e=$('#'+id);return (e?e.value:DATA.sub[k]||'').trim()};
 function checks(){
  const d=DATA;
  return [[T('ck_days'),d.days.length>0],[T('ck_time'),d.days.length>0&&!d.days.some(x=>x.minutes==null)],[T('ck_rcpt'),!d.expenses.some(e=>!e.files.length)],[T('ck_sign'),getSign()==='n'||(getSign()==='y'&&d.sheets.length>0)],
- [T('ck_name'),!!val('p_n','guide_name')],[T('ck_mail'),!!DATA.sub.guide_email],[T('ck_phone'),!!val('p_p','guide_phone')],[T('ck_range'),!!val('p_s','start_date')&&!!val('p_e','end_date')],[T('ck_bank'),!!val('p_b','bank')]];
+ [T('ck_name'),!!val('p_n','guide_name')],[T('ck_mail'),!!DATA.sub.guide_email],[T('ck_phone'),!!val('p_p','guide_phone')],[T('ck_range'),!!val('p_s','start_date')&&!!val('p_e','end_date')],[T('ck_bank'),!!val('p_b','bank')],[T('ck_rate'),(()=>{const e=$('#p_dr');return (e?iv('p_dr'):DATA.sub.daily_rate)>0})()],[T('ck_ot'),(()=>{const e=$('#p_oh');const m=e?Math.round((parseFloat(e.value)||0)*60):DATA.sub.ot_min,r=e?iv('p_or'):DATA.sub.ot_rate;return m===0||r>0})()]];
 }
 function checksHtml(){return checks().map(([t,ok])=>`<div class="chk ${ok?'ok':'no'}">${ok?'✓':'✗'} ${t}</div>`).join('')}
 function refreshChecks(){const c=$('#chks');if(!c)return;c.innerHTML=checksHtml();const b=document.querySelector('[data-submit]');if(b)b.disabled=locked()||checks().some(x=>!x[1])}
@@ -113,14 +113,18 @@ function subView(){
  <div class="row"><div class="fg"><label>${T('start')}${R}</label><input type="date" id="p_s" value="${s.start_date}" ${dis}></div><div class="fg"><label>${T('end')}${R}</label><input type="date" id="p_e" value="${s.end_date}" ${dis}></div></div>
  <div class="fg"><label>${T('bank')}${R}</label><textarea id="p_b" placeholder="${esc(T('bankPh'))}" ${dis}>${esc(s.bank)}</textarea></div>
  <div class="fg"><label>${T('inv')}</label><input id="p_i" value="${esc(s.invoice_no)}" placeholder="${T('invPh')}" ${dis}></div></div>
+ <div class="cd"><h3>${T('invT')}<span class="req">*</span></h3><div class="muted" style="margin-bottom:8px">${T('invH')}</div>
+ <div class="fg"><label>${T('dailyRate')}${R}</label><input id="p_dr" type="number" inputmode="numeric" min="0" step="1" value="${s.daily_rate||''}" placeholder="20000" ${dis}></div>
+ <div class="row"><div class="fg"><label>${T('otHours')}</label><input id="p_oh" type="number" inputmode="decimal" min="0" step="0.25" value="${s.ot_min?Math.round(s.ot_min/60*100)/100:''}" placeholder="0" ${dis}></div><div class="fg"><label>${T('otRate')}</label><input id="p_or" type="number" inputmode="numeric" min="0" step="1" value="${s.ot_rate||''}" placeholder="2000" ${dis}></div></div></div>
  <div class="cd"><h3>${T('mailTitle')}</h3><div class="muted" style="margin-bottom:8px">${T('mailHint')}</div><div style="background:#F7F6F5;border:1px solid var(--b,#E8E0D4);border-radius:10px;padding:12px 14px;line-height:1.8;font-size:.92rem">Kinoko Club Concierge<br>${esc(s.staff_name)} ${T('mailPhone')}<br>サクセス銀座東ビル<br>〒104-0045 東京都中央区築地１丁目１３−１０ 6F<br>Tel：03-6868-4007</div></div>
  <div class="cd"><h3>${T('tabSubmit')}</h3><div id="chks">${checksHtml()}</div>
  <div class="acts"><button class="bp" data-submit ${locked()||checks().some(x=>!x[1])?'disabled':''}>${T('submit')}</button></div></div>`;
 }
+const iv=id=>Math.max(0,Math.round(parseFloat($('#'+id).value)||0));
 async function saveProfile(){
  const s=DATA.sub;
- await api('/g/me',{method:'PUT',token:TOKEN,body:{guideName:$('#p_n').value,guidePhone:$('#p_p').value,startDate:$('#p_s').value,endDate:$('#p_e').value,bank:$('#p_b').value,invoiceNo:$('#p_i').value,lang:L}});
- Object.assign(DATA.sub,{guide_name:$('#p_n').value.trim(),guide_phone:$('#p_p').value.trim(),start_date:$('#p_s').value,end_date:$('#p_e').value,bank:$('#p_b').value.trim(),invoice_no:$('#p_i').value.trim()});
+ await api('/g/me',{method:'PUT',token:TOKEN,body:{guideName:$('#p_n').value,guidePhone:$('#p_p').value,startDate:$('#p_s').value,endDate:$('#p_e').value,bank:$('#p_b').value,invoiceNo:$('#p_i').value,dailyRate:iv('p_dr'),otMin:Math.round((parseFloat($('#p_oh').value)||0)*60),otRate:iv('p_or'),lang:L}});
+ Object.assign(DATA.sub,{guide_name:$('#p_n').value.trim(),guide_phone:$('#p_p').value.trim(),start_date:$('#p_s').value,end_date:$('#p_e').value,bank:$('#p_b').value.trim(),invoice_no:$('#p_i').value.trim(),daily_rate:iv('p_dr'),ot_min:Math.round((parseFloat($('#p_oh').value)||0)*60),ot_rate:iv('p_or')});
 }
 app.addEventListener('click',async ev=>{
  const t=ev.target.closest('button,[data-tog],[data-editexp]');if(!t)return;

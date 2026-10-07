@@ -11,7 +11,7 @@ saved:'保存しました',deleted:'削除しました',ck_days:'勤務日を1�
 confirmSubmit:'提出しますか？提出後は編集できません。',confirmDel:'削除しますか？',confirmClear:'この日の入力を消去しますか？',
 needStaff:'担当者から届いたリンクからお開きください。',startNew:'精算を始める',startNote:'団番号と期間を入力すると、入力ページのリンクがメールにも届きます。',
 sentMail:'このツアーは登録済みです。入力ページのリンクをメールでお送りしました。メールのリンクから続けてください。',noToken:'リンクが無効です。担当者のリンクからやり直してください。',
-rangeErr:'終了日は開始日以降にしてください',loading:'読み込み中…',reload:'更新',workCalc:'勤務時間',ck_sign:'署名入り勤務表（写真または「なし」）',signTitle:'勤務表の署名',signHint:'お客様の署名入りの勤務表はありますか？ある場合は撮影してアップロードしてください。ない場合は写真は不要です。',signYes:'署名あり（写真を登録）',signNo:'署名なし',mailTitle:'原本の郵送について',mailHint:'原本の郵送が必要な場合は、担当者にご確認のうえ、下記の宛先へお送りください。',mailPhone:'（担当者の携帯番号）',takePhoto:'撮影する',pickFile:'写真・PDFを選択',selFiles:'選択中',ck_phone:'電話番号',ck_bank:'振込先口座',ck_mail:'ガイドのメール',ck_range:'開始日・終了日',reqMiss:'未入力の必須項目があります',
+rangeErr:'終了日は開始日以降にしてください',loading:'読み込み中…',reload:'更新',workCalc:'勤務時間',dlInv:'請求書PDF',invT:'請求書の金額',invH:'請求書に載せる金額です（すべて税込）。',dailyRate:'日当（1日あたり・税込）',otHours:'超過勤務の合計時間（時間）',otRate:'超過勤務の単価（1時間あたり・税込）',ck_rate:'日当の金額',ck_ot:'超過勤務の単価',ck_sign:'署名入り勤務表（写真または「なし」）',signTitle:'勤務表の署名',signHint:'お客様の署名入りの勤務表はありますか？ある場合は撮影してアップロードしてください。ない場合は写真は不要です。',signYes:'署名あり（写真を登録）',signNo:'署名なし',mailTitle:'原本の郵送について',mailHint:'原本の郵送が必要な場合は、担当者にご確認のうえ、下記の宛先へお送りください。',mailPhone:'（担当者の携帯番号）',takePhoto:'撮影する',pickFile:'写真・PDFを選択',selFiles:'選択中',ck_phone:'電話番号',ck_bank:'振込先口座',ck_mail:'ガイドのメール',ck_range:'開始日・終了日',reqMiss:'未入力の必須項目があります',
 // staff page
 sTitle:'ガイド精算リンク生成（社内用）',sName:'担当者氏名',sMail:'担当者メール',sGen:'リンクを生成',sSend:'以下のリンクをガイドへお送りください：',sCopy:'リンクをコピー',sCopied:'コピーしました',sNeed:'氏名とメールを入力してください',
 // view/admin
@@ -32,7 +32,7 @@ saved:'Saved',deleted:'Deleted',ck_days:'At least one working day',ck_time:'Star
 confirmSubmit:'Submit now? You cannot edit after submitting.',confirmDel:'Delete this?',confirmClear:'Clear this day?',
 needStaff:'Please open the link sent by your staff in charge.',startNew:'Start',startNote:'Enter the tour code and dates. We will also email you a link to continue.',
 sentMail:'This tour is already registered. We emailed you the entry link; please continue from the email.',noToken:'This link is not valid. Please start again from your staff link.',
-rangeErr:'End date must be on or after start date',loading:'Loading…',reload:'Refresh',workCalc:'Worked',ck_sign:'Signed work sheet (photo, or “none”)',signTitle:'Signed work sheet',signHint:'Do you have a work sheet signed by the client? If yes, take a photo and upload it. If not, no photo is needed.',signYes:'Signed (add photo)',signNo:'No signature',mailTitle:'Mailing originals',mailHint:'If you need to mail the originals, please confirm with your staff contact first and send them to the address below.',mailPhone:'(staff mobile number)',takePhoto:'Take photo',pickFile:'Choose photo or PDF',selFiles:'selected',ck_phone:'Phone number',ck_bank:'Bank account',ck_mail:'Guide email',ck_range:'Start and end dates',reqMiss:'Some required fields are empty',
+rangeErr:'End date must be on or after start date',loading:'Loading…',reload:'Refresh',workCalc:'Worked',dlInv:'Invoice PDF',invT:'Invoice amounts',invH:'Amounts shown on the invoice (all tax included).',dailyRate:'Daily fee (per day, tax incl.)',otHours:'Total overtime (hours)',otRate:'Overtime rate (per hour, tax incl.)',ck_rate:'Daily fee amount',ck_ot:'Overtime rate',ck_sign:'Signed work sheet (photo, or “none”)',signTitle:'Signed work sheet',signHint:'Do you have a work sheet signed by the client? If yes, take a photo and upload it. If not, no photo is needed.',signYes:'Signed (add photo)',signNo:'No signature',mailTitle:'Mailing originals',mailHint:'If you need to mail the originals, please confirm with your staff contact first and send them to the address below.',mailPhone:'(staff mobile number)',takePhoto:'Take photo',pickFile:'Choose photo or PDF',selFiles:'selected',ck_phone:'Phone number',ck_bank:'Bank account',ck_mail:'Guide email',ck_range:'Start and end dates',reqMiss:'Some required fields are empty',
 sTitle:'Guide settlement link (internal)',sName:'Staff name',sMail:'Staff email',sGen:'Generate link',sSend:'Send this link to the guide:',sCopy:'Copy link',sCopied:'Copied',sNeed:'Enter name and email',
 vTitle:'Settlement details',dlXlsx:'Download Excel',dlZip:'Download originals (ZIP)',ret:'Return',retNote:'Reason for return (sent to the guide)',retDo:'Send return',confirmRet:'Return to the guide? They will get an email to edit again.',
 st_draft:'In progress',st_submitted:'Submitted',bankL:'Bank account',invL:'Invoice no.',
@@ -135,4 +135,43 @@ async function exportZip(list,name,tokenFor){
  if(!n)throw new Error(L==='ja'?'原本ファイルがありません':'No original files');
  const b=await z.generateAsync({type:'blob',compression:'STORE'});
  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name+'.zip';a.click();
+}
+
+async function exportInvoice(d){
+ await loadScript('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js');
+ await loadScript('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js');
+ const s=d.sub,y=n=>'¥'+Math.round(n).toLocaleString('en-US');
+ const days=d.days.length,rate=s.daily_rate||0,dayAmt=days*rate,otH=(s.ot_min||0)/60,otRate=s.ot_rate||0,otAmt=Math.round(otH*otRate);
+ const grp={transport:{ja:'交通費',en:'Transportation',u:'件',uen:''},hotel:{ja:'宿泊費',en:'Accommodation',u:'日',uen:' night(s)'},ticket:{ja:'入場料',en:'Admission / Tickets',u:'件',uen:''},meal:{ja:'食事補助',en:'Meal allowance',u:'件',uen:''},other:{ja:'その他',en:'Other',u:'件',uen:''}};
+ const sum={};for(const k in grp)sum[k]={n:0,a:0,ds:new Set()};
+ for(const e of d.expenses){const k=e.category==='parking'?'other':(grp[e.category]?e.category:'other');sum[k].n++;sum[k].a+=e.amount;sum[k].ds.add(e.date)}
+ const expTotal=d.expenses.reduce((a,e)=>a+e.amount,0),total=dayAmt+otAmt+expTotal;
+ const wd=x=>{const dt=new Date(x+'T00:00:00');return (dt.getMonth()+1)+'/'+dt.getDate()+'('+['日','月','火','水','木','金','土'][dt.getDay()]+')'};
+ const jst=new Date(Date.now()+9*3600e3).toISOString().slice(0,10);
+ const row=(ja,en,qty,unit,amt,sub)=>`<tr${sub?' class="sub"':''}><td class="it">${sub?'&nbsp;&nbsp;&nbsp;':''}${ja}<small>${en}</small></td><td class="r">${qty}</td><td class="r">${unit}</td><td class="r">${amt}</td></tr>`;
+ let rows=row('日当','Daily fee',days+' 日',rate?y(rate):'—',y(dayAmt));
+ rows+=row('超過勤務','Overtime',(Math.round(otH*100)/100)+' 時間',otRate?y(otRate):'—',y(otAmt));
+ rows+=row('立替金','Advance payments (expenses)',d.expenses.length+' 件','',y(expTotal));
+ for(const k of ['transport','hotel','ticket','meal','other']){const g=grp[k],v=sum[k];const q=k==='hotel'?v.ds.size+' 日':v.n+' 件';rows+=row(g.ja,g.en,q,'',y(v.a),true)}
+ const el=document.createElement('div');
+ el.style.cssText='position:fixed;left:-10000px;top:0;width:794px;background:#fff;color:#222;font-family:"Noto Sans JP",sans-serif;padding:44px 52px;box-sizing:border-box;font-size:12px;line-height:1.55';
+ el.innerHTML=`<style>.t2{width:100%;border-collapse:collapse;margin-top:6px}.t2 th{background:#f1ebe0;border:1px solid #cfc4ad;padding:6px 8px;font-weight:500;text-align:left}.t2 td{border:1px solid #d8cfb8;padding:6px 8px}.t2 .r{text-align:right;white-space:nowrap}.t2 small{display:block;color:#777;font-size:10px}.t2 .sub td{color:#555}.t2 .sub td.it{font-size:11px}small.l{color:#777;font-size:10px;display:block}h1{margin:0;font-size:26px;letter-spacing:4px;color:#6b4f10;font-weight:500}.bx{border:1px solid #d8cfb8;border-radius:4px;padding:10px 12px}</style>
+ <div style="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #8B6914;padding-bottom:10px"><h1>請求書 <span style="font-size:14px;letter-spacing:1px">Invoice</span></h1><div style="text-align:right">請求日 / Date：${jst}${s.invoice_no?`<br>登録番号 / Reg. No.：${esc(s.invoice_no)}`:''}</div></div>
+ <div style="display:flex;gap:18px;margin-top:16px">
+  <div class="bx" style="flex:1.1;position:relative"><small class="l">請求先 / Bill to</small><b style="font-size:14px">Kinoko Club Concierge（木の子交通 株式会社）</b><br>登録番号：T4040001103645<br>〒104-0045 東京都中央区築地１丁目１３−１０<br>サクセス銀座東ビル 6F<br>Tel：03-6868-4007　Fax：03-6278-7388<br>東京都知事登録旅行業第3-8289号<img src="seal.jpg" style="position:absolute;right:10px;top:8px;width:58px;height:58px"></div>
+  <div class="bx" style="flex:1"><small class="l">請求者 / From</small><b style="font-size:14px">${esc(s.guide_name)}</b><br>Tel：${esc(s.guide_phone||'—')}<br>${esc(s.guide_email)}</div></div>
+ <div class="bx" style="margin-top:14px"><div><b>ツアー番号 / Tour No.：</b>${esc(s.tour_code)}</div><div style="margin-top:3px"><b>期間 / Period：</b>${esc(s.start_date)} 〜 ${esc(s.end_date)}</div><div style="margin-top:3px"><b>勤務日 / Working dates（${days}日）：</b>${d.days.map(x=>wd(x.date)).join('、')||'—'}</div></div>
+ <table class="t2" style="margin-top:16px"><tr><th>項目 / Item</th><th class="r" style="width:90px">数量 / Qty</th><th class="r" style="width:110px">単価 / Unit price</th><th class="r" style="width:120px">金額 / Amount</th></tr>${rows}
+ <tr><td colspan="3" style="text-align:right;font-weight:600;background:#faf6ee">合計 / Total（税込 / tax incl.）</td><td class="r" style="font-weight:700;font-size:15px;background:#faf6ee">${y(total)}</td></tr></table>
+ <div style="margin-top:6px;color:#666;font-size:10.5px">※ 金額はすべて税込です。 / All amounts include tax.</div>
+ <div class="bx" style="margin-top:16px;min-height:70px"><small class="l">お振込先 / Bank details</small>${esc(s.bank||'—').replace(/\n/g,'<br>')}</div>`;
+ document.body.append(el);
+ try{
+  await document.fonts.ready;await new Promise(r=>setTimeout(r,300));
+  const cv=await html2canvas(el,{scale:2,backgroundColor:'#fff',useCORS:true});
+  const {jsPDF}=window.jspdf,pdf=new jsPDF({unit:'mm',format:'a4'}),W=210,H=297;
+  let w=W,h=cv.height*W/cv.width;if(h>H){w=W*H/h;h=H}
+  pdf.addImage(cv.toDataURL('image/jpeg',0.92),'JPEG',(W-w)/2,0,w,h);
+  pdf.save(`請求書_${safe(s.tour_code)}_${safe(s.guide_name)}.pdf`);
+ }finally{el.remove()}
 }
