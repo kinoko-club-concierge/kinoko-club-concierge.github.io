@@ -1,0 +1,86 @@
+<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Kinoko Club Concierge</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500&family=Noto+Serif+JP:wght@400;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="common.css">
+<style>.req{color:#c0392b;margin-left:2px}.lst tr{cursor:pointer}.lst tr:hover td{background:#faf6ee}.lst td.c{width:30px}@media(max-width:700px){.hide-s{display:none}}</style></head>
+<body><div class="ct wide" id="app"></div>
+<script src="common.js"></script><script>
+mountBar('<span id="who" class="muted"></span><button class="bs" id="lo" style="display:none;padding:5px 12px"></button>');
+let TOKEN=localStorage.getItem('gs-p'),SUBS=[],SEL=new Set(),DETAIL=null,F={q:'',staff:'',st:'',a:'',b:''};
+const app=$('#app');
+window.rerender=()=>TOKEN&&ME?(DETAIL?showDetail():list()):login();
+const P={ja:{pTitle:'精算ポータル',email:'会社のメール',pw:'パスワード',pw8:'パスワード（8文字以上）',name:'お名前',code:'認証コード（6桁）',sendCode:'認証コードを送る',sent:'認証コードをメールで送りました',login:'ログイン',reg:'新規登録',regGo:'登録する',forgot:'パスワードを忘れた方',reset:'パスワードを再設定',resetGo:'再設定してログイン',back:'ログインに戻る',admin:'管理者ログイン',need:'すべて入力してください',domain:'@kinoko-group.co.jp のメールを入力してください',hello:'ようこそ',linkT:'ガイド用リンク',linkH:'このリンクをガイドに送ってください。担当者として自動で設定されています。',copy:'リンクをコピー',copied:'コピーしました',open:'開く',mine:'自分の担当分のみ表示されます'},
+en:{pTitle:'Settlement portal',email:'Company email',pw:'Password',pw8:'Password (8+ characters)',name:'Your name',code:'Verification code (6 digits)',sendCode:'Send code',sent:'Code sent by email',login:'Log in',reg:'Register',regGo:'Register',forgot:'Forgot password',reset:'Reset password',resetGo:'Reset and log in',back:'Back to login',admin:'Admin login',need:'Please fill in everything',domain:'Enter your @kinoko-group.co.jp email',hello:'Welcome',linkT:'Guide link',linkH:'Send this link to the guide. You are set as the staff in charge automatically.',copy:'Copy link',copied:'Copied',open:'Open',mine:'Only your own tours are shown'}};
+const PT=k=>(P[L]||P.ja)[k]||T(k);
+let MODE='in',ME=null;
+const okMail=e=>/^[^\s@]+@kinoko-group\.co\.jp$/i.test(e);
+function login(){
+ $('#lo').style.display='none';$('#who').textContent='';
+ const m=MODE;
+ let f='';
+ if(m==='admin')f=`<div class="fg"><label>${T('aWho')}</label><select id="an"><option value="mio">Mio</option><option value="kaki">Kaki</option></select></div><div class="fg"><label>${PT('pw')}</label><input id="ap" type="password" autocomplete="current-password"></div><button class="bp full" id="ag">${PT('login')}</button>`;
+ else if(m==='in')f=`<div class="fg"><label>${PT('email')}</label><input id="ue" type="email" autocomplete="username" placeholder="name@kinoko-group.co.jp" value="${esc(localStorage.getItem('gs-ue')||'')}"></div><div class="fg"><label>${PT('pw')}</label><input id="up" type="password" autocomplete="current-password"></div><button class="bp full" id="ug">${PT('login')}</button>`;
+ else f=`${m==='reg'?`<div class="fg"><label>${PT('name')}<span class="req">*</span></label><input id="un" autocomplete="name"></div>`:''}<div class="fg"><label>${PT('email')}<span class="req">*</span></label><input id="ue" type="email" autocomplete="username" placeholder="name@kinoko-group.co.jp"></div><div class="acts" style="margin:0 0 12px"><button class="bs" id="uc">${PT('sendCode')}</button></div><div class="fg"><label>${PT('code')}<span class="req">*</span></label><input id="ux" inputmode="numeric" maxlength="6" autocomplete="one-time-code"></div><div class="fg"><label>${PT('pw8')}<span class="req">*</span></label><input id="up" type="password" autocomplete="new-password"></div><button class="bp full" id="ug">${m==='reg'?PT('regGo'):PT('resetGo')}</button>`;
+ const links=m==='in'?`<a data-m="reg">${PT('reg')}</a> ・ <a data-m="reset">${PT('forgot')}</a> ・ <a data-m="admin">${PT('admin')}</a>`:`<a data-m="in">${PT('back')}</a>`;
+ app.innerHTML=`<div style="max-width:420px;margin:30px auto"><div class="cd"><h2>${m==='reg'?PT('reg'):m==='reset'?PT('reset'):m==='admin'?PT('admin'):PT('pTitle')}</h2>${f}<div class="muted" style="margin-top:14px;text-align:center">${links}</div></div></div>`;
+ app.querySelectorAll('[data-m]').forEach(x=>{x.style.cursor='pointer';x.style.color='var(--c)';x.onclick=()=>{MODE=x.dataset.m;login()}});
+ const done=async r=>{TOKEN=r.token;localStorage.setItem('gs-p',TOKEN);await fetchList()};
+ const run=(btn,fn)=>async()=>{btn.disabled=true;try{await fn()}catch(e){toast(e.message,1);btn.disabled=false}};
+ if(m==='admin'){const b=$('#ag'),go=run(b,async()=>done(await api('/admin/login',{method:'POST',body:{name:$('#an').value,password:$('#ap').value}})));b.onclick=go;$('#ap').onkeydown=e=>{if(e.key==='Enter')go()}}
+ else if(m==='in'){const b=$('#ug'),go=run(b,async()=>{const e=$('#ue').value.trim().toLowerCase();if(!okMail(e)){throw new Error(PT('domain'))}localStorage.setItem('gs-ue',e);done(await api('/u/login',{method:'POST',body:{email:e,password:$('#up').value}}))});b.onclick=go;$('#up').onkeydown=e=>{if(e.key==='Enter')go()}}
+ else{
+  const c=$('#uc');c.onclick=async()=>{const e=$('#ue').value.trim().toLowerCase();if(!okMail(e)){toast(PT('domain'),1);return}c.disabled=true;try{await api('/u/code',{method:'POST',body:{email:e,purpose:m==='reg'?'register':'reset'}});toast(PT('sent'));let n=60;const t=setInterval(()=>{c.textContent=n+'s';if(--n<0){clearInterval(t);c.textContent=PT('sendCode');c.disabled=false}},1000)}catch(er){toast(er.message,1);c.disabled=false}};
+  const b=$('#ug');b.onclick=run(b,async()=>{const e=$('#ue').value.trim().toLowerCase(),n=m==='reg'?$('#un').value.trim():'x';if(!okMail(e)||!n||!$('#ux').value.trim()||!$('#up').value){throw new Error(PT('need'))}localStorage.setItem('gs-ue',e);done(await api(m==='reg'?'/u/register':'/u/reset',{method:'POST',body:{email:e,name:n,code:$('#ux').value.trim(),password:$('#up').value}}))});
+ }
+}
+async function fetchList(){
+ app.innerHTML=`<div class="empty">${T('loading')}</div>`;
+ try{const r=await api('/admin/subs',{token:TOKEN});SUBS=r.subs;ME=r;$('#who').textContent=r.admin;$('#lo').textContent=T('logout');$('#lo').style.display='';list()}
+ catch(e){if(e.status===401){TOKEN=null;ME=null;localStorage.removeItem('gs-p');login()}else app.innerHTML=`<div class="cd"><div class="empty">${esc(e.message)}</div></div>`}
+}
+$('#lo').onclick=()=>{TOKEN=null;ME=null;MODE='in';localStorage.removeItem('gs-p');DETAIL=null;login()};
+const shown=()=>SUBS.filter(s=>(!F.q||(s.tour_code+' '+s.guide_name).toLowerCase().includes(F.q.toLowerCase()))&&(!F.staff||s.staff_email===F.staff)&&(!F.st||s.status===F.st)&&(!F.a||s.start_date>=F.a)&&(!F.b||s.start_date<=F.b));
+function list(){
+ DETAIL=null;const staffs=[...new Map(SUBS.map(s=>[s.staff_email,s.staff_name])).entries()];
+ const lk=location.href.replace(/[^/]*$/,'')+'index.html?staff_name='+encodeURIComponent(ME.admin)+'&staff_email='+encodeURIComponent(ME.email);
+ app.innerHTML=`<div class="cd"><h3>${PT('linkT')}</h3><div class="muted" style="margin-bottom:8px">${PT('linkH')}</div><div style="word-break:break-all;background:#F7F6F5;border:1px solid #E8E0D4;border-radius:8px;padding:10px 12px;font-size:.85rem">${esc(lk)}</div><div class="acts"><button class="bp" id="lkc">${PT('copy')}</button></div></div><div class="cd"><h2>${T('aTours')} <span class="muted" id="cnt"></span></h2>${ME.role==='staff'?`<div class="muted" style="margin-bottom:8px">${PT('mine')}</div>`:''}
+ <div class="filters"><input id="fq" placeholder="${esc(T('search'))}" value="${esc(F.q)}"><select id="fs"><option value="">${T('allStaff')}</option>${staffs.map(([e,n])=>`<option value="${esc(e)}" ${F.staff===e?'selected':''}>${esc(n)}</option>`).join('')}</select>
+ <select id="ft"><option value="">${T('allSt')}</option><option value="submitted" ${F.st==='submitted'?'selected':''}>${T('st_submitted')}</option><option value="draft" ${F.st==='draft'?'selected':''}>${T('st_draft')}</option></select>
+ <input id="fa" type="date" title="${esc(T('from_'))}" value="${F.a}"><input id="fb" type="date" title="${esc(T('to_'))}" value="${F.b}"></div>
+ <div class="acts" style="margin:0 0 10px"><button class="bp" id="e1">${T('dlSel')}</button><button class="bs" id="e2">${T('dlSelZip')}</button><button class="bs" id="e3">${T('dlAll')}</button><button class="bs" id="rf">${T('reload')}</button></div>
+ <div class="tw"><table class="t lst" id="tb"></table></div></div>`;
+ const draw=()=>{const rows=shown();$('#cnt').textContent=`${rows.length} / ${SUBS.length}`;
+  $('#tb').innerHTML=`<tr><th class="c"><input type="checkbox" id="sa" style="width:auto"></th><th>${T('tour')}</th><th>${T('guide')}</th><th class="hide-s">${T('dates')}</th><th class="hide-s">${T('staff')}</th><th>${T('workCalc')}</th><th>${T('totalExp')}</th><th>${T('x_status')}</th></tr>`+
+  (rows.length?rows.map(s=>`<tr data-id="${s.id}"><td class="c"><input type="checkbox" class="ck" data-id="${s.id}" ${SEL.has(s.id)?'checked':''} style="width:auto"></td><td><b>${esc(s.tour_code)}</b></td><td>${esc(s.guide_name)}</td><td class="hide-s">${s.start_date}〜${s.end_date}</td><td class="hide-s">${esc(s.staff_name)}</td><td>${hmT(s.minutes)}</td><td>${yen(s.expense)}</td><td><span class="badge ${s.status==='submitted'?'s':''}">${T('st_'+s.status)}</span></td></tr>`).join(''):`<tr><td colspan="8" class="empty">${T('none')}</td></tr>`);
+  $('#sa').onchange=e=>{rows.forEach(s=>e.target.checked?SEL.add(s.id):SEL.delete(s.id));draw()};
+  $('#e1').textContent=T('dlSel')+(SEL.size?` (${SEL.size})`:'');
+ };
+ draw();
+ for(const [id,k] of [['fq','q'],['fs','staff'],['ft','st'],['fa','a'],['fb','b']])$('#'+id).oninput=e=>{F[k]=e.target.value;draw()};
+ $('#tb').onclick=e=>{const ck=e.target.closest('.ck');if(ck){ck.checked?SEL.add(ck.dataset.id):SEL.delete(ck.dataset.id);$('#e1').textContent=T('dlSel')+(SEL.size?` (${SEL.size})`:'');return}
+  if(e.target.closest('.c'))return;const tr=e.target.closest('tr[data-id]');if(tr)openDetail(tr.dataset.id)};
+ $('#rf').onclick=fetchList;
+ $('#lkc').onclick=async()=>{try{await navigator.clipboard.writeText(lk);toast(PT('copied'))}catch{toast(lk)}};
+ const batch=async(ids,btn,fn)=>{if(!ids.length){toast(T('none'),1);return}btn.disabled=true;const old=btn.textContent;btn.textContent=T('busy');
+  try{const out=[];for(let i=0;i<ids.length;i+=4){out.push(...await Promise.all(ids.slice(i,i+4).map(id=>api('/admin/sub/'+id,{token:TOKEN}))))}await fn(out)}catch(e){toast(e.message,1)}btn.disabled=false;btn.textContent=old};
+ const stamp=new Date().toISOString().slice(0,10);
+ $('#e1').onclick=ev=>batch([...SEL],ev.target,d=>exportXlsx(d,'settlement_'+stamp));
+ $('#e3').onclick=ev=>batch(shown().map(s=>s.id),ev.target,d=>exportXlsx(d,'settlement_'+stamp));
+ $('#e2').onclick=ev=>batch([...SEL],ev.target,d=>exportZip(d,'originals_'+stamp,()=>TOKEN));
+}
+async function openDetail(id){
+ app.innerHTML=`<div class="empty">${T('loading')}</div>`;
+ try{DETAIL=await api('/admin/sub/'+id,{token:TOKEN});showDetail()}catch(e){toast(e.message,1);list()}
+}
+function showDetail(){
+ const D=DETAIL,nm=`${safe(D.sub.tour_code)}_${safe(D.sub.guide_name)}`;
+ app.innerHTML=`<div class="acts" style="margin:0 0 12px"><button class="bs" id="bk" style="flex:0 0 auto">← ${T('aTours')}</button><button class="bp" id="bx">${T('dlXlsx')}</button><button class="bs" id="bz">${T('dlZip')}</button>${D.sub.status==='submitted'?`<button class="bd" id="br">${T('ret')}</button>`:''}<button class="bd" id="bdel">${T('rowDel')}</button></div>`+renderDetail(D)+
+ `<div class="cd" id="rbox" style="display:none"><div class="fg"><label>${T('retNote')}</label><textarea id="rn"></textarea></div><div class="acts"><button class="bd" id="rgo">${T('retDo')}</button></div></div>`;
+ hydrate(app,TOKEN);
+ $('#bk').onclick=()=>fetchList();
+ $('#bx').onclick=async()=>{try{await exportXlsx([D],nm)}catch(e){toast(e.message,1)}};
+ $('#bz').onclick=async()=>{const b=$('#bz');b.disabled=true;try{await exportZip([D],nm,()=>TOKEN)}catch(e){toast(e.message,1)}b.disabled=false};
+ if($('#br'))$('#br').onclick=()=>{$('#rbox').style.display='block';$('#rn').focus()};
+ $('#rgo').onclick=async()=>{if(!confirm(T('confirmRet')))return;try{await api('/admin/return',{method:'POST',token:TOKEN,body:{id:D.sub.id,note:$('#rn').value}});toast(T('saved'));openDetail(D.sub.id)}catch(e){toast(e.message,1)}};
+ $('#bdel').onclick=async()=>{if(!confirm(T('confirmRowDel')))return;try{await api('/admin/sub/'+D.sub.id,{method:'DELETE',token:TOKEN});SEL.delete(D.sub.id);toast(T('deleted'));fetchList()}catch(e){toast(e.message,1)}};
+}
+if(TOKEN)fetchList();else login();
+</script></body></html>
