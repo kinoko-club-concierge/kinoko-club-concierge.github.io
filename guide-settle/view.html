@@ -1,0 +1,24 @@
+<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Kinoko Club Concierge</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500&family=Noto+Serif+JP:wght@400;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="common.css"></head>
+<body><div class="ct wide" id="app"></div>
+<script src="common.js"></script><script>
+mountBar();
+const m=/[#&]d=([a-f0-9d]+)/.exec(location.hash);if(m)sessionStorage.setItem('gs-d',m[1]);
+const TOKEN=m?m[1]:sessionStorage.getItem('gs-d');let DATA=null;const app=$('#app');
+window.rerender=()=>DATA&&render();
+async function load(){
+ if(!TOKEN){app.innerHTML=`<div class="cd"><div class="empty">${T('noToken')}</div></div>`;return}
+ try{DATA=await api('/d/sub',{token:TOKEN});render()}catch(e){app.innerHTML=`<div class="cd"><div class="empty">${e.status===401?T('noToken'):esc(e.message)}</div></div>`}
+}
+function render(){
+ app.innerHTML=`<div class="acts" style="margin:0 0 12px"><button class="bp" id="bx">${T('dlXlsx')}</button><button class="bs" id="bz">${T('dlZip')}</button><button class="bd" id="br">${T('ret')}</button></div>`+renderDetail(DATA)+`<div class="cd" id="rbox" style="display:none"><div class="fg"><label>${T('retNote')}</label><textarea id="rn"></textarea></div><div class="acts"><button class="bd" id="rgo">${T('retDo')}</button></div></div>`;
+ hydrate(app,TOKEN);
+ const nm=`${safe(DATA.sub.tour_code)}_${safe(DATA.sub.guide_name)}`;
+ $('#bx').onclick=async()=>{try{await exportXlsx([DATA],nm)}catch(e){toast(e.message,1)}};
+ $('#bz').onclick=async()=>{const b=$('#bz');b.disabled=true;try{await exportZip([DATA],nm,()=>TOKEN)}catch(e){toast(e.message,1)}b.disabled=false};
+ $('#br').onclick=()=>{$('#rbox').style.display='block';$('#rn').focus()};
+ $('#rgo').onclick=async()=>{if(!confirm(T('confirmRet')))return;try{await api('/d/return',{method:'POST',token:TOKEN,body:{note:$('#rn').value}});toast(T('saved'));await load()}catch(e){toast(e.message,1)}};
+ if(DATA.sub.status!=='submitted'){$('#br').style.display='none'}
+}
+load();
+</script></body></html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Kinoko Club Concierge</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500&family=Noto+Serif+JP:wght@400;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="common.css"></head>
+<body><div class="ct" id="app"></div>
+<script src="common.js"></script><script>
+mountBar();
+const qs=new URLSearchParams(location.search),hs=/[#&]s=([a-f0-9g]+)/.exec(location.hash);
+let TOKEN=hs?hs[1]:null;if(TOKEN){localStorage.setItem('gs-token',TOKEN)}
+const STAFF={name:qs.get('staff_name')||'',email:qs.get('staff_email')||''};
+if(!TOKEN&&!STAFF.email)TOKEN=localStorage.getItem('gs-token');
+let DATA=null,TAB='hours',OPEN=new Set(),EXPFORM=null;
+const app=$('#app');
+window.rerender=()=>TOKEN?render():startView();
+const CATS=['transport','parking','meal','ticket','hotel','other'];
+function startView(msg){
+ if(!STAFF.email){app.innerHTML=`<div class="cd"><div class="empty">${T('needStaff')}</div></div>`;return}
+ app.innerHTML=`<div class="cd"><h2>${T('startNew')}</h2><p class="muted" style="margin-bottom:14px">${T('startNote')}</p>${msg?`<div class="banner ok">${msg}</div>`:''}
+ <div class="fg"><label>${T('staff')}</label><input value="${esc(STAFF.name)}（${esc(STAFF.email)}）" disabled></div>
+ <div class="fg"><label>${T('tour')}<span class="req">*</span></label><input id="f_tour" autocomplete="off"></div>
+ <div class="row"><div class="fg"><label>${T('start')}<span class="req">*</span></label><input id="f_s" type="date"></div><div class="fg"><label>${T('end')}<span class="req">*</span></label><input id="f_e" type="date"></div></div>
+ <div class="fg"><label>${T('gname')}<span class="req">*</span></label><input id="f_n" autocomplete="name"></div>
+ <div class="fg"><label>${T('gmail')}<span class="req">*</span></label><input id="f_m" type="email" autocomplete="email"></div>
+ <button class="bp full" id="f_go">${T('startNew')}</button></div>`;
+ $('#f_s').onchange=()=>{if(!$('#f_e').value)$('#f_e').value=$('#f_s').value};
+ $('#f_go').onclick=async()=>{
+  const b={staffName:STAFF.name||STAFF.email,staffEmail:STAFF.email,tourCode:$('#f_tour').value,startDate:$('#f_s').value,endDate:$('#f_e').value,guideName:$('#f_n').value,guideEmail:$('#f_m').value,lang:L};
+  if(!b.tourCode.trim()||!b.startDate||!b.endDate||!b.guideName.trim()||!b.guideEmail.trim()){toast(L==='ja'?'必須項目を入力してください':'Please fill all required fields',1);return}
+  if(b.endDate<b.startDate){toast(T('rangeErr'),1);return}
+  $('#f_go').disabled=true;
+  try{const r=await api('/g/subs',{method:'POST',body:b});
+   if(r.existing){startView(T('sentMail'));return}
+   TOKEN=r.token;localStorage.setItem('gs-token',TOKEN);history.replaceState(null,'',location.pathname+'#s='+TOKEN);await load();
+  }catch(e){toast(e.message,1);$('#f_go').disabled=false}
+ };
+}
+async function load(){
+ try{DATA=await api('/g/me',{token:TOKEN});render()}
+ catch(e){if(e.status===401){localStorage.removeItem('gs-token');TOKEN=null;app.innerHTML=`<div class="cd"><div class="empty">${T('noToken')}</div></div>`}else{app.innerHTML=`<div class="cd"><div class="empty">${esc(e.message)}</div><div class="acts"><button class="bs" onclick="load()">${T('reload')}</button></div></div>`}}
+}
+const locked=()=>DATA.sub.status==='submitted';
+function blockers(){
+ const d=DATA,o=[];
+ if(!d.days.length)o.push(T('ck_days'));
+ if(d.days.some(x=>x.minutes==null))o.push(T('ck_time'));
+ if(d.expenses.some(e=>!e.files.length))o.push(T('ck_rcpt'));
+ return o;
+}
+function render(){
+ if(!DATA)return;const s=DATA.sub;
+ let h=`<div class="cd" style="padding:14px 18px"><b style="color:var(--c);font-size:1.05rem">${esc(s.tour_code)}</b> <span class="badge ${locked()?'s':''}">${T('st_'+s.status)}</span><div class="muted">${esc(s.start_date)} 〜 ${esc(s.end_date)} ・ ${esc(s.guide_name)} ・ ${T('staff')}: ${esc(s.staff_name)}</div></div>`;
+ if(s.return_note)h+=`<div class="banner warn"><b>${T('returned')}</b><br>${esc(s.return_note)}</div>`;
+ if(locked())h+=`<div class="banner ok">${T('submitted')}</div>`;
+ h+=`<div class="tabs"><button data-t="hours" class="${TAB==='hours'?'on':''}">${T('tabHours')}</button><button data-t="exp" class="${TAB==='exp'?'on':''}">${T('tabExp')}</button><button data-t="sub" class="${TAB==='sub'?'on':''}">${T('tabSubmit')}</button></div>`;
+ h+=TAB==='hours'?hoursView():TAB==='exp'?expView():subView();
+ app.innerHTML=h;hydrate(app,TOKEN);
+}
+function hoursView(){
+ const map=Object.fromEntries(DATA.days.map(d=>[d.date,d]));
+ let h='';
+ for(const dt of eachDay(DATA.sub.start_date,DATA.sub.end_date)){
+  const x=map[dt],w=wdOf(dt),open=OPEN.has(dt)&&!locked();
+  h+=`<div class="day ${x?'done':''} ${open?'open':''}" data-d="${dt}"><div class="hd" data-tog="${dt}"><b class="${w===6?'sat':w===0?'sun':''}">${dayLabel(dt)}</b><span class="v">${x?`${x.startTime||''}${x.startTime?' → ':''}${x.endTime||''}${x.breakMin?' ・ '+T('brk').replace(/（.*/,'')+x.breakMin:''}`:''}</span><span class="m">${x&&x.minutes!=null?hm(x.minutes):''}</span></div>
+  <div class="bd2"><div class="row3" style="margin-top:10px"><div class="fg"><label>${T('from')}</label><input type="time" id="s_${dt}" value="${x?.startTime||''}"></div><div class="fg"><label>${T('to')}</label><input type="time" id="e_${dt}" value="${x?.endTime||''}"></div><div class="fg"><label>${T('brk')}</label><input type="number" inputmode="numeric" min="0" id="b_${dt}" value="${x?.breakMin||0}"></div></div>
+  <div class="fg"><label>${T('note')}</label><input id="n_${dt}" value="${esc(x?.note||'')}"></div><div class="acts"><button class="bp" data-saveday="${dt}">${T('save')}</button>${x?`<button class="bs" data-clearday="${dt}">${T('clear')}</button>`:''}</div></div></div>`;
+ }
+ return h+`<div class="tot"><span>${T('totalWork')}</span><span>${hm(DATA.totalMinutes)}</span></div>`;
+}
+function expView(){
+ let h='';
+ if(!locked()&&!EXPFORM)h+=`<button class="bp full" data-addexp style="margin-bottom:12px">${T('addExp')}</button>`;
+ if(EXPFORM&&!locked()){const f=EXPFORM,days=eachDay(DATA.sub.start_date,DATA.sub.end_date);
+  h+=`<div class="cd"><div class="row"><div class="fg"><label>${T('date')}<span class="req">*</span></label><select id="x_d">${days.map(d=>`<option value="${d}" ${d===f.date?'selected':''}>${dayLabel(d)}</option>`).join('')}</select></div>
+  <div class="fg"><label>${T('cat')}<span class="req">*</span></label><select id="x_c">${CATS.map(c=>`<option value="${c}" ${c===f.category?'selected':''}>${catName(c)}</option>`).join('')}</select></div></div>
+  <div class="fg"><label>${T('amount')}<span class="req">*</span></label><input id="x_a" type="number" inputmode="numeric" min="0" value="${f.amount??''}"></div>
+  <div class="fg"><label>${T('desc')}</label><input id="x_x" value="${esc(f.description||'')}"></div>
+  <div class="fg"><label>${T('note')}</label><input id="x_n" value="${esc(f.note||'')}"></div>
+  <div class="fg"><label>${T('photo')}<span class="req">*</span></label><div id="x_th">${(f.files||[]).map(x=>thumb(x,true)).join('')}</div><input id="x_f" type="file" accept="image/*,application/pdf" multiple style="margin-top:6px"></div>
+  <div class="acts"><button class="bp" data-saveexp>${T('save')}</button><button class="bs" data-cancelexp>${T('cancel')}</button>${f.id?`<button class="bd" data-delexp="${f.id}">${T('del')}</button>`:''}</div></div>`;}
+ for(const e of DATA.expenses){
+  if(EXPFORM&&EXPFORM.id===e.id)continue;
+  h+=`<div class="ex" ${locked()?'':`data-editexp="${e.id}" style="cursor:pointer"`}><div class="l1"><span>${dayLabel(e.date)} ${esc(catName(e.category))}</span><span>${yen(e.amount)}</span></div><div class="l2">${esc(e.description)} ${esc(e.note)}</div>${e.files.map(f=>thumb(f)).join('')}${e.files.length?'':`<div class="l2" style="color:var(--no)">${T('ck_rcpt')}</div>`}</div>`;
+ }
+ if(!DATA.expenses.length&&!EXPFORM)h+=`<div class="empty">—</div>`;
+ return h+`<div class="tot"><span>${T('totalExp')}</span><span>${yen(DATA.totalExpense)}</span></div>`;
+}
+function subView(){
+ const s=DATA.sub,b=blockers(),dis=locked()?'disabled':'';
+ return `<div class="cd"><h3>${T('guide')}</h3>
+ <div class="fg"><label>${T('gname')}<span class="req">*</span></label><input id="p_n" value="${esc(s.guide_name)}" ${dis}></div>
+ <div class="fg"><label>${T('phone')}</label><input id="p_p" value="${esc(s.guide_phone)}" inputmode="tel" ${dis}></div>
+ <div class="row"><div class="fg"><label>${T('start')}</label><input type="date" id="p_s" value="${s.start_date}" ${dis}></div><div class="fg"><label>${T('end')}</label><input type="date" id="p_e" value="${s.end_date}" ${dis}></div></div>
+ <div class="fg"><label>${T('bank')}</label><textarea id="p_b" placeholder="${esc(T('bankPh'))}" ${dis}>${esc(s.bank)}</textarea></div>
+ <div class="fg"><label>${T('inv')}</label><input id="p_i" value="${esc(s.invoice_no)}" placeholder="${T('invPh')}" ${dis}></div></div>
+ <div class="cd"><h3>${T('tabSubmit')}</h3>
+ ${[[T('ck_days'),DATA.days.length>0],[T('ck_time'),DATA.days.length>0&&!DATA.days.some(x=>x.minutes==null)],[T('ck_rcpt'),!DATA.expenses.some(e=>!e.files.length)]].map(([t,ok])=>`<div class="chk ${ok?'ok':'no'}">${ok?'✓':'✗'} ${t}</div>`).join('')}
+ <div class="acts"><button class="bp" data-submit ${locked()||b.length?'disabled':''}>${T('submit')}</button></div></div>`;
+}
+async function saveProfile(){
+ const s=DATA.sub;
+ await api('/g/me',{method:'PUT',token:TOKEN,body:{guideName:$('#p_n').value,guidePhone:$('#p_p').value,startDate:$('#p_s').value,endDate:$('#p_e').value,bank:$('#p_b').value,invoiceNo:$('#p_i').value,lang:L}});
+}
+app.addEventListener('click',async ev=>{
+ const t=ev.target.closest('button,[data-tog],[data-editexp]');if(!t)return;
+ try{
+ if(t.dataset.t){TAB=t.dataset.t;EXPFORM=null;render();scrollTo(0,0);return}
+ if(t.dataset.tog){const d=t.dataset.tog;OPEN.has(d)?OPEN.delete(d):OPEN.add(d);render();return}
+ if(t.dataset.saveday){const d=t.dataset.saveday,st=$('#s_'+d).value,en=$('#e_'+d).value;
+  if(!!st!==!!en){toast(L==='ja'?'開始と終了の両方を入力してください':'Enter both start and end',1);return}
+  await api('/g/days',{method:'PUT',token:TOKEN,body:{date:d,startTime:st,endTime:en,breakMin:parseInt($('#b_'+d).value||'0',10)||0,note:$('#n_'+d).value}});
+  OPEN.delete(d);toast(T('saved'));await load();return}
+ if(t.dataset.clearday){if(!confirm(T('confirmClear')))return;await api('/g/days/'+t.dataset.clearday,{method:'DELETE',token:TOKEN});OPEN.delete(t.dataset.clearday);await load();return}
+ if('addexp' in t.dataset){EXPFORM={date:DATA.sub.start_date,category:'transport'};render();return}
+ if(t.dataset.editexp){const e=DATA.expenses.find(x=>x.id===t.dataset.editexp);EXPFORM={...e};render();return}
+ if('cancelexp' in t.dataset){EXPFORM=null;render();return}
+ if(t.dataset.delexp){if(!confirm(T('confirmDel')))return;await api('/g/exp/'+t.dataset.delexp,{method:'DELETE',token:TOKEN});EXPFORM=null;toast(T('deleted'));await load();return}
+ if(t.dataset.del){if(!confirm(T('confirmDel')))return;await api('/g/file/'+t.dataset.del,{method:'DELETE',token:TOKEN});const f=EXPFORM;await load();if(f){EXPFORM=DATA.expenses.find(x=>x.id===f.id)||null;render()}return}
+ if('saveexp' in t.dataset){
+  const body={date:$('#x_d').value,category:$('#x_c').value,amount:parseInt($('#x_a').value,10),description:$('#x_x').value,note:$('#x_n').value};
+  if(!Number.isInteger(body.amount)||body.amount<0){toast(L==='ja'?'金額を入力してください':'Enter the amount',1);return}
+  const files=[...$('#x_f').files];if(!files.length&&!(EXPFORM.files||[]).length){toast(T('ck_rcpt'),1);return}
+  t.disabled=true;t.textContent=T('busy');
+  let id=EXPFORM.id;
+  if(id)await api('/g/exp/'+id,{method:'PUT',token:TOKEN,body});else id=(await api('/g/exp',{method:'POST',token:TOKEN,body})).id;
+  try{for(const f of files){const fd=new FormData();fd.append('expId',id);fd.append('file',await compress(f));await api('/g/upload',{method:'POST',token:TOKEN,form:fd})}}
+  catch(e){toast(e.message,1);await load();EXPFORM=DATA.expenses.find(x=>x.id===id)||null;render();return}
+  EXPFORM=null;toast(T('saved'));await load();return}
+ if('submit' in t.dataset){
+  if(!confirm(T('confirmSubmit')))return;t.disabled=true;
+  await saveProfile();await api('/g/submit',{method:'POST',token:TOKEN});toast(T('saved'));await load();scrollTo(0,0);return}
+ }catch(e){toast(e.message,1);if(t.tagName==='BUTTON')t.disabled=false}
+});
+app.addEventListener('change',ev=>{if(ev.target.id&&ev.target.id.startsWith('p_')&&!locked()){saveProfile().then(()=>toast(T('saved'))).catch(e=>toast(e.message,1))}});
+if(TOKEN)load();else startView();
+</script></body></html>
