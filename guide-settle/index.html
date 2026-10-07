@@ -65,7 +65,7 @@ function render(){
 }
 function hoursView(){
  const map=Object.fromEntries(DATA.days.map(d=>[d.date,d]));
- let h='';
+ let h=`<div class="muted" style="margin:0 2px 10px">${T('gapHint')}</div>`;
  for(const dt of eachDay(DATA.sub.start_date,DATA.sub.end_date)){
   const x=map[dt],w=wdOf(dt),open=OPEN.has(dt)&&!locked();
   h+=`<div class="day ${x?'done':''} ${open?'open':''}" data-d="${dt}"><div class="hd" data-tog="${dt}"><b class="${w===6?'sat':w===0?'sun':''}">${dayLabel(dt)}</b><span class="v">${x?`${x.startTime||''}${x.startTime?' → ':''}${x.endTime||''}`:''}</span><span class="m">${x&&x.minutes!=null?hmT(x.minutes):''}</span></div>
