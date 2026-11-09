@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>マイクロバスのご案内</title>
+<style>
+  :root{
+    --cream:#f8f3ea;      /* 全体背景：暖かいクリーム */
+    --sand:#efe4d0;       /* セクション地色 */
+    --gold:#c9a45c;       /* 差し色：ゴールド */
+    --brown:#8b6e4e;      /* ロゴの茶 */
+    --ink:#1f2a3a;        /* 見出し：画像タイトルと同じ濃紺 */
+    --text:#4a4036;       /* 本文 */
+  }
+  body{margin:0;background:var(--cream);font-family:Hiragino Sans,Arial,'Yu Gothic',sans-serif;color:var(--text);}
+  .mail{width:600px;max-width:100%;margin:0 auto;background:var(--cream);}
+
+  /* ①+② HEADER / HERO：ロゴ・車名入りの1枚画像 */
+  .hero{margin:0;padding:0;line-height:0;}
+  .hero img{display:block;width:100%;height:auto;}
+  .hero-sub{padding:22px 32px 26px;text-align:center;background:linear-gradient(180deg,var(--cream) 0%,var(--sand) 100%);border-bottom:1px solid #e3d5bc;}
+  .hero-sub .label{display:inline-block;font-size:10.5px;letter-spacing:.32em;color:var(--brown);font-weight:700;margin-bottom:10px;}
+  .hero-sub .label:before,.hero-sub .label:after{content:'';display:inline-block;width:22px;height:1px;background:var(--gold);vertical-align:middle;margin:0 10px;}
+  .hero-sub h1{margin:0 0 8px;font-size:17px;line-height:1.6;color:var(--ink);font-weight:700;letter-spacing:.04em;}
+  .hero-sub p{margin:0;font-size:12.5px;line-height:1.75;color:var(--text);}
+
+  /* ③ PRICE：シンプルな2枚の料金カード */
+  .price{padding:36px 32px 34px;background:var(--cream);text-align:center;}
+  .price .label{display:block;font-size:10.5px;letter-spacing:.32em;color:var(--brown);font-weight:700;margin-bottom:8px;}
+  .price h2{margin:0 0 24px;font-size:16px;line-height:1.5;color:var(--ink);font-weight:700;letter-spacing:.04em;}
+  .price-cards{display:flex;gap:16px;}
+  .card{flex:1;min-width:0;background:#fff;border:1px solid #e6d9c0;border-top:3px solid var(--gold);padding:22px 12px 20px;}
+  .card .port{font-size:11px;letter-spacing:.22em;color:var(--brown);font-weight:700;margin:0 0 4px;}
+  .card .route{font-size:12px;color:var(--text);margin:0 0 14px;}
+  .card .yen{font-size:30px;line-height:1;color:var(--ink);font-weight:700;letter-spacing:.01em;margin:0 0 8px;}
+  .card .allin{display:inline-block;font-size:10px;letter-spacing:.24em;color:#fff;background:var(--gold);padding:3px 10px;font-weight:700;}
+  .price .note{margin:18px 0 14px;font-size:11px;color:#6f6459;line-height:1.6;}
+  .price .cta{display:inline-block;font-size:12px;color:var(--ink);text-decoration:none;border-bottom:1px solid var(--gold);padding-bottom:2px;letter-spacing:.06em;}
+
+  @media (max-width:560px){
+    .hero-sub{padding:18px 20px 22px;}
+    .price{padding:28px 20px 26px;}
+    .card .yen{font-size:24px;}
+    .price-cards{gap:10px;}
+    .hero-sub h1{font-size:15px;}
+    .hero-sub p{font-size:12px;}
+  }
+
+  .priceA{background:linear-gradient(180deg,#f1e6d1 0%,#e8d9bd 100%);color:var(--text);padding:40px 32px 38px;text-align:center;}
+  .priceA .label{display:block;font-size:10.5px;letter-spacing:.34em;color:var(--gold);font-weight:700;margin-bottom:8px;}
+  .priceA h2{margin:0 0 30px;font-size:16px;font-weight:700;letter-spacing:.06em;color:var(--ink);}
+  .priceA table{width:100%;border-collapse:collapse;}
+  .priceA td{width:50%;vertical-align:top;padding:0 18px;}
+  .priceA td+td{border-left:1px solid rgba(139,110,78,.35);}
+  .priceA .port{margin:0 0 4px;font-size:12px;letter-spacing:.26em;color:var(--brown);font-weight:700;}
+  .priceA .route{margin:0 0 16px;font-size:12px;color:#6f6459;}
+  .priceA .yen{margin:0 0 8px;font-size:34px;line-height:1;font-weight:700;color:#8b6e4e;letter-spacing:.01em;}
+  .priceA .allin{font-size:10px;letter-spacing:.28em;color:var(--ink);font-weight:700;}
+  .priceA .note{margin:30px 0 16px;font-size:13px;font-weight:700;color:#5a4a3a;}
+  .priceA .cta{display:inline-block;font-size:12px;color:#fff;background:var(--brown);text-decoration:none;border:1px solid var(--brown);padding:9px 26px;letter-spacing:.1em;}
+  @media (max-width:560px){.priceA{padding:30px 18px;} .priceA .yen{font-size:26px;} .priceA td{padding:0 10px;}}
+
+
+  /* ④ SHOWCASE：色を切り替え（クリーム→オフホワイト） */
+  .show{background:#fbf7ef;border-top:1px solid #e3d5bc;padding:38px 32px 40px;}
+  .show .label{display:block;font-size:10.5px;letter-spacing:.34em;color:var(--brown);font-weight:700;margin-bottom:8px;}
+  .show h2{margin:0 0 22px;font-size:18px;line-height:1.55;color:var(--ink);font-weight:700;letter-spacing:.04em;}
+  .show img{display:block;width:100%;height:100%;object-fit:cover;}
+  .show figure{margin:0;}
+  .show figcaption{font-size:10.5px;letter-spacing:.18em;color:var(--brown);font-weight:700;margin-top:8px;}
+  .show .copy{margin:26px 0 0;font-size:12.5px;line-height:1.9;color:var(--text);}
+  .show .copy strong{display:block;font-size:15px;color:var(--ink);margin-bottom:8px;letter-spacing:.03em;}
+
+  .v1 .main{height:340px;}
+  .v1 .pair{display:flex;gap:14px;margin-top:14px;}
+  .v1 .pair figure{flex:1;min-width:0;} .v1 .pair .ph{height:170px;}
+  @media (max-width:560px){.show{padding:28px 20px;} .v1 .main{height:220px;} .v1 .pair .ph{height:120px;}}
+
+  .fleet{padding:34px 32px 36px;}
+  .fleet .brand{display:block;font-size:10.5px;letter-spacing:.34em;color:var(--brown);font-weight:700;margin-bottom:6px;}
+  .fleet h2{margin:0 0 20px;font-size:15px;color:var(--ink);font-weight:700;letter-spacing:.04em;}
+  .fleet .icons{display:flex;flex-wrap:wrap;}
+  .fleet figure{margin:0;flex:0 0 50%;min-width:0;box-sizing:border-box;}
+  .fleet img{display:block;width:100%;height:auto;}
+  .fleet .copy{margin:18px 0 0;font-size:11.5px;line-height:1.8;color:var(--text);}
+  @media (max-width:560px){.fleet{padding:26px 16px;}}
+
+  .g3{background:#fffdf9;text-align:left;}
+  .g3 .box{border:1px solid #c9b48f;padding:22px 24px;}
+  .g3 .row{display:flex;gap:20px;align-items:center;}
+  .g3 .head{flex:0 0 150px;}
+  .g3 h2{margin:0;font-size:14px;line-height:1.55;}
+  .g3 .head:after{content:'';display:block;width:28px;height:2px;background:var(--gold);margin-top:12px;}
+  .g3 .icons{flex:1;gap:8px 10px;}
+  .g3 figure{flex:0 0 calc(50% - 5px);}
+  .g3 .copy{margin-top:16px;padding-top:14px;border-top:1px dashed #d9c9a8;}
+  @media (max-width:560px){.g3 .row{display:block;} .g3 .head{margin-bottom:14px;}}
+
+  /* ⑦ FOOTER：トップと同じ暖色地＋浮かせた署名カード（スキー版と同構成） */
+  .contact{position:relative;padding:44px 42px;background:linear-gradient(180deg,#f1e6d1 0%,#e8d9bd 100%);text-align:center;color:#3f3127;}
+  .contact-inner{padding:20px 24px;background:rgba(255,253,248,.78);border:1px solid rgba(167,128,91,.50);box-shadow:0 14px 28px rgba(80,60,30,.16);}
+  .contact b{display:block;font-size:13px;font-weight:700;letter-spacing:.35px;color:var(--ink);}
+  .contact-signature{display:flex;align-items:center;justify-content:center;gap:16px;margin:10px auto 11px;}
+  .contact-signature img{display:block;width:104px;height:104px;border-radius:50%;object-fit:cover;flex:0 0 104px;}
+  .signature-name{min-width:0;text-align:left;font-size:12px;font-weight:700;line-height:1.55;}
+  .contact-info{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr);border-top:1px solid rgba(139,110,78,.35);padding-top:10px;}
+  .contact-info p{min-width:0;margin:0;padding:0 10px;font-size:10px;font-weight:600;line-height:1.5;text-align:left;overflow-wrap:anywhere;word-break:break-word;}
+  .contact-info p+p{border-left:1px solid rgba(139,110,78,.28);}
+  .contact a{color:#3f3127;text-decoration:underline;overflow-wrap:anywhere;}
+  @media (max-width:560px){.contact{padding:28px 18px;} .contact-inner{padding:16px 14px;} .contact-signature img{width:92px;height:92px;flex-basis:92px;} .signature-name{font-size:10px;} .contact-info{display:block;} .contact-info p{padding:6px 0;font-size:9.5px;text-align:center;} .contact-info p+p{border-left:0;border-top:1px solid rgba(139,110,78,.22);}}
+
+
+  .contact-info.r1{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid rgba(139,110,78,.35);padding-top:14px;text-align:left;}
+  .r1 .col{padding:0 14px;display:flex;flex-direction:column;justify-content:center;gap:8px;}
+  .r1 .col+.col{border-left:1px solid rgba(139,110,78,.28);}
+  .r1 .icons{display:flex;gap:10px;}
+  .r1 .icons img{display:block;width:30px;height:30px;border-radius:7px;box-shadow:0 1px 3px rgba(80,60,30,.25);}
+  .r1 p{margin:0;font-size:10.5px;font-weight:600;line-height:1.6;overflow-wrap:anywhere;}
+  @media (max-width:560px){.contact-info.r1{display:block;} .r1 .col{padding:6px 0;align-items:center;text-align:center;} .r1 .col+.col{border-left:0;border-top:1px solid rgba(139,110,78,.22);}}
+.r1 .col{justify-content:flex-start;gap:8px;padding-top:2px;padding-bottom:2px}.r1 .col+.col{display:flex;flex-direction:column;justify-content:space-between;gap:0}.r1 .col+.col p{line-height:1.5}.r1 .col+.col p+p{margin-top:0}</style>
+<style>
+  .priceA .bus-copy{margin:0;font-size:12.5px;line-height:1.75;font-weight:400;color:var(--text);}
+</style>
+</head>
+<body>
+<div class="mail">
+
+  <!-- ①+② HEADER｜HERO -->
+  <section class="hero">
+    <img src="assets/bus-hero-fuji-autumn.png" alt="木の子交通株式会社 NEW FLEET マイクロバス3台、新たに導入。">
+  </section>
+
+  <!-- ③ PRICE A：ウォームサンド -->
+  <section class="priceA concept-A" style="background:linear-gradient(135deg,#fff3df 0%,#f0d7b3 100%);border-top:4px solid #c38b42;padding:36px 32px 38px;text-align:left;color:#513821;">
+    <h2 style="margin:0 0 24px;padding:4px 0 4px 15px;border-left:4px solid #b77329;font-size:21px;line-height:1.6;letter-spacing:.025em;color:#513821;font-weight:700;">マイクロバスの常識を、変える。</h2>
+    <p class="bus-copy" style="margin:0 0 9px;font-size:15px;line-height:1.9;color:#87501f;font-weight:700;">「古い」「狭い」「移動するだけ」。</p>
+    <p class="bus-copy" style="margin:0;font-size:13.5px;line-height:1.95;color:#513f2d;font-weight:400;">そんな従来のマイクロバスのイメージを変えたい。</p>
+    <p class="bus-copy" style="margin:0;font-size:13.5px;line-height:1.95;color:#513f2d;font-weight:400;">私たちは、車両・空間・清潔感・接客・予約対応、そのすべてを見直し、</p>
+    <p class="bus-copy" style="margin:0;font-size:13.5px;line-height:1.95;color:#513f2d;font-weight:400;">ハイヤー品質のサービスを取り入れた、新しいマイクロバスのかたちを目指しています。</p>
+  </section>
+
+
+
+  <!-- ④ SHOWCASE V1：1大+2小 -->
+  <section class="show v1">
+    <span class="label">VEHICLE SHOWCASE</span>
+    <h2>マイクロバス 実車のご紹介</h2>
+    <figure><div class="ph main"><img src="assets/bus-exterior.png" alt="マイクロバス 外観"></div><figcaption>EXTERIOR</figcaption></figure>
+    <div class="pair">
+      <figure><div class="ph"><img src="assets/bus-interior.png" alt="車内"></div><figcaption>INTERIOR</figcaption></figure>
+      <figure><div class="ph"><img src="assets/bus-luggage.png" alt="ラゲッジスペース"></div><figcaption>LUGGAGE SPACE</figcaption></figure>
+    </div>
+  </section>
+
+  <!-- ⑥ FLEET G3：白＋茶枠・左見出し -->
+  <section class="fleet g3">
+    <div class="box">
+      <div class="row">
+        <div class="head"><span class="brand">KINOKO TRANSPORT</span><h2>ご旅程に合わせた<br>車両手配を。</h2></div>
+        <div class="icons">
+      <figure><img src="assets/fleet-icon-vclass.png" alt="V-Class"></figure>
+      <figure><img src="assets/fleet-icon-alphard.png" alt="Alphard"></figure>
+      <figure><img src="assets/fleet-icon-granace.png" alt="Granace"></figure>
+      <figure><img src="assets/fleet-icon-hiace.png" alt="Hiace"></figure>
+      <figure><img src="assets/fleet-icon-s580.png" alt="BENZ S580"></figure>
+        </div>
+      </div>
+      <p class="copy">空港送迎・都内送迎・時間制チャーター・VIP対応など、<br>1台からお気軽にご相談ください。</p>
+    </div>
+  </section>
+
+  <!-- ⑦ FOOTER -->
+  <footer class="contact">
+    <div class="contact-inner">
+      <b>旅行会社様専用｜お見積り・空車確認</b>
+      <div class="contact-signature">
+        <img src="assets/yuma-okamura-signature.png" alt="Yuma Okamura">
+        <div class="signature-name">木の子交通株式会社<br>セールスマネージャー：岡村 悠真</div>
+      </div>
+      <div class="contact-info r1">
+        <div class="col">
+          <div class="icons">
+            <a href="https://www.instagram.com/kinokotransportation?stkn=YnBkYThqbG5wYjE3&utm_source=qr" target="_blank"><img src="assets/icon-instagram.png" alt="Instagram"></a>
+            <a href="https://line.me/R/ti/p/%40749fdqdh" target="_blank"><img src="assets/icon-line.png" alt="LINE"></a>
+            <a href="mailto:kinokogroup7697@gmail.com"><img src="assets/icon-mail.png" alt="Email"></a>
+          </div>
+          <p>予約専用：<a href="mailto:kinokogroup7697@gmail.com">kinokogroup7697@gmail.com</a></p>
+        </div>
+        <div class="col">
+          <p>電話：<a href="tel:0368688565">03-6868-8565</a></p>
+          <p>公式サイト：<br><a href="https://kinoko-group.co.jp" target="_blank">https://kinoko-group.co.jp</a></p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+
+</div>
+</body>
+</html>
